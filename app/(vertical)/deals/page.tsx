@@ -1,9 +1,24 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Nav } from "@/components/nav";
 import { AdBetweenContent } from "@/components/ad-slot";
 import { supabase } from "@/lib/supabase";
-import { getSiteVertical } from "@/lib/site";
+import { getSiteVertical, getSiteBrand } from "@/lib/site";
 import { getSavings } from "@/lib/gw-rrp";
+
+export function generateMetadata(): Metadata {
+  const brand = getSiteBrand();
+  const config = getSiteVertical();
+  return {
+    title: "Deals & Price Comparison",
+    description: config.dealsDescription,
+    openGraph: {
+      title: `Deals & Price Comparison | ${brand.siteName}`,
+      description: config.dealsDescription,
+    },
+    twitter: { card: "summary_large_image" },
+  };
+}
 
 // ---------------------------------------------------------------------------
 // Types

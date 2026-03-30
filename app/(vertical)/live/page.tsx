@@ -1,7 +1,22 @@
+import type { Metadata } from "next";
 import { Nav } from "@/components/nav";
 import { AdBetweenContent } from "@/components/ad-slot";
 import { supabase } from "@/lib/supabase";
-import { getSiteVertical } from "@/lib/site";
+import { getSiteVertical, getSiteBrand } from "@/lib/site";
+
+export function generateMetadata(): Metadata {
+  const brand = getSiteBrand();
+  const config = getSiteVertical();
+  return {
+    title: "Live Streams",
+    description: config.liveDescription,
+    openGraph: {
+      title: `Live Streams | ${brand.siteName}`,
+      description: config.liveDescription,
+    },
+    twitter: { card: "summary_large_image" },
+  };
+}
 
 // ---------------------------------------------------------------------------
 // Types

@@ -1,9 +1,13 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Nav } from "@/components/nav";
 import { AdSidebar } from "@/components/ad-slot";
+import { JsonLd } from "@/components/json-ld";
+import { RelatedVideos } from "@/components/related-videos";
 import { supabase } from "@/lib/supabase";
-import { getSiteVertical } from "@/lib/site";
+import { getSiteVertical, getSiteBrand } from "@/lib/site";
+import { videoSchema, breadcrumbSchema } from "@/lib/structured-data";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -69,6 +73,54 @@ function formatViews(count: number): string {
 }
 
 // ---------------------------------------------------------------------------
+// Metadata
+// ---------------------------------------------------------------------------
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ videoId: string }>;
+}): Promise<Metadata> {
+  const { videoId } = await params;
+  const brand = getSiteBrand();
+
+  const { data: report } = await supabase
+    .from("battle_reports")
+    .select(
+      `title, description,
+       channels ( name ),
+       content_lists ( categories ( name ), total_points )`,
+    )
+    .eq("youtube_video_id", videoId)
+    .single();
+
+  if (!report) return { title: "Video Not Found" };
+
+  const r = report as any;
+  const factions = [
+    ...new Set(
+      (r.content_lists ?? [])
+        .map((l: any) => l.categories?.name)
+        .filter(Boolean),
+    ),
+  ] as string[];
+  const points = r.content_lists?.[0]?.total_points ?? "";
+  const factionStr = factions.length >= 2 ? `${factions[0]} vs ${factions[1]}` : factions[0] ?? "";
+  const desc = `Watch ${r.title} by ${r.channels?.name ?? "Unknown"}${factionStr ? ` \u2014 ${factionStr}` : ""}${points ? ` at ${points}pts` : ""}`;
+
+  return {
+    title: r.title,
+    description: desc,
+    openGraph: {
+      title: `${r.title} | ${brand.siteName}`,
+      description: desc,
+      type: "video.other",
+    },
+    twitter: { card: "summary_large_image" },
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Page
 // ---------------------------------------------------------------------------
 
@@ -109,8 +161,39 @@ export default async function VideoDetailPage({
     list.list_items?.sort((a, b) => a.sort_order - b.sort_order);
   }
 
+  // Collect unique category slugs, then resolve to IDs for the related videos query
+  const uniqueCategorySlugs = [
+    ...new Set(
+      (battleReport.content_lists ?? [])
+        .map((l) => l.categories?.slug)
+        .filter(Boolean) as string[],
+    ),
+  ];
+
+  const categoryIdsForRelated: string[] = [];
+  if (uniqueCategorySlugs.length > 0) {
+    const { data: cats } = await supabase
+      .from("categories")
+      .select("id")
+      .in("slug", uniqueCategorySlugs);
+    if (cats) {
+      categoryIdsForRelated.push(...cats.map((c) => c.id));
+    }
+  }
+
+  const brand = getSiteBrand();
+  const baseUrl = `https://${brand.domain}`;
+
   return (
     <>
+      <JsonLd data={videoSchema(battleReport)} />
+      <JsonLd
+        data={breadcrumbSchema([
+          { name: "Home", url: baseUrl },
+          { name: "Watch", url: `${baseUrl}/watch` },
+          { name: battleReport.title, url: `${baseUrl}/watch/${battleReport.youtube_video_id}` },
+        ])}
+      />
       <Nav active="watch" />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
         {/* Back link */}
@@ -316,6 +399,11 @@ export default async function VideoDetailPage({
             <AdSidebar className="mt-4" />
           </div>
         </div>
+        {/* Related videos */}
+        <RelatedVideos
+          currentVideoId={battleReport.youtube_video_id}
+          categoryIds={categoryIdsForRelated}
+        />
       </main>
     </>
   );

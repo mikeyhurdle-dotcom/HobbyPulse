@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { Nav } from "@/components/nav";
+import { JsonLd } from "@/components/json-ld";
 import { getSiteVertical, getSiteBrand } from "@/lib/site";
+import { websiteSchema } from "@/lib/structured-data";
 
 // ---------------------------------------------------------------------------
 // Home / Vertical Landing Page
@@ -33,6 +35,7 @@ export default function HomePage() {
 
   return (
     <>
+      <JsonLd data={websiteSchema()} />
       <Nav active="" />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
         {/* Header */}

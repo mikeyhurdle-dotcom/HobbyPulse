@@ -1,8 +1,23 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Nav } from "@/components/nav";
 import { AdBetweenContent } from "@/components/ad-slot";
 import { supabase } from "@/lib/supabase";
-import { getSiteVertical } from "@/lib/site";
+import { getSiteVertical, getSiteBrand } from "@/lib/site";
+
+export function generateMetadata(): Metadata {
+  const brand = getSiteBrand();
+  const config = getSiteVertical();
+  return {
+    title: `Watch Battle Reports`,
+    description: config.watchDescription,
+    openGraph: {
+      title: `Watch Battle Reports | ${brand.siteName}`,
+      description: config.watchDescription,
+    },
+    twitter: { card: "summary_large_image" },
+  };
+}
 
 // ---------------------------------------------------------------------------
 // Types

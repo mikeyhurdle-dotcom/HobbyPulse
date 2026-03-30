@@ -1,10 +1,13 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Nav } from "@/components/nav";
 import { PriceAlertForm } from "@/components/price-alert-form";
+import { JsonLd } from "@/components/json-ld";
 import { supabase } from "@/lib/supabase";
-import { getSiteVertical } from "@/lib/site";
+import { getSiteVertical, getSiteBrand } from "@/lib/site";
 import { getSavings } from "@/lib/gw-rrp";
 import { wrapAffiliateUrl } from "@/lib/affiliate";
+import { productSchema, breadcrumbSchema } from "@/lib/structured-data";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -81,6 +84,63 @@ function timeAgo(dateStr: string | null): string {
 }
 
 // ---------------------------------------------------------------------------
+// Metadata
+// ---------------------------------------------------------------------------
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ productSlug: string }>;
+}): Promise<Metadata> {
+  const { productSlug } = await params;
+  const brand = getSiteBrand();
+  const config = getSiteVertical();
+
+  const { data: verticalRow } = await supabase
+    .from("verticals")
+    .select("id")
+    .eq("slug", config.slug)
+    .single();
+
+  const { data: rawProduct } = await supabase
+    .from("products")
+    .select("name, rrp_pence, listings ( price_pence, source )")
+    .eq("vertical_id", verticalRow?.id ?? "")
+    .eq("slug", productSlug)
+    .single();
+
+  if (!rawProduct) return { title: "Product Not Found" };
+
+  const product = rawProduct as any;
+  const listings = product.listings ?? [];
+  const bestPrice = listings.reduce(
+    (best: number | null, l: any) =>
+      best === null || l.price_pence < best ? l.price_pence : best,
+    null,
+  );
+  const sourceCount = new Set(listings.map((l: any) => l.source)).size;
+  const rrp = product.rrp_pence;
+  const savingsPercent =
+    rrp && bestPrice && rrp > bestPrice
+      ? Math.round(((rrp - bestPrice) / rrp) * 100)
+      : null;
+
+  const priceStr = bestPrice !== null ? `\u00A3${(bestPrice / 100).toFixed(2)}` : "";
+  const desc = `Compare ${product.name} prices from ${sourceCount} source${sourceCount !== 1 ? "s" : ""}.${savingsPercent ? ` Save ${savingsPercent}% vs RRP.` : ""}`;
+
+  return {
+    title: `${product.name} \u2014 Best Price ${priceStr}`,
+    description: desc,
+    openGraph: {
+      title: `${product.name} \u2014 Best Price ${priceStr} | ${brand.siteName}`,
+      description: desc,
+      type: "website",
+    },
+    twitter: { card: "summary_large_image" },
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Page
 // ---------------------------------------------------------------------------
 
@@ -152,8 +212,19 @@ export default async function DealDetailPage({
 
   const relatedProducts = (rawRelated ?? []) as unknown as RelatedProduct[];
 
+  const brand = getSiteBrand();
+  const baseUrl = `https://${brand.domain}`;
+
   return (
     <>
+      <JsonLd data={productSchema(product, sortedListings)} />
+      <JsonLd
+        data={breadcrumbSchema([
+          { name: "Home", url: baseUrl },
+          { name: "Deals", url: `${baseUrl}/deals` },
+          { name: product.name, url: `${baseUrl}/deals/${product.slug}` },
+        ])}
+      />
       <Nav active="deals" />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
         {/* Breadcrumb */}
