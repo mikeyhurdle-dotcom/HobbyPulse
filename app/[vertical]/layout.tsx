@@ -1,7 +1,15 @@
-export default function VerticalLayout({
+export default async function VerticalLayout({
   children,
+  params,
 }: {
   children: React.ReactNode;
+  params: Promise<{ vertical: string }>;
 }) {
-  return <div className="min-h-screen">{children}</div>;
+  const { vertical } = await params;
+
+  return (
+    <div className="min-h-screen" data-vertical={vertical}>
+      {children}
+    </div>
+  );
 }

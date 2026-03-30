@@ -1,31 +1,92 @@
 import Link from "next/link";
 
 const tabs = [
-  { name: "Watch", href: "watch" },
-  { name: "Deals", href: "deals" },
-  { name: "Live", href: "live" },
+  { name: "Watch", href: "watch", icon: "▶" },
+  { name: "Deals", href: "deals", icon: "£" },
+  { name: "Live", href: "live", icon: "●" },
 ];
 
-export function Nav({ vertical, active }: { vertical: string; active: string }) {
-  return (
-    <nav className="border-b border-[var(--border)] bg-[var(--surface)]">
-      <div className="max-w-7xl mx-auto px-4 flex items-center justify-between h-14">
-        <Link href="/" className="font-bold text-lg tracking-tight">
-          HobbyPulse
-        </Link>
+const verticals = [
+  { slug: "warhammer", label: "40K" },
+  { slug: "simracing", label: "Sim Racing" },
+];
 
-        <div className="flex items-center gap-1">
-          {tabs.map((tab) => (
+export function Nav({
+  vertical,
+  active,
+}: {
+  vertical: string;
+  active: string;
+}) {
+  return (
+    <nav className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--background)]/80 backdrop-blur-xl">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+        {/* Top bar */}
+        <div className="flex items-center justify-between h-14">
+          <div className="flex items-center gap-4">
             <Link
-              key={tab.href}
-              href={`/${vertical}/${tab.href}`}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                active === tab.href
-                  ? "bg-[var(--accent)] text-white"
-                  : "text-[var(--muted)] hover:text-[var(--foreground)]"
+              href="/"
+              className="font-[family-name:var(--font-display)] font-bold text-lg tracking-tight hover:text-[var(--accent-light)] transition-colors"
+            >
+              HobbyPulse
+            </Link>
+
+            {/* Vertical switcher pills */}
+            <div className="hidden sm:flex items-center gap-1 rounded-lg bg-[var(--surface)] p-1">
+              {verticals.map((v) => (
+                <Link
+                  key={v.slug}
+                  href={`/${v.slug}/${active || "watch"}`}
+                  className={`px-3 py-1 rounded-md text-xs font-medium transition-all ${
+                    vertical === v.slug
+                      ? "bg-[var(--vertical-accent)] text-white shadow-sm"
+                      : "text-[var(--muted)] hover:text-[var(--foreground)]"
+                  }`}
+                >
+                  {v.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          {/* Tab navigation */}
+          <div className="flex items-center gap-1">
+            {tabs.map((tab) => (
+              <Link
+                key={tab.href}
+                href={`/${vertical}/${tab.href}`}
+                className={`relative px-3 sm:px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                  active === tab.href
+                    ? "bg-[var(--surface-raised)] text-[var(--foreground)]"
+                    : "text-[var(--muted)] hover:text-[var(--foreground)] hover:bg-[var(--surface)]"
+                }`}
+              >
+                <span className="sm:hidden text-xs mr-1">{tab.icon}</span>
+                <span>{tab.name}</span>
+                {active === tab.href && (
+                  <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-6 h-0.5 rounded-full bg-[var(--vertical-accent)]" />
+                )}
+                {tab.href === "live" && (
+                  <span className="ml-1.5 inline-block w-1.5 h-1.5 rounded-full bg-[var(--danger)] animate-pulse" />
+                )}
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        {/* Mobile vertical switcher */}
+        <div className="sm:hidden flex items-center gap-1 pb-2 -mt-1">
+          {verticals.map((v) => (
+            <Link
+              key={v.slug}
+              href={`/${v.slug}/${active || "watch"}`}
+              className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
+                vertical === v.slug
+                  ? "bg-[var(--vertical-accent)] text-white"
+                  : "bg-[var(--surface)] text-[var(--muted)]"
               }`}
             >
-              {tab.name}
+              {v.label}
             </Link>
           ))}
         </div>
