@@ -3,6 +3,7 @@ import { Syne, DM_Sans, IBM_Plex_Mono } from "next/font/google";
 import { getSiteVertical, getSiteBrand } from "@/lib/site";
 import { AdMobileFooter } from "@/components/ad-slot";
 import { Analytics } from "@/components/analytics";
+import { Footer } from "@/components/footer";
 import "./globals.css";
 
 const syne = Syne({
@@ -53,6 +54,7 @@ export default function RootLayout({
         }
       >
         {children}
+        <Footer />
         <AdMobileFooter />
         <Analytics />
       </body>

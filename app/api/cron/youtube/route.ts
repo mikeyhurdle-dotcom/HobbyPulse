@@ -100,8 +100,8 @@ export async function GET(request: NextRequest) {
         description: video.snippet.description,
         thumbnail_url: video.snippet.thumbnails.high?.url ?? video.snippet.thumbnails.medium?.url ?? null,
         published_at: video.snippet.publishedAt,
-        duration_seconds: parseDuration(video.contentDetails.duration),
-        view_count: parseInt(video.statistics.viewCount || "0", 10),
+        duration_seconds: parseDuration(video.contentDetails?.duration ?? "PT0S"),
+        view_count: parseInt(video.statistics?.viewCount || "0", 10),
       }));
 
       const { error: upsertError } = await supabase
