@@ -26,7 +26,8 @@ export interface ParsedList {
 // Prompt
 // ---------------------------------------------------------------------------
 
-const SYSTEM_PROMPT = `You are an expert Warhammer 40,000 army list parser. Your job is to extract structured army list data from YouTube video descriptions.
+const SYSTEM_PROMPTS: Record<string, string> = {
+  warhammer: `You are an expert Warhammer 40,000 army list parser. Your job is to extract structured army list data from YouTube video descriptions.
 
 Army lists can appear in several formats:
 - **BattleScribe** format: structured with headers like "++ Battalion Detachment ++", unit entries with point costs in brackets
@@ -53,7 +54,38 @@ IMPORTANT:
 - Many video descriptions do NOT contain army lists — they may just have social links, sponsor info, etc. Return [] in that case.
 - A list of unit names with points IS an army list. Random mentions of factions or units in prose are NOT.
 - Be strict about confidence: only return lists with confidence >= 0.3
-- Return ONLY valid JSON, no markdown code fences, no explanation.`;
+- Return ONLY valid JSON, no markdown code fences, no explanation.`,
+
+  simracing: `You are an expert sim racing content parser. Your job is to extract structured setup and hardware data from YouTube video descriptions.
+
+Content can include:
+- **Car setups**: sim, car, track, setup details (tyre pressures, camber, ride height, etc.)
+- **Hardware reviews**: product names, specs, prices mentioned
+- **Race results**: finishing positions, lap times, incidents
+
+For each structured data block you find, extract:
+1. **faction** — the sim/game name (e.g. "iRacing", "ACC", "F1 24") or hardware category (e.g. "Wheels", "Pedals")
+2. **detachment** — the car or product name (e.g. "Porsche 911 GT3 R", "Fanatec CSL DD")
+3. **units** — each detail/component with:
+   - name: the setting name or component (e.g. "Front Ride Height", "Brake Bias", "Wheelbase", "Pedals")
+   - qty: 1 (default)
+   - points: numeric value if applicable (0 otherwise)
+   - enhancements: any modifiers or notes
+   - wargear: any specific specs or options
+4. **total_points** — 0 (not applicable)
+5. **player_name** — the driver/reviewer name if mentioned
+6. **raw_text** — the raw text segment
+7. **confidence** — how confident you are this is structured content (0.0 to 1.0)
+
+Return a JSON array. If the description contains NO structured setup/hardware data, return [].
+
+IMPORTANT:
+- Many descriptions just have social links and sponsor info. Return [] for those.
+- Only extract genuine setup data, hardware specs, or race results — not casual mentions.
+- Return ONLY valid JSON, no markdown code fences, no explanation.`,
+};
+
+const DEFAULT_PROMPT = SYSTEM_PROMPTS.warhammer;
 
 // ---------------------------------------------------------------------------
 // Parser
@@ -61,15 +93,20 @@ IMPORTANT:
 
 const client = new Anthropic();
 
-export async function parseArmyList(description: string): Promise<ParsedList[]> {
+export async function parseArmyList(
+  description: string,
+  vertical: string = "warhammer",
+): Promise<ParsedList[]> {
   if (!description || description.trim().length < 20) {
     return [];
   }
 
+  const systemPrompt = SYSTEM_PROMPTS[vertical] ?? DEFAULT_PROMPT;
+
   const message = await client.messages.create({
     model: "claude-haiku-4-5-20251001",
     max_tokens: 4096,
-    system: SYSTEM_PROMPT,
+    system: systemPrompt,
     messages: [
       {
         role: "user",

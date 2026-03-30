@@ -93,10 +93,10 @@ export const verticals: Record<string, VerticalConfig> = {
   simracing: {
     slug: "simracing",
     name: "Sim Racing",
-    description: "Race replays, setup guides, wheels and rigs",
+    description: "Race replays, setup guides, wheels, pedals, and rigs",
     brand: {
       siteName: "SimPitStop",
-      tagline: "Race replays, setup guides, and hardware deals",
+      tagline: "Race replays, setup guides, and the best hardware deals",
       domain: "simpitstop.com",
     },
     theme: {
@@ -110,21 +110,45 @@ export const verticals: Record<string, VerticalConfig> = {
       "Aris Drives",
       "Coach Dave Academy",
       "Boosted Media",
+      "Dan Suzuki",
+      "Ermin Hamidovic",
+      "Sim Racing Garage",
+      "Chris Haye",
+      "Karl Gosling",
+      "Will Ford",
+      "Sim Racing Corner",
+      "Laurence Dusoswa",
     ],
     retailers: [
       { name: "Fanatec", url: "https://fanatec.com", affiliateParam: "ref" },
       { name: "Digital Motorsport", url: "https://digital-motorsports.com" },
+      { name: "Sim-Lab", url: "https://sim-lab.eu" },
+      { name: "Trak Racer", url: "https://trakracer.com", affiliateParam: "ref" },
+      { name: "Moza Racing", url: "https://mozaracing.com" },
+      { name: "Simagic", url: "https://simagic.com" },
       { name: "Amazon", url: "https://www.amazon.co.uk", affiliateParam: "tag" },
+      { name: "eBay", url: "https://www.ebay.co.uk", affiliateParam: "campid" },
     ],
-    categories: ["iRacing", "ACC", "LMU", "F1", "AC"],
+    categories: [
+      "iRacing",
+      "ACC",
+      "LMU",
+      "F1",
+      "AC",
+      "Wheels",
+      "Pedals",
+      "Rigs & Cockpits",
+      "Monitors & VR",
+      "Shifters & Handbrakes",
+    ],
     watchDescription:
-      "Race replays, setup guides, and tutorials from the community.",
+      "Race replays, setup guides, hardware reviews, and tutorials from the sim racing community.",
     dealsDescription:
-      "Compare prices on sim racing hardware — wheels, pedals, and rigs.",
+      "Compare prices on sim racing hardware — wheels, pedals, rigs, and monitors from all major retailers.",
     liveDescription:
       "Live sim racing streams from Twitch and YouTube — updated every 5 minutes.",
-    twitchGameIds: ["28080", "506438"],
-    liveSearchTerms: ["sim racing", "iracing", "acc"],
+    twitchGameIds: ["28080", "506438", "2067888735"],
+    liveSearchTerms: ["sim racing", "iracing", "acc", "assetto corsa", "f1 24"],
   },
 };
 

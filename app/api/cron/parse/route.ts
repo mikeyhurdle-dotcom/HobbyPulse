@@ -71,7 +71,7 @@ export async function GET(request: NextRequest) {
   // 2. Parse each report
   for (const report of reports) {
     try {
-      const lists = await parseArmyList(report.description ?? "");
+      const lists = await parseArmyList(report.description ?? "", siteVertical.slug);
 
       // Even if no lists found, mark as parsed so we don't retry
       const maxConfidence =

@@ -1,7 +1,7 @@
 // ---------------------------------------------------------------------------
-// Games Workshop RRP Baseline
+// RRP Baseline — manufacturer recommended retail prices
 // ---------------------------------------------------------------------------
-// Static lookup of GW recommended retail prices (in pence).
+// Static lookup of RRPs (in pence) for tabletop and sim racing products.
 // Used to calculate savings vs RRP for third-party retailer listings.
 // ---------------------------------------------------------------------------
 
@@ -12,10 +12,10 @@ interface RrpEntry {
 }
 
 // ---------------------------------------------------------------------------
-// RRP Table — popular kits (prices in pence, GBP)
+// Tabletop RRP Table — GW products (prices in pence, GBP)
 // ---------------------------------------------------------------------------
 
-const RRP_TABLE: RrpEntry[] = [
+const TABLETOP_RRP: RrpEntry[] = [
   // Combat Patrols
   { name: "Combat Patrol: Space Marines", rrpPence: 8500, keywords: ["combat patrol", "space marines"] },
   { name: "Combat Patrol: Orks", rrpPence: 8500, keywords: ["combat patrol", "orks"] },
@@ -58,6 +58,63 @@ const RRP_TABLE: RrpEntry[] = [
 ];
 
 // ---------------------------------------------------------------------------
+// Sim Racing RRP Table — hardware (prices in pence, GBP)
+// ---------------------------------------------------------------------------
+
+const SIMRACING_RRP: RrpEntry[] = [
+  // Fanatec Wheelbases
+  { name: "Fanatec CSL DD", rrpPence: 34995, keywords: ["csl dd", "fanatec csl"] },
+  { name: "Fanatec CSL DD Pro", rrpPence: 44995, keywords: ["csl dd pro"] },
+  { name: "Fanatec GT DD Pro", rrpPence: 59995, keywords: ["gt dd pro"] },
+  { name: "Fanatec ClubSport DD", rrpPence: 74995, keywords: ["clubsport dd"] },
+  { name: "Fanatec ClubSport DD+", rrpPence: 99995, keywords: ["clubsport dd+"] },
+
+  // Moza Wheelbases
+  { name: "Moza R5", rrpPence: 24999, keywords: ["moza r5"] },
+  { name: "Moza R9", rrpPence: 44999, keywords: ["moza r9"] },
+  { name: "Moza R12", rrpPence: 59999, keywords: ["moza r12"] },
+  { name: "Moza R16", rrpPence: 89999, keywords: ["moza r16"] },
+  { name: "Moza R21", rrpPence: 119999, keywords: ["moza r21"] },
+
+  // Simagic
+  { name: "Simagic Alpha Mini", rrpPence: 39999, keywords: ["simagic alpha mini"] },
+  { name: "Simagic Alpha", rrpPence: 74999, keywords: ["simagic alpha"] },
+  { name: "Simagic Alpha U", rrpPence: 109999, keywords: ["simagic alpha u"] },
+
+  // Fanatec Pedals
+  { name: "Fanatec CSL Pedals", rrpPence: 7995, keywords: ["csl pedals"] },
+  { name: "Fanatec CSL Pedals LC", rrpPence: 13995, keywords: ["csl pedals lc", "csl loadcell"] },
+  { name: "Fanatec ClubSport Pedals V3", rrpPence: 35995, keywords: ["clubsport pedals v3"] },
+
+  // Moza Pedals
+  { name: "Moza CRP Pedals", rrpPence: 19999, keywords: ["moza crp"] },
+  { name: "Moza SRP Pedals", rrpPence: 29999, keywords: ["moza srp"] },
+
+  // Wheels
+  { name: "Fanatec CSL Steering Wheel", rrpPence: 9995, keywords: ["csl steering wheel", "csl wheel"] },
+  { name: "Fanatec ClubSport RS", rrpPence: 29995, keywords: ["clubsport rs"] },
+  { name: "Moza ES Steering Wheel", rrpPence: 14999, keywords: ["moza es wheel"] },
+  { name: "Moza GS Steering Wheel", rrpPence: 19999, keywords: ["moza gs wheel"] },
+
+  // Rigs
+  { name: "Sim-Lab GT1 Evo", rrpPence: 49900, keywords: ["sim-lab gt1", "gt1 evo"] },
+  { name: "Sim-Lab P1-X", rrpPence: 59900, keywords: ["sim-lab p1-x", "p1-x"] },
+  { name: "Trak Racer TR160", rrpPence: 44900, keywords: ["trak racer tr160", "tr160"] },
+  { name: "Trak Racer TR80", rrpPence: 29900, keywords: ["trak racer tr80", "tr80"] },
+  { name: "Next Level Racing F-GT", rrpPence: 34999, keywords: ["f-gt", "next level racing"] },
+  { name: "Playseat Trophy", rrpPence: 49999, keywords: ["playseat trophy"] },
+
+  // Monitors
+  { name: "Samsung Odyssey G9", rrpPence: 99999, keywords: ["odyssey g9", "samsung g9"] },
+  { name: "Samsung Odyssey Neo G9", rrpPence: 179999, keywords: ["odyssey neo g9", "neo g9"] },
+  { name: "Dell AW3423DWF", rrpPence: 79999, keywords: ["aw3423dwf", "dell ultrawide"] },
+
+  // VR
+  { name: "Meta Quest 3", rrpPence: 47999, keywords: ["quest 3", "meta quest 3"] },
+  { name: "Pimax Crystal", rrpPence: 159999, keywords: ["pimax crystal"] },
+];
+
+// ---------------------------------------------------------------------------
 // Fuzzy match
 // ---------------------------------------------------------------------------
 
@@ -70,8 +127,11 @@ function normalise(str: string): string {
     .trim();
 }
 
+/** Combined RRP table — searched in order. */
+const RRP_TABLE: RrpEntry[] = [...TABLETOP_RRP, ...SIMRACING_RRP];
+
 /**
- * Look up the GW RRP for a product by name (fuzzy match).
+ * Look up the RRP for a product by name (fuzzy match).
  * Returns the price in pence, or null if no match found.
  */
 export function getGwRrp(productName: string): number | null {
