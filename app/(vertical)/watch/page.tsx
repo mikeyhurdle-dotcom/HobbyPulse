@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Nav } from "@/components/nav";
 import { supabase } from "@/lib/supabase";
-import { getVertical } from "@/lib/verticals";
+import { getSiteVertical } from "@/lib/site";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -66,21 +66,18 @@ function formatDuration(seconds: number): string {
 // ---------------------------------------------------------------------------
 
 export default async function WatchPage({
-  params,
   searchParams,
 }: {
-  params: Promise<{ vertical: string }>;
   searchParams: Promise<{ q?: string; faction?: string; sort?: string }>;
 }) {
-  const { vertical } = await params;
   const { q, faction, sort } = await searchParams;
-  const verticalConfig = getVertical(vertical);
+  const config = getSiteVertical();
 
   // Fetch the vertical_id
   const { data: verticalRow } = await supabase
     .from("verticals")
     .select("id")
-    .eq("slug", vertical)
+    .eq("slug", config.slug)
     .single();
 
   const verticalId = verticalRow?.id;
@@ -148,12 +145,11 @@ export default async function WatchPage({
 
   return (
     <>
-      <Nav vertical={vertical} active="watch" />
+      <Nav active="watch" />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
         <h1 className="text-3xl font-bold tracking-tight mb-2">Watch</h1>
         <p className="text-[var(--muted)] mb-6">
-          {verticalConfig?.watchDescription ??
-            "Videos and content from the community."}
+          {config.watchDescription}
         </p>
 
         {/* Filter bar */}
@@ -214,7 +210,7 @@ export default async function WatchPage({
               return (
                 <Link
                   key={report.id}
-                  href={`/${vertical}/watch/${report.youtube_video_id}`}
+                  href={`/watch/${report.youtube_video_id}`}
                   className="group rounded-xl border border-[var(--border)] bg-[var(--surface)] overflow-hidden hover:border-[var(--border-light)] hover:bg-[var(--surface-hover)] transition-all"
                 >
                   {/* Thumbnail */}

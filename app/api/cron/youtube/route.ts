@@ -5,6 +5,7 @@ import {
   getVideoDetails,
   parseDuration,
 } from "@/lib/youtube";
+import { getSiteVertical } from "@/lib/site";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -32,11 +33,24 @@ export async function GET(request: NextRequest) {
   }
 
   const supabase = getAdminClient();
+  const siteVertical = getSiteVertical();
 
-  // 1. Fetch all channels
+  // Look up the vertical ID for this deployment
+  const { data: verticalRow } = await supabase
+    .from("verticals")
+    .select("id")
+    .eq("slug", siteVertical.slug)
+    .single();
+
+  if (!verticalRow) {
+    return NextResponse.json({ error: `Vertical ${siteVertical.slug} not found in database` }, { status: 500 });
+  }
+
+  // 1. Fetch channels for this vertical only
   const { data: channels, error: channelsError } = await supabase
     .from("channels")
-    .select("id, vertical_id, youtube_channel_id, name");
+    .select("id, vertical_id, youtube_channel_id, name")
+    .eq("vertical_id", verticalRow.id);
 
   if (channelsError) {
     console.error("Failed to fetch channels:", channelsError);

@@ -13,10 +13,17 @@ export interface VerticalTheme {
   accentLight: string;
 }
 
+export interface VerticalBrand {
+  siteName: string;
+  tagline: string;
+  domain: string;
+}
+
 export interface VerticalConfig {
   slug: string;
   name: string;
   description: string;
+  brand: VerticalBrand;
   theme: VerticalTheme;
   channels: string[];
   retailers: VerticalRetailer[];
@@ -33,6 +40,11 @@ export const verticals: Record<string, VerticalConfig> = {
     slug: "warhammer",
     name: "Warhammer 40K",
     description: "Battle reports, army lists, and second-hand deals",
+    brand: {
+      siteName: "WarhammerWatch",
+      tagline: "Battle reports, army lists, and the best deals",
+      domain: "warhammerwatch.com",
+    },
     theme: {
       accent: "#7c3aed",
       accentLight: "#a78bfa",
@@ -82,6 +94,11 @@ export const verticals: Record<string, VerticalConfig> = {
     slug: "simracing",
     name: "Sim Racing",
     description: "Race replays, setup guides, wheels and rigs",
+    brand: {
+      siteName: "SimPitStop",
+      tagline: "Race replays, setup guides, and hardware deals",
+      domain: "simpitstop.com",
+    },
     theme: {
       accent: "#dc2626",
       accentLight: "#f87171",

@@ -3,7 +3,7 @@ User-agent: *
 Allow: /
 
 # Host
-Host: https://hobbypulse.vercel.app
+Host: https://warhammerwatch.com
 
 # Sitemaps
-Sitemap: https://hobbypulse.vercel.app/sitemap.xml
+Sitemap: https://warhammerwatch.com/sitemap.xml

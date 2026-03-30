@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Nav } from "@/components/nav";
 import { supabase } from "@/lib/supabase";
+import { getSiteVertical } from "@/lib/site";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -73,9 +74,10 @@ function formatViews(count: number): string {
 export default async function VideoDetailPage({
   params,
 }: {
-  params: Promise<{ vertical: string; videoId: string }>;
+  params: Promise<{ videoId: string }>;
 }) {
-  const { vertical, videoId } = await params;
+  const { videoId } = await params;
+  const config = getSiteVertical();
 
   const { data: report } = await supabase
     .from("battle_reports")
@@ -108,11 +110,11 @@ export default async function VideoDetailPage({
 
   return (
     <>
-      <Nav vertical={vertical} active="watch" />
+      <Nav active="watch" />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
         {/* Back link */}
         <Link
-          href={`/${vertical}/watch`}
+          href="/watch"
           className="inline-flex items-center gap-1.5 text-sm text-[var(--muted)] hover:text-[var(--foreground)] transition-colors mb-6"
         >
           <span>&larr;</span>
@@ -238,7 +240,7 @@ export default async function VideoDetailPage({
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex-1 min-w-0">
                             <Link
-                              href={`/${vertical}/deals?q=${encodeURIComponent(item.name)}`}
+                              href={`/deals?q=${encodeURIComponent(item.name)}`}
                               className="text-sm font-medium hover:text-[var(--vertical-accent-light)] transition-colors"
                             >
                               {item.quantity > 1 && (

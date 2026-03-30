@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Nav } from "@/components/nav";
 import { supabase } from "@/lib/supabase";
-import { getVertical } from "@/lib/verticals";
+import { getSiteVertical } from "@/lib/site";
 import { getSavings } from "@/lib/gw-rrp";
 
 // ---------------------------------------------------------------------------
@@ -63,25 +63,22 @@ function conditionColour(c: string): string {
 // ---------------------------------------------------------------------------
 
 export default async function DealsPage({
-  params,
   searchParams,
 }: {
-  params: Promise<{ vertical: string }>;
   searchParams: Promise<{
     q?: string;
     condition?: string;
     sort?: string;
   }>;
 }) {
-  const { vertical } = await params;
   const { q, condition, sort } = await searchParams;
-  const config = getVertical(vertical);
+  const config = getSiteVertical();
 
   // Get vertical ID
   const { data: verticalRow } = await supabase
     .from("verticals")
     .select("id")
-    .eq("slug", vertical)
+    .eq("slug", config.slug)
     .single();
 
   const verticalId = verticalRow?.id;
@@ -151,12 +148,11 @@ export default async function DealsPage({
 
   return (
     <>
-      <Nav vertical={vertical} active="deals" />
+      <Nav active="deals" />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
         <h1 className="text-3xl font-bold tracking-tight mb-2">Deals</h1>
         <p className="text-[var(--muted)] mb-6">
-          {config?.dealsDescription ??
-            "Compare prices across retailers and find the best deals."}
+          {config.dealsDescription}
         </p>
 
         {/* Filter bar */}
@@ -216,7 +212,7 @@ export default async function DealsPage({
             {sorted.map((product) => (
               <Link
                 key={product.id}
-                href={`/${vertical}/deals/${product.slug}`}
+                href={`/deals/${product.slug}`}
                 className="group rounded-xl border border-[var(--border)] bg-[var(--surface)] overflow-hidden hover:border-[var(--border-light)] hover:bg-[var(--surface-hover)] transition-all"
               >
                 {/* Product image */}

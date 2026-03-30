@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Syne, DM_Sans, IBM_Plex_Mono } from "next/font/google";
+import { getSiteVertical, getSiteBrand } from "@/lib/site";
 import "./globals.css";
 
 const syne = Syne({
@@ -18,21 +19,36 @@ const ibmPlexMono = IBM_Plex_Mono({
   variable: "--font-mono",
 });
 
-export const metadata: Metadata = {
-  title: "HobbyPulse",
-  description:
-    "Watch, compare, and save on your hobby — battle reports, deals, and live streams.",
-};
+export function generateMetadata(): Metadata {
+  const brand = getSiteBrand();
+
+  return {
+    title: {
+      default: brand.siteName,
+      template: `%s | ${brand.siteName}`,
+    },
+    description: brand.tagline,
+  };
+}
 
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const config = getSiteVertical();
+
   return (
     <html lang="en" className="dark">
       <body
         className={`${syne.variable} ${dmSans.variable} ${ibmPlexMono.variable} antialiased`}
+        data-vertical={config.slug}
+        style={
+          {
+            "--vertical-accent": config.theme.accent,
+            "--vertical-accent-light": config.theme.accentLight,
+          } as React.CSSProperties
+        }
       >
         {children}
       </body>

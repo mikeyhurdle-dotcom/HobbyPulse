@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { parseArmyList } from "@/lib/parser";
+import { getSiteVertical } from "@/lib/site";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -29,11 +30,24 @@ export async function GET(request: NextRequest) {
   }
 
   const supabase = getAdminClient();
+  const siteVertical = getSiteVertical();
 
-  // 1. Find unparsed battle reports
+  // Look up the vertical ID for this deployment
+  const { data: verticalRow } = await supabase
+    .from("verticals")
+    .select("id")
+    .eq("slug", siteVertical.slug)
+    .single();
+
+  if (!verticalRow) {
+    return NextResponse.json({ error: `Vertical ${siteVertical.slug} not found in database` }, { status: 500 });
+  }
+
+  // 1. Find unparsed battle reports for this vertical
   const { data: reports, error: fetchError } = await supabase
     .from("battle_reports")
     .select("id, description")
+    .eq("vertical_id", verticalRow.id)
     .is("parsed_at", null)
     .order("published_at", { ascending: false })
     .limit(MAX_REPORTS_PER_RUN);

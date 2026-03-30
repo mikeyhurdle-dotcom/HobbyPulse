@@ -1,6 +1,6 @@
 import { Nav } from "@/components/nav";
 import { supabase } from "@/lib/supabase";
-import { getVertical } from "@/lib/verticals";
+import { getSiteVertical } from "@/lib/site";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -118,13 +118,7 @@ function groupEvents(streams: LiveStream[]): {
 // Stream Card Component
 // ---------------------------------------------------------------------------
 
-function StreamCard({
-  stream,
-  vertical,
-}: {
-  stream: LiveStream;
-  vertical: string;
-}) {
+function StreamCard({ stream }: { stream: LiveStream }) {
   return (
     <a
       href={getStreamUrl(stream)}
@@ -198,19 +192,14 @@ function StreamCard({
 // Page
 // ---------------------------------------------------------------------------
 
-export default async function LivePage({
-  params,
-}: {
-  params: Promise<{ vertical: string }>;
-}) {
-  const { vertical } = await params;
-  const config = getVertical(vertical);
+export default async function LivePage() {
+  const config = getSiteVertical();
 
   // Fetch the vertical_id
   const { data: verticalRow } = await supabase
     .from("verticals")
     .select("id")
-    .eq("slug", vertical)
+    .eq("slug", config.slug)
     .single();
 
   const verticalId = verticalRow?.id;
@@ -233,7 +222,7 @@ export default async function LivePage({
 
   return (
     <>
-      <Nav vertical={vertical} active="live" />
+      <Nav active="live" />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
         <div className="flex items-center gap-3 mb-2">
           <h1 className="text-3xl font-bold tracking-tight">Live</h1>
@@ -243,8 +232,7 @@ export default async function LivePage({
           </span>
         </div>
         <p className="text-[var(--muted)] mb-8">
-          {config?.liveDescription ??
-            "Live streams from Twitch and YouTube — updated every 5 minutes."}
+          {config.liveDescription}
         </p>
 
         {streamCount === 0 ? (
@@ -275,11 +263,7 @@ export default async function LivePage({
                 </summary>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                   {event.streams.map((stream) => (
-                    <StreamCard
-                      key={stream.id}
-                      stream={stream}
-                      vertical={vertical}
-                    />
+                    <StreamCard key={stream.id} stream={stream} />
                   ))}
                 </div>
               </details>
@@ -295,11 +279,7 @@ export default async function LivePage({
                 )}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                   {ungrouped.map((stream) => (
-                    <StreamCard
-                      key={stream.id}
-                      stream={stream}
-                      vertical={vertical}
-                    />
+                    <StreamCard key={stream.id} stream={stream} />
                   ))}
                 </div>
               </div>

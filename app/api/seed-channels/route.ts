@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { searchChannel } from "@/lib/youtube";
+import { getSiteVertical } from "@/lib/site";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -15,21 +16,6 @@ function getAdminClient() {
   );
 }
 
-// The 11 initial Warhammer YouTube channels to seed
-const WARHAMMER_CHANNELS = [
-  "Tabletop Titans",
-  "PlayOn Tabletop",
-  "MWG Studios",
-  "Winters SEO",
-  "Auspex Tactics",
-  "Art of War",
-  "Mordian Glory",
-  "Guerrilla Miniature Games",
-  "The Honest Wargamer",
-  "Striking Scorpion 82",
-  "Tabletop Tactics",
-];
-
 // ---------------------------------------------------------------------------
 // POST /api/seed-channels
 // ---------------------------------------------------------------------------
@@ -41,26 +27,28 @@ export async function POST(request: NextRequest) {
   }
 
   const supabase = getAdminClient();
+  const siteVertical = getSiteVertical();
 
-  // 1. Look up the warhammer vertical
+  // 1. Look up the vertical
   const { data: vertical, error: verticalError } = await supabase
     .from("verticals")
     .select("id")
-    .eq("slug", "warhammer")
+    .eq("slug", siteVertical.slug)
     .single();
 
   if (verticalError || !vertical) {
     return NextResponse.json(
-      { error: "Could not find warhammer vertical. Make sure it exists in the verticals table." },
+      { error: `Could not find ${siteVertical.slug} vertical. Make sure it exists in the verticals table.` },
       { status: 500 },
     );
   }
 
   const verticalId = vertical.id;
+  const channelNames = siteVertical.channels;
   const results: { name: string; status: string; channelId?: string }[] = [];
 
   // 2. For each channel name, look up via YouTube API and insert
-  for (const channelName of WARHAMMER_CHANNELS) {
+  for (const channelName of channelNames) {
     try {
       const channelData = await searchChannel(channelName);
 
@@ -105,7 +93,8 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json({
     success: true,
-    summary: { seeded, failed, total: WARHAMMER_CHANNELS.length },
+    vertical: siteVertical.slug,
+    summary: { seeded, failed, total: channelNames.length },
     results,
   });
 }

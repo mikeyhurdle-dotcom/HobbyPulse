@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Nav } from "@/components/nav";
 import { supabase } from "@/lib/supabase";
+import { getSiteVertical } from "@/lib/site";
 import { getSavings } from "@/lib/gw-rrp";
 
 // ---------------------------------------------------------------------------
@@ -84,15 +85,16 @@ function timeAgo(dateStr: string | null): string {
 export default async function DealDetailPage({
   params,
 }: {
-  params: Promise<{ vertical: string; productSlug: string }>;
+  params: Promise<{ productSlug: string }>;
 }) {
-  const { vertical, productSlug } = await params;
+  const { productSlug } = await params;
+  const config = getSiteVertical();
 
   // Get vertical ID
   const { data: verticalRow } = await supabase
     .from("verticals")
     .select("id")
-    .eq("slug", vertical)
+    .eq("slug", config.slug)
     .single();
 
   const verticalId = verticalRow?.id;
@@ -113,12 +115,12 @@ export default async function DealDetailPage({
   if (!product) {
     return (
       <>
-        <Nav vertical={vertical} active="deals" />
+        <Nav active="deals" />
         <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
           <div className="text-center py-16">
             <p className="text-[var(--muted)] text-lg">Product not found.</p>
             <Link
-              href={`/${vertical}/deals`}
+              href="/deals"
               className="text-[var(--vertical-accent)] text-sm mt-2 inline-block hover:underline"
             >
               Back to deals
@@ -150,12 +152,12 @@ export default async function DealDetailPage({
 
   return (
     <>
-      <Nav vertical={vertical} active="deals" />
+      <Nav active="deals" />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
         {/* Breadcrumb */}
         <nav className="flex items-center gap-2 text-sm text-[var(--muted)] mb-6">
           <Link
-            href={`/${vertical}/deals`}
+            href="/deals"
             className="hover:text-[var(--foreground)] transition-colors"
           >
             Deals
@@ -348,7 +350,7 @@ export default async function DealDetailPage({
               {relatedProducts.map((related) => (
                 <Link
                   key={related.id}
-                  href={`/${vertical}/deals/${related.slug}`}
+                  href={`/deals/${related.slug}`}
                   className="group rounded-xl border border-[var(--border)] bg-[var(--surface)] overflow-hidden hover:border-[var(--border-light)] hover:bg-[var(--surface-hover)] transition-all"
                 >
                   <div className="aspect-square bg-[var(--surface-hover)] flex items-center justify-center">

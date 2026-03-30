@@ -1,8 +1,8 @@
 // ---------------------------------------------------------------------------
 // Deals Cron — /api/cron/deals
 // ---------------------------------------------------------------------------
-// Runs daily at 2am. Scrapes each vertical's retailers for popular products,
-// upserts into products + listings, and records price history.
+// Runs daily at 2am. Scrapes the site vertical's retailers for popular
+// products, upserts into products + listings, and records price history.
 // Protected by CRON_SECRET.
 // ---------------------------------------------------------------------------
 
@@ -11,7 +11,7 @@ import { supabase } from "@/lib/supabase";
 import { getScrapersForVertical, type ScrapedProduct } from "@/lib/scrapers";
 import { searchEbay, type EbayProduct } from "@/lib/ebay";
 import { normaliseProduct } from "@/lib/normalise";
-import { verticals } from "@/config/verticals";
+import { getSiteVertical } from "@/lib/site";
 
 export const maxDuration = 300;
 export const dynamic = "force-dynamic";
@@ -48,75 +48,71 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const results: {
-    vertical: string;
-    productsUpserted: number;
-    listingsUpserted: number;
-    errors: string[];
-  }[] = [];
+  const verticalConfig = getSiteVertical();
+  const verticalSlug = verticalConfig.slug;
 
-  for (const [verticalSlug, verticalConfig] of Object.entries(verticals)) {
-    const errors: string[] = [];
-    let productsUpserted = 0;
-    let listingsUpserted = 0;
+  const errors: string[] = [];
+  let productsUpserted = 0;
+  let listingsUpserted = 0;
 
-    // Get vertical ID from Supabase
-    const { data: verticalRow } = await supabase
-      .from("verticals")
-      .select("id")
-      .eq("slug", verticalSlug)
-      .single();
+  // Get vertical ID from Supabase
+  const { data: verticalRow } = await supabase
+    .from("verticals")
+    .select("id")
+    .eq("slug", verticalSlug)
+    .single();
 
-    if (!verticalRow) {
-      errors.push(`Vertical ${verticalSlug} not found in database`);
-      results.push({ vertical: verticalSlug, productsUpserted, listingsUpserted, errors });
-      continue;
-    }
+  if (!verticalRow) {
+    return NextResponse.json(
+      { error: `Vertical ${verticalSlug} not found in database` },
+      { status: 500 },
+    );
+  }
 
-    const verticalId = verticalRow.id;
-    const searchTerms = SEARCH_TERMS[verticalSlug] ?? [];
-    const scrapers = getScrapersForVertical(verticalSlug);
+  const verticalId = verticalRow.id;
+  const searchTerms = SEARCH_TERMS[verticalSlug] ?? [];
+  const scrapers = getScrapersForVertical(verticalSlug);
 
-    for (const term of searchTerms) {
-      // Scrape retailers
-      for (const scraper of scrapers) {
-        try {
-          const products = await scraper.scrape(term);
-          for (const product of products.slice(0, 10)) {
-            const result = await upsertProduct(product, verticalId, verticalSlug);
-            if (result.productUpserted) productsUpserted++;
-            if (result.listingUpserted) listingsUpserted++;
-          }
-        } catch (err) {
-          const msg = err instanceof Error ? err.message : String(err);
-          errors.push(`${scraper.name} / "${term}": ${msg}`);
+  for (const term of searchTerms) {
+    // Scrape retailers
+    for (const scraper of scrapers) {
+      try {
+        const products = await scraper.scrape(term);
+        for (const product of products.slice(0, 10)) {
+          const result = await upsertProduct(product, verticalId, verticalSlug);
+          if (result.productUpserted) productsUpserted++;
+          if (result.listingUpserted) listingsUpserted++;
         }
-      }
-
-      // Search eBay if configured
-      const hasEbay = verticalConfig.retailers.some((r) => r.name === "eBay");
-      if (hasEbay && process.env.EBAY_APP_ID) {
-        try {
-          const ebayResults = await searchEbay({ keyword: `${term} Warhammer 40k`, limit: 10 });
-          for (const item of ebayResults) {
-            const result = await upsertEbayProduct(item, verticalId, verticalSlug);
-            if (result.productUpserted) productsUpserted++;
-            if (result.listingUpserted) listingsUpserted++;
-          }
-        } catch (err) {
-          const msg = err instanceof Error ? err.message : String(err);
-          errors.push(`eBay / "${term}": ${msg}`);
-        }
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        errors.push(`${scraper.name} / "${term}": ${msg}`);
       }
     }
 
-    results.push({ vertical: verticalSlug, productsUpserted, listingsUpserted, errors });
+    // Search eBay if configured
+    const hasEbay = verticalConfig.retailers.some((r) => r.name === "eBay");
+    if (hasEbay && process.env.EBAY_APP_ID) {
+      try {
+        const ebayResults = await searchEbay({ keyword: `${term} ${verticalConfig.name}`, limit: 10 });
+        for (const item of ebayResults) {
+          const result = await upsertEbayProduct(item, verticalId, verticalSlug);
+          if (result.productUpserted) productsUpserted++;
+          if (result.listingUpserted) listingsUpserted++;
+        }
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        errors.push(`eBay / "${term}": ${msg}`);
+      }
+    }
   }
 
   return NextResponse.json({
     ok: true,
     timestamp: new Date().toISOString(),
-    results,
+    vertical: verticalSlug,
+    productsUpserted,
+    listingsUpserted,
+    errors: errors.length > 0 ? errors : undefined,
   });
 }
 
