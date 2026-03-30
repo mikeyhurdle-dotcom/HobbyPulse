@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { Nav } from "@/components/nav";
+import { PriceAlertForm } from "@/components/price-alert-form";
 import { supabase } from "@/lib/supabase";
 import { getSiteVertical } from "@/lib/site";
 import { getSavings } from "@/lib/gw-rrp";
+import { wrapAffiliateUrl } from "@/lib/affiliate";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -239,7 +241,7 @@ export default async function DealDetailPage({
                 ? { saving: rrp - listing.price_pence, percent: Math.round(((rrp - listing.price_pence) / rrp) * 100) }
                 : null;
               const isBest = i === 0;
-              const buyUrl = listing.affiliate_url || listing.source_url;
+              const buyUrl = wrapAffiliateUrl(listing.affiliate_url || listing.source_url, "deals-page");
 
               return (
                 <div
@@ -324,6 +326,15 @@ export default async function DealDetailPage({
               );
             })}
           </div>
+        </section>
+
+        {/* Price alert form */}
+        <section className="mb-12">
+          <PriceAlertForm
+            productId={product.id}
+            productName={product.name}
+            currentBestPrice={bestPrice}
+          />
         </section>
 
         {/* Price history placeholder */}

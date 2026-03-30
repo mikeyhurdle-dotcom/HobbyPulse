@@ -2,9 +2,10 @@ import Link from "next/link";
 import { getSiteBrand } from "@/lib/site";
 
 const tabs = [
-  { name: "Watch", href: "/watch", key: "watch", icon: "▶" },
-  { name: "Deals", href: "/deals", key: "deals", icon: "£" },
-  { name: "Live", href: "/live", key: "live", icon: "●" },
+  { name: "Watch", href: "/watch", key: "watch", icon: "\u25B6" },
+  { name: "Deals", href: "/deals", key: "deals", icon: "\u00A3" },
+  { name: "Build", href: "/build", key: "build", icon: "\u00A3" },
+  { name: "Live", href: "/live", key: "live", icon: "\u25CF" },
 ];
 
 export function Nav({ active }: { active: string }) {

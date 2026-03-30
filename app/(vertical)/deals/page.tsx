@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Nav } from "@/components/nav";
+import { AdBetweenContent } from "@/components/ad-slot";
 import { supabase } from "@/lib/supabase";
 import { getSiteVertical } from "@/lib/site";
 import { getSavings } from "@/lib/gw-rrp";
@@ -198,6 +199,9 @@ export default async function DealsPage({
             Filter
           </button>
         </form>
+
+        {/* Ad slot */}
+        <AdBetweenContent className="mb-8" />
 
         {/* Product grid */}
         {sorted.length === 0 ? (

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Nav } from "@/components/nav";
+import { AdBetweenContent } from "@/components/ad-slot";
 import { supabase } from "@/lib/supabase";
 import { getSiteVertical } from "@/lib/site";
 
@@ -194,6 +195,9 @@ export default async function WatchPage({
             Filter
           </button>
         </form>
+
+        {/* Ad slot */}
+        <AdBetweenContent className="mb-8" />
 
         {/* Video grid */}
         {battleReports.length === 0 ? (

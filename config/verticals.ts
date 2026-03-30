@@ -41,9 +41,9 @@ export const verticals: Record<string, VerticalConfig> = {
     name: "Warhammer 40K",
     description: "Battle reports, army lists, and second-hand deals",
     brand: {
-      siteName: "WarhammerWatch",
-      tagline: "Battle reports, army lists, and the best deals",
-      domain: "warhammerwatch.com",
+      siteName: "TabletopWatch",
+      tagline: "Battle reports, army lists, and the best miniature deals",
+      domain: "tabletopwatch.com",
     },
     theme: {
       accent: "#7c3aed",

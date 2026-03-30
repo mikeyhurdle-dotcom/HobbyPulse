@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Nav } from "@/components/nav";
+import { AdSidebar } from "@/components/ad-slot";
 import { supabase } from "@/lib/supabase";
 import { getSiteVertical } from "@/lib/site";
 
@@ -189,98 +190,117 @@ export default async function VideoDetailPage({
                 </p>
               </div>
             ) : (
-              sortedLists.map((list) => (
-                <div
-                  key={list.id}
-                  className="rounded-xl border border-[var(--border)] bg-[var(--surface)] overflow-hidden"
-                >
-                  {/* List header */}
-                  <div className="px-4 py-3 border-b border-[var(--border)] bg-[var(--surface-hover)]">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        {list.categories && (
-                          <span
-                            className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium border"
-                            style={{
-                              borderColor:
-                                list.categories.colour ?? "var(--border-light)",
-                              color: list.categories.colour ?? "var(--muted)",
-                              backgroundColor: list.categories.colour
-                                ? `${list.categories.colour}15`
-                                : "transparent",
-                            }}
-                          >
-                            {list.categories.name}
-                          </span>
-                        )}
-                        {list.player_name && (
-                          <span className="text-sm font-medium">
-                            {list.player_name}
-                          </span>
-                        )}
-                      </div>
-                      <span className="text-xs font-[family-name:var(--font-mono)] text-[var(--muted)]">
-                        {list.total_points} pts
-                      </span>
-                    </div>
-                    {list.detachment && (
-                      <p className="text-xs text-[var(--muted)] mt-1">
-                        {list.detachment}
-                      </p>
-                    )}
-                  </div>
+              sortedLists.map((list) => {
+                // Build the raw text for "Buy This Army" pre-fill
+                const armyListText = (list.list_items ?? [])
+                  .map((item) =>
+                    `${item.quantity > 1 ? `${item.quantity}x ` : ""}${item.name} [${item.points} pts]`,
+                  )
+                  .join("\n");
 
-                  {/* Unit table */}
-                  <div className="divide-y divide-[var(--border)]">
-                    {(list.list_items ?? []).map((item) => (
-                      <div
-                        key={item.id}
-                        className="px-4 py-2.5 hover:bg-[var(--surface-hover)] transition-colors"
-                      >
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="flex-1 min-w-0">
-                            <Link
-                              href={`/deals?q=${encodeURIComponent(item.name)}`}
-                              className="text-sm font-medium hover:text-[var(--vertical-accent-light)] transition-colors"
-                            >
-                              {item.quantity > 1 && (
-                                <span className="text-[var(--muted)] mr-1">
-                                  {item.quantity}x
-                                </span>
-                              )}
-                              {item.name}
-                            </Link>
-
-                            {/* Enhancements */}
-                            {item.enhancements && item.enhancements.length > 0 && (
-                              <div className="flex flex-wrap gap-1 mt-1">
-                                {item.enhancements.map((enh, i) => (
-                                  <span
-                                    key={i}
-                                    className="text-[10px] text-[var(--accent-light)] bg-[var(--accent-glow)] rounded px-1.5 py-0.5"
-                                  >
-                                    {enh}
-                                  </span>
-                                ))}
-                              </div>
+                return (
+                  <div key={list.id} className="space-y-2">
+                    <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] overflow-hidden">
+                      {/* List header */}
+                      <div className="px-4 py-3 border-b border-[var(--border)] bg-[var(--surface-hover)]">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            {list.categories && (
+                              <span
+                                className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium border"
+                                style={{
+                                  borderColor:
+                                    list.categories.colour ?? "var(--border-light)",
+                                  color: list.categories.colour ?? "var(--muted)",
+                                  backgroundColor: list.categories.colour
+                                    ? `${list.categories.colour}15`
+                                    : "transparent",
+                                }}
+                              >
+                                {list.categories.name}
+                              </span>
                             )}
-
-                            {/* Wargear */}
-                            {item.wargear && item.wargear.length > 0 && (
-                              <p className="text-[10px] text-[var(--muted)] mt-0.5 truncate">
-                                {item.wargear.join(", ")}
-                              </p>
+                            {list.player_name && (
+                              <span className="text-sm font-medium">
+                                {list.player_name}
+                              </span>
                             )}
                           </div>
-                          <span className="text-xs font-[family-name:var(--font-mono)] text-[var(--muted)] whitespace-nowrap">
-                            {item.points} pts
+                          <span className="text-xs font-[family-name:var(--font-mono)] text-[var(--muted)]">
+                            {list.total_points} pts
                           </span>
                         </div>
+                        {list.detachment && (
+                          <p className="text-xs text-[var(--muted)] mt-1">
+                            {list.detachment}
+                          </p>
+                        )}
                       </div>
-                    ))}
+
+                      {/* Unit table */}
+                      <div className="divide-y divide-[var(--border)]">
+                        {(list.list_items ?? []).map((item) => (
+                          <div
+                            key={item.id}
+                            className="px-4 py-2.5 hover:bg-[var(--surface-hover)] transition-colors"
+                          >
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="flex-1 min-w-0">
+                                <Link
+                                  href={`/deals?q=${encodeURIComponent(item.name)}`}
+                                  className="text-sm font-medium hover:text-[var(--vertical-accent-light)] transition-colors"
+                                >
+                                  {item.quantity > 1 && (
+                                    <span className="text-[var(--muted)] mr-1">
+                                      {item.quantity}x
+                                    </span>
+                                  )}
+                                  {item.name}
+                                </Link>
+
+                                {/* Enhancements */}
+                                {item.enhancements && item.enhancements.length > 0 && (
+                                  <div className="flex flex-wrap gap-1 mt-1">
+                                    {item.enhancements.map((enh, i) => (
+                                      <span
+                                        key={i}
+                                        className="text-[10px] text-[var(--accent-light)] bg-[var(--accent-glow)] rounded px-1.5 py-0.5"
+                                      >
+                                        {enh}
+                                      </span>
+                                    ))}
+                                  </div>
+                                )}
+
+                                {/* Wargear */}
+                                {item.wargear && item.wargear.length > 0 && (
+                                  <p className="text-[10px] text-[var(--muted)] mt-0.5 truncate">
+                                    {item.wargear.join(", ")}
+                                  </p>
+                                )}
+                              </div>
+                              <span className="text-xs font-[family-name:var(--font-mono)] text-[var(--muted)] whitespace-nowrap">
+                                {item.points} pts
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Buy This Army CTA */}
+                    {(list.list_items ?? []).length > 0 && (
+                      <Link
+                        href={`/build?list=${encodeURIComponent(armyListText)}`}
+                        className="flex items-center justify-center gap-2 w-full rounded-xl bg-[var(--vertical-accent)] px-4 py-3 text-sm font-bold text-white hover:opacity-90 transition-opacity"
+                      >
+                        <span>{"\u00A3"}</span>
+                        <span>Buy This Army</span>
+                      </Link>
+                    )}
                   </div>
-                </div>
-              ))
+                );
+              })
             )}
 
             {/* Parse confidence */}
@@ -291,6 +311,9 @@ export default async function VideoDetailPage({
                   {Math.round(battleReport.parse_confidence * 100)}%
                 </p>
               )}
+
+            {/* Sidebar ad */}
+            <AdSidebar className="mt-4" />
           </div>
         </div>
       </main>

@@ -1,4 +1,5 @@
 import { Nav } from "@/components/nav";
+import { AdBetweenContent } from "@/components/ad-slot";
 import { supabase } from "@/lib/supabase";
 import { getSiteVertical } from "@/lib/site";
 
@@ -234,6 +235,9 @@ export default async function LivePage() {
         <p className="text-[var(--muted)] mb-8">
           {config.liveDescription}
         </p>
+
+        {/* Ad slot */}
+        <AdBetweenContent className="mb-8" />
 
         {streamCount === 0 ? (
           /* Empty state */
