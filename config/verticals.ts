@@ -24,6 +24,8 @@ export interface VerticalConfig {
   watchDescription: string;
   dealsDescription: string;
   liveDescription: string;
+  twitchGameIds: string[];
+  liveSearchTerms: string[];
 }
 
 export const verticals: Record<string, VerticalConfig> = {
@@ -73,6 +75,8 @@ export const verticals: Record<string, VerticalConfig> = {
       "Compare prices across retailers and find the best deals on miniatures.",
     liveDescription:
       "Live streams from Twitch and YouTube — updated every 5 minutes.",
+    twitchGameIds: ["518030"],
+    liveSearchTerms: ["warhammer 40k", "40k battle report"],
   },
   simracing: {
     slug: "simracing",
@@ -102,6 +106,8 @@ export const verticals: Record<string, VerticalConfig> = {
       "Compare prices on sim racing hardware — wheels, pedals, and rigs.",
     liveDescription:
       "Live sim racing streams from Twitch and YouTube — updated every 5 minutes.",
+    twitchGameIds: ["28080", "506438"],
+    liveSearchTerms: ["sim racing", "iracing", "acc"],
   },
 };
 
