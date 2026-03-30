@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Nav } from "@/components/nav";
 import { supabase } from "@/lib/supabase";
+import { getVertical } from "@/lib/verticals";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -73,6 +74,7 @@ export default async function WatchPage({
 }) {
   const { vertical } = await params;
   const { q, faction, sort } = await searchParams;
+  const verticalConfig = getVertical(vertical);
 
   // Fetch the vertical_id
   const { data: verticalRow } = await supabase
@@ -150,7 +152,8 @@ export default async function WatchPage({
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
         <h1 className="text-3xl font-bold tracking-tight mb-2">Watch</h1>
         <p className="text-[var(--muted)] mb-6">
-          Battle reports and content — enriched with structured army lists.
+          {verticalConfig?.watchDescription ??
+            "Videos and content from the community."}
         </p>
 
         {/* Filter bar */}

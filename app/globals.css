@@ -15,19 +15,10 @@
   --success: #22c55e;
   --danger: #ef4444;
 
-  /* Per-vertical theming — overridden via data-vertical attribute */
+  /* Per-vertical theming — injected inline by the [vertical] layout.
+     These fallbacks match the default accent so the home page still works. */
   --vertical-accent: var(--accent);
   --vertical-accent-light: var(--accent-light);
-}
-
-[data-vertical="warhammer"] {
-  --vertical-accent: #7c3aed;
-  --vertical-accent-light: #a78bfa;
-}
-
-[data-vertical="simracing"] {
-  --vertical-accent: #dc2626;
-  --vertical-accent-light: #f87171;
 }
 
 body {

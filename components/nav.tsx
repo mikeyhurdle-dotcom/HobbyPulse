@@ -1,14 +1,10 @@
 import Link from "next/link";
+import { getAllVerticals } from "@/lib/verticals";
 
 const tabs = [
   { name: "Watch", href: "watch", icon: "▶" },
   { name: "Deals", href: "deals", icon: "£" },
   { name: "Live", href: "live", icon: "●" },
-];
-
-const verticals = [
-  { slug: "warhammer", label: "40K" },
-  { slug: "simracing", label: "Sim Racing" },
 ];
 
 export function Nav({
@@ -18,6 +14,9 @@ export function Nav({
   vertical: string;
   active: string;
 }) {
+  const allVerticals = getAllVerticals();
+  const current = allVerticals.find((v) => v.slug === vertical);
+
   return (
     <nav className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--background)]/80 backdrop-blur-xl">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
@@ -33,7 +32,7 @@ export function Nav({
 
             {/* Vertical switcher pills */}
             <div className="hidden sm:flex items-center gap-1 rounded-lg bg-[var(--surface)] p-1">
-              {verticals.map((v) => (
+              {allVerticals.map((v) => (
                 <Link
                   key={v.slug}
                   href={`/${v.slug}/${active || "watch"}`}
@@ -43,13 +42,13 @@ export function Nav({
                       : "text-[var(--muted)] hover:text-[var(--foreground)]"
                   }`}
                 >
-                  {v.label}
+                  {v.name}
                 </Link>
               ))}
             </div>
           </div>
 
-          {/* Tab navigation */}
+          {/* Current vertical name (mobile) + Tab navigation */}
           <div className="flex items-center gap-1">
             {tabs.map((tab) => (
               <Link
@@ -76,7 +75,12 @@ export function Nav({
 
         {/* Mobile vertical switcher */}
         <div className="sm:hidden flex items-center gap-1 pb-2 -mt-1">
-          {verticals.map((v) => (
+          {current && (
+            <span className="text-xs text-[var(--vertical-accent-light)] font-medium mr-2">
+              {current.name}
+            </span>
+          )}
+          {allVerticals.map((v) => (
             <Link
               key={v.slug}
               href={`/${v.slug}/${active || "watch"}`}
@@ -86,7 +90,7 @@ export function Nav({
                   : "bg-[var(--surface)] text-[var(--muted)]"
               }`}
             >
-              {v.label}
+              {v.name}
             </Link>
           ))}
         </div>

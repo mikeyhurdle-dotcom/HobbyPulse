@@ -1,4 +1,5 @@
 import { Nav } from "@/components/nav";
+import { getVertical } from "@/lib/verticals";
 
 export default async function LivePage({
   params,
@@ -6,6 +7,7 @@ export default async function LivePage({
   params: Promise<{ vertical: string }>;
 }) {
   const { vertical } = await params;
+  const config = getVertical(vertical);
 
   return (
     <>
@@ -19,7 +21,8 @@ export default async function LivePage({
           </span>
         </div>
         <p className="text-[var(--muted)] mb-8">
-          Live streams from Twitch and YouTube — updated every 5 minutes.
+          {config?.liveDescription ??
+            "Live streams from Twitch and YouTube — updated every 5 minutes."}
         </p>
 
         {/* Empty state */}
