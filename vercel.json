@@ -2,11 +2,11 @@
   "crons": [
     {
       "path": "/api/cron/youtube",
-      "schedule": "0 */6 * * *"
+      "schedule": "0 6 * * *"
     },
     {
       "path": "/api/cron/parse",
-      "schedule": "30 */6 * * *"
+      "schedule": "0 7 * * *"
     },
     {
       "path": "/api/cron/deals",
@@ -14,7 +14,7 @@
     },
     {
       "path": "/api/cron/live",
-      "schedule": "*/5 * * * *"
+      "schedule": "0 12 * * *"
     },
     {
       "path": "/api/cron/price-alerts",
