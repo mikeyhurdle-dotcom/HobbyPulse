@@ -24,21 +24,58 @@ export const VIDEO_TYPE_CONFIG: Record<
   other:           { label: "Other",         colour: "var(--muted)", icon: "\uD83D\uDCFA" },
 };
 
+// ---------------------------------------------------------------------------
+// Strict battle report detection — used by the cron to decide whether to
+// fetch full video details from the YouTube API.
+// ---------------------------------------------------------------------------
+
+/**
+ * Strict check: is this title + duration likely a real battle report?
+ *
+ * A battle report MUST have:
+ * - Title contains faction-vs-faction pattern (" vs " or " v ") OR
+ *   title contains "battle report" / "batrep" / "bat rep"
+ * - AND duration > 900 seconds (15+ minutes)
+ *
+ * Duration of 0 means unknown (e.g. from RSS where we don't have duration yet)
+ * — in that case we only check the title pattern.
+ */
+export function isBattleReport(title: string, durationSeconds: number): boolean {
+  const t = title.toLowerCase();
+
+  const hasBattleReportKeyword =
+    t.includes("battle report") ||
+    t.includes("batrep") ||
+    t.includes("bat rep");
+
+  const hasVsPattern = / v(?:s)? /i.test(title);
+
+  const titleMatch = hasBattleReportKeyword || hasVsPattern;
+
+  // If we have duration info, enforce minimum length
+  if (durationSeconds > 0) {
+    return titleMatch && durationSeconds > 900;
+  }
+
+  // No duration available (RSS pre-filter) — title match only
+  return titleMatch;
+}
+
+// ---------------------------------------------------------------------------
+// Full classifier — assigns a content type to any video
+// ---------------------------------------------------------------------------
+
 /**
  * Classify a video based on its title and duration.
  *
  * Rules are evaluated in priority order — the first match wins.
+ * Battle report classification is now strict (delegates to isBattleReport).
  */
 export function classifyVideo(title: string, durationSeconds: number): VideoType {
   const t = title.toLowerCase();
 
-  // Battle report — requires duration > 20 min for " vs " / " v " / "game"
-  if (
-    t.includes("battle report") ||
-    t.includes("batrep") ||
-    (( t.includes(" vs ") || t.includes(" v ") || t.includes("game")) &&
-      durationSeconds > 1200)
-  ) {
+  // Battle report — strict check
+  if (isBattleReport(title, durationSeconds)) {
     return "battle-report";
   }
 

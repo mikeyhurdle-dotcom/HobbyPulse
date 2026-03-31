@@ -13,13 +13,14 @@ import {
 
 export function generateMetadata(): Metadata {
   const brand = getSiteBrand();
-  const config = getSiteVertical();
   return {
-    title: `Watch Battle Reports`,
-    description: config.watchDescription,
+    title: `Battle Reports`,
+    description:
+      "Cross-channel battle reports with structured army lists. Filter by faction, search by creator.",
     openGraph: {
-      title: `Watch Battle Reports | ${brand.siteName}`,
-      description: config.watchDescription,
+      title: `Battle Reports | ${brand.siteName}`,
+      description:
+        "Cross-channel battle reports with structured army lists. Filter by faction, search by creator.",
     },
     twitter: { card: "summary_large_image" },
   };
@@ -84,9 +85,21 @@ function formatDuration(seconds: number): string {
   const h = Math.floor(seconds / 3600);
   const m = Math.floor((seconds % 3600) / 60);
   const s = seconds % 60;
-  if (h > 0) return `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+  if (h > 0)
+    return `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
   return `${m}:${String(s).padStart(2, "0")}`;
 }
+
+// Pill bar order: Battle Reports first, then All, then the rest
+const PILL_ORDER: (VideoType | "all")[] = [
+  "battle-report",
+  "all",
+  "tactics",
+  "news",
+  "review",
+  "painting",
+  "lore",
+];
 
 // All valid content type keys for filtering
 const ALL_CONTENT_TYPES: VideoType[] = [
@@ -117,9 +130,14 @@ export default async function WatchPage({
   const { q, faction, sort, type, shorts } = await searchParams;
   const config = getSiteVertical();
 
-  const activeType = type && ALL_CONTENT_TYPES.includes(type as VideoType)
-    ? (type as VideoType)
-    : null;
+  // Default to battle-report when no type param is present
+  const activeType: VideoType | "all" =
+    type === "all"
+      ? "all"
+      : type && ALL_CONTENT_TYPES.includes(type as VideoType)
+        ? (type as VideoType)
+        : "battle-report";
+
   const includeShorts = shorts === "true";
 
   // Fetch the vertical_id
@@ -188,7 +206,7 @@ export default async function WatchPage({
   // Apply content type + shorts filters
   let filtered = classified.filter((r) => {
     if (!includeShorts && r._isShort) return false;
-    if (activeType && r._contentType !== activeType) return false;
+    if (activeType !== "all" && r._contentType !== activeType) return false;
     return true;
   });
 
@@ -209,6 +227,8 @@ export default async function WatchPage({
     if (!includeShorts && r._isShort) continue;
     typeCounts[r._contentType]++;
   }
+
+  const totalCount = Object.values(typeCounts).reduce((a, b) => a + b, 0);
 
   // Deduplicate faction badges per report
   const getFactionBadges = (
@@ -233,7 +253,9 @@ export default async function WatchPage({
     if (sort && sort !== "newest") params.set("sort", sort);
     if (key === "type") {
       if (value) params.set("type", value);
-    } else if (activeType) {
+      // If value is null, no type param means default (battle-report)
+    } else if (activeType !== "battle-report") {
+      // Only include type param if it's not the default
       params.set("type", activeType);
     }
     if (key === "shorts") {
@@ -249,9 +271,12 @@ export default async function WatchPage({
     <>
       <Nav active="watch" />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-        <h1 className="text-3xl font-bold tracking-tight mb-2">Watch</h1>
+        <h1 className="text-3xl font-bold tracking-tight mb-2">
+          Battle Reports
+        </h1>
         <p className="text-[var(--muted)] mb-6">
-          {config.watchDescription}
+          Cross-channel battle reports with structured army lists. Filter by
+          faction, search by creator.
         </p>
 
         {/* Filter bar */}
@@ -299,30 +324,40 @@ export default async function WatchPage({
 
         {/* Content type pill bar */}
         <div className="flex items-center gap-2 overflow-x-auto pb-2 mb-2 scrollbar-none">
-          {/* All pill */}
-          <Link
-            href={buildUrl("type", null)}
-            className="shrink-0 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium border transition-colors"
-            style={{
-              borderColor: !activeType ? "var(--vertical-accent)" : "var(--border)",
-              backgroundColor: !activeType ? "var(--vertical-accent)" : "transparent",
-              color: !activeType ? "#fff" : "var(--muted)",
-            }}
-          >
-            All
-            <span className="opacity-70">
-              {Object.values(typeCounts).reduce((a, b) => a + b, 0)}
-            </span>
-          </Link>
+          {PILL_ORDER.map((pill) => {
+            if (pill === "all") {
+              // "All" pill
+              const isActive = activeType === "all";
+              return (
+                <Link
+                  key="all"
+                  href={buildUrl("type", "all")}
+                  className="shrink-0 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium border transition-colors"
+                  style={{
+                    borderColor: isActive
+                      ? "var(--vertical-accent)"
+                      : "var(--border)",
+                    backgroundColor: isActive
+                      ? "var(--vertical-accent)"
+                      : "transparent",
+                    color: isActive ? "#fff" : "var(--muted)",
+                  }}
+                >
+                  All
+                  <span className="opacity-70">{totalCount}</span>
+                </Link>
+              );
+            }
 
-          {ALL_CONTENT_TYPES.map((ct) => {
+            // Content type pill
+            const ct = pill;
             const cfg = VIDEO_TYPE_CONFIG[ct];
             const isActive = activeType === ct;
             const count = typeCounts[ct];
             return (
               <Link
                 key={ct}
-                href={buildUrl("type", ct)}
+                href={buildUrl("type", ct === "battle-report" ? null : ct)}
                 className="shrink-0 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium border transition-colors"
                 style={{
                   borderColor: isActive ? cfg.colour : "var(--border)",
@@ -344,15 +379,22 @@ export default async function WatchPage({
             href={buildUrl("shorts", includeShorts ? null : "true")}
             className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium border transition-colors"
             style={{
-              borderColor: includeShorts ? "var(--vertical-accent)" : "var(--border)",
-              backgroundColor: includeShorts ? "var(--vertical-accent)" : "transparent",
+              borderColor: includeShorts
+                ? "var(--vertical-accent)"
+                : "var(--border)",
+              backgroundColor: includeShorts
+                ? "var(--vertical-accent)"
+                : "transparent",
               color: includeShorts ? "#fff" : "var(--muted)",
             }}
           >
-            <span className="inline-block w-3 h-3 rounded-sm border" style={{
-              borderColor: includeShorts ? "#fff" : "var(--border-light)",
-              backgroundColor: includeShorts ? "#fff" : "transparent",
-            }} />
+            <span
+              className="inline-block w-3 h-3 rounded-sm border"
+              style={{
+                borderColor: includeShorts ? "#fff" : "var(--border-light)",
+                backgroundColor: includeShorts ? "#fff" : "transparent",
+              }}
+            />
             Include Shorts
           </Link>
         </div>
@@ -440,7 +482,8 @@ export default async function WatchPage({
 
                         {/* Views + date */}
                         <p className="text-xs text-[var(--muted)]">
-                          {formatViews(report.view_count)} &middot; {formatDate(report.published_at)}
+                          {formatViews(report.view_count)} &middot;{" "}
+                          {formatDate(report.published_at)}
                         </p>
                       </div>
                     </div>
@@ -453,7 +496,8 @@ export default async function WatchPage({
                             key={badge.name}
                             className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium border"
                             style={{
-                              borderColor: badge.colour ?? "var(--border-light)",
+                              borderColor:
+                                badge.colour ?? "var(--border-light)",
                               color: badge.colour ?? "var(--muted)",
                               backgroundColor: badge.colour
                                 ? `${badge.colour}15`

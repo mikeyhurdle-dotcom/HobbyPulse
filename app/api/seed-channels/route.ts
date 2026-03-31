@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { searchChannel } from "@/lib/youtube";
+import { searchChannel, getChannelById } from "@/lib/youtube";
 import { getSiteVertical } from "@/lib/site";
 
 export const runtime = "nodejs";
@@ -18,6 +18,16 @@ function getAdminClient() {
 
 // ---------------------------------------------------------------------------
 // POST /api/seed-channels
+//
+// Body (optional):
+//   { channelId?: string, channelName?: string }
+//
+// If `channelId` is provided, skips the search step and looks up the channel
+// directly by ID (saves 100 quota units). `channelName` is used as a label
+// in the results only.
+//
+// If neither is provided, seeds all channels from the vertical config using
+// the search API as before.
 // ---------------------------------------------------------------------------
 export async function POST(request: NextRequest) {
   // ---- Auth guard ----
@@ -38,16 +48,87 @@ export async function POST(request: NextRequest) {
 
   if (verticalError || !vertical) {
     return NextResponse.json(
-      { error: `Could not find ${siteVertical.slug} vertical. Make sure it exists in the verticals table.` },
+      {
+        error: `Could not find ${siteVertical.slug} vertical. Make sure it exists in the verticals table.`,
+      },
       { status: 500 },
     );
   }
 
   const verticalId = vertical.id;
+
+  // Check for optional body with channelId for direct seeding
+  let body: { channelId?: string; channelName?: string } = {};
+  try {
+    body = await request.json();
+  } catch {
+    // No body or invalid JSON — proceed with full seed
+  }
+
+  // --- Single channel seed by ID (zero search quota) ---
+  if (body.channelId) {
+    try {
+      const channelData = await getChannelById(body.channelId);
+
+      if (!channelData) {
+        return NextResponse.json(
+          { error: `Channel not found for ID: ${body.channelId}` },
+          { status: 404 },
+        );
+      }
+
+      const row = {
+        vertical_id: verticalId,
+        youtube_channel_id: channelData.id,
+        name: channelData.snippet.title,
+        thumbnail_url:
+          channelData.snippet.thumbnails.high?.url ??
+          channelData.snippet.thumbnails.medium?.url ??
+          channelData.snippet.thumbnails.default?.url ??
+          null,
+        subscriber_count: parseInt(
+          channelData.statistics.subscriberCount || "0",
+          10,
+        ),
+      };
+
+      const { error: insertError } = await supabase
+        .from("channels")
+        .upsert(row, {
+          onConflict: "youtube_channel_id",
+          ignoreDuplicates: true,
+        });
+
+      if (insertError) {
+        return NextResponse.json(
+          { error: `Upsert failed: ${insertError.message}` },
+          { status: 500 },
+        );
+      }
+
+      return NextResponse.json({
+        success: true,
+        vertical: siteVertical.slug,
+        mode: "direct",
+        result: {
+          name: channelData.snippet.title,
+          channelId: channelData.id,
+          status: "seeded",
+        },
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      return NextResponse.json(
+        { error: `Failed to seed channel: ${message}` },
+        { status: 500 },
+      );
+    }
+  }
+
+  // --- Full seed from vertical config (uses search API) ---
   const channelNames = siteVertical.channels;
   const results: { name: string; status: string; channelId?: string }[] = [];
 
-  // 2. For each channel name, look up via YouTube API and insert
   for (const channelName of channelNames) {
     try {
       const channelData = await searchChannel(channelName);
@@ -66,15 +147,24 @@ export async function POST(request: NextRequest) {
           channelData.snippet.thumbnails.medium?.url ??
           channelData.snippet.thumbnails.default?.url ??
           null,
-        subscriber_count: parseInt(channelData.statistics.subscriberCount || "0", 10),
+        subscriber_count: parseInt(
+          channelData.statistics.subscriberCount || "0",
+          10,
+        ),
       };
 
       const { error: insertError } = await supabase
         .from("channels")
-        .upsert(row, { onConflict: "youtube_channel_id", ignoreDuplicates: true });
+        .upsert(row, {
+          onConflict: "youtube_channel_id",
+          ignoreDuplicates: true,
+        });
 
       if (insertError) {
-        results.push({ name: channelName, status: `error: ${insertError.message}` });
+        results.push({
+          name: channelName,
+          status: `error: ${insertError.message}`,
+        });
       } else {
         results.push({
           name: channelData.snippet.title,
@@ -94,6 +184,7 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({
     success: true,
     vertical: siteVertical.slug,
+    mode: "full",
     summary: { seeded, failed, total: channelNames.length },
     results,
   });
