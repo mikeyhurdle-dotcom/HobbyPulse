@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { parseArmyList } from "@/lib/parser";
-import { parseSimRacingContent } from "@/lib/setup-parser";
+import { parseArmyList, parseWithTranscript } from "@/lib/parser";
+import { parseSimRacingContent, parseSimRacingWithTranscript } from "@/lib/setup-parser";
+import { fetchTranscript } from "@/lib/youtube-transcript";
 import { getSiteVertical } from "@/lib/site";
 
 export const runtime = "nodejs";
@@ -47,7 +48,7 @@ export async function GET(request: NextRequest) {
   // 1. Find unparsed battle reports for this vertical
   const { data: reports, error: fetchError } = await supabase
     .from("battle_reports")
-    .select("id, description")
+    .select("id, description, youtube_video_id, duration_seconds, content_type")
     .eq("vertical_id", verticalRow.id)
     .is("parsed_at", null)
     .order("published_at", { ascending: false })
@@ -74,9 +75,22 @@ export async function GET(request: NextRequest) {
   // 2. Parse each report
   for (const report of reports) {
     try {
+      // Determine if this video is eligible for transcript fetching:
+      // Only fetch for battle-report / race content or videos longer than 15 minutes
+      const isBattleContent =
+        report.content_type === "battle-report" ||
+        (report.duration_seconds && report.duration_seconds > 900);
+
+      let transcript: string | null = null;
+      if (isBattleContent && report.youtube_video_id) {
+        transcript = await fetchTranscript(report.youtube_video_id);
+      }
+
       if (isSimRacing) {
         // ---- Sim racing: parse setups and insert into car_setups ----
-        const setups = await parseSimRacingContent(report.description ?? "");
+        const setups = transcript
+          ? await parseSimRacingWithTranscript(report.description ?? "", transcript)
+          : await parseSimRacingContent(report.description ?? "");
 
         const maxConfidence =
           setups.length > 0
@@ -114,6 +128,7 @@ export async function GET(request: NextRequest) {
           .update({
             parsed_at: new Date().toISOString(),
             parse_confidence: maxConfidence,
+            has_transcript: !!transcript,
           })
           .eq("id", report.id);
 
@@ -125,8 +140,10 @@ export async function GET(request: NextRequest) {
           errors.push(`update report ${report.id}: ${updateError.message}`);
         }
       } else {
-        // ---- Warhammer / tabletop: existing army list parsing ----
-        const lists = await parseArmyList(report.description ?? "", siteVertical.slug);
+        // ---- Warhammer / tabletop: army list parsing ----
+        const lists = transcript
+          ? await parseWithTranscript(report.description ?? "", transcript, siteVertical.slug)
+          : await parseArmyList(report.description ?? "", siteVertical.slug);
 
         const maxConfidence =
           lists.length > 0
@@ -165,6 +182,8 @@ export async function GET(request: NextRequest) {
               total_points: list.total_points,
               list_index: i,
               raw_text: list.raw_text,
+              winner: list.winner ?? null,
+              key_moments: list.key_moments ?? null,
             })
             .select("id")
             .single();
@@ -214,6 +233,7 @@ export async function GET(request: NextRequest) {
           .update({
             parsed_at: new Date().toISOString(),
             parse_confidence: maxConfidence,
+            has_transcript: !!transcript,
           })
           .eq("id", report.id);
 

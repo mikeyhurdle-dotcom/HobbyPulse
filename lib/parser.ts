@@ -20,6 +20,8 @@ export interface ParsedList {
   player_name: string | null;
   raw_text: string;
   confidence: number;
+  winner?: string;
+  key_moments?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -149,6 +151,104 @@ export async function parseArmyList(
       }));
   } catch {
     console.error("Failed to parse Haiku response:", text.slice(0, 200));
+    return [];
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Transcript-enhanced prompt
+// ---------------------------------------------------------------------------
+
+const TRANSCRIPT_SYSTEM_PROMPTS: Record<string, string> = {
+  warhammer: `You are an expert Warhammer 40,000 battle report analyser. You have access to both the YouTube video description AND the auto-generated transcript.
+
+Your job is to extract:
+1. **Army lists** — from the description (same as before: faction, detachment, units with points, enhancements, wargear)
+2. **Winner** — from the transcript, look for phrases like "player X wins", "and the winner is", "final score", "X takes the victory", "X wins the game". If unclear, use "Unknown".
+3. **Key moments** — from the transcript, summarise 2-3 key tactical moments, pivotal dice rolls, or clutch plays in 1-2 sentences each.
+4. **Spoken list details** — if units, enhancements, or wargear are mentioned in the transcript but NOT in the description lists, include them.
+
+For each army list, return:
+- faction, detachment, units (name, qty, points, enhancements, wargear)
+- total_points, player_name, raw_text, confidence
+- **winner** — the name of the winning player/faction. Set on the FIRST list only. If both lists belong to the same report, set winner on list_index 0.
+- **key_moments** — brief summary of key moments. Set on the FIRST list only.
+
+Return a JSON array. If no army lists found, return [].
+
+IMPORTANT:
+- Return ONLY valid JSON, no markdown code fences, no explanation.
+- Be strict about confidence: only return lists with confidence >= 0.3
+- The transcript may be noisy (auto-generated) — extract what you can, don't hallucinate.`,
+};
+
+/**
+ * Parse video content using both description and transcript for richer extraction.
+ */
+export async function parseWithTranscript(
+  description: string,
+  transcript: string,
+  vertical: string = "warhammer",
+): Promise<ParsedList[]> {
+  if (
+    (!description || description.trim().length < 20) &&
+    (!transcript || transcript.trim().length < 50)
+  ) {
+    return [];
+  }
+
+  const systemPrompt =
+    TRANSCRIPT_SYSTEM_PROMPTS[vertical] ?? TRANSCRIPT_SYSTEM_PROMPTS.warhammer;
+
+  const message = await client.messages.create({
+    model: "claude-haiku-4-5-20251001",
+    max_tokens: 4096,
+    system: systemPrompt,
+    messages: [
+      {
+        role: "user",
+        content: `Extract army lists and game results from this video.\n\n--- DESCRIPTION ---\n${description}\n--- END DESCRIPTION ---\n\n--- TRANSCRIPT ---\n${transcript}\n--- END TRANSCRIPT ---`,
+      },
+    ],
+  });
+
+  const text =
+    message.content[0].type === "text" ? message.content[0].text : "";
+
+  try {
+    const cleaned = text
+      .replace(/```json\s*/g, "")
+      .replace(/```\s*/g, "")
+      .trim();
+
+    const parsed: ParsedList[] = JSON.parse(cleaned);
+
+    if (!Array.isArray(parsed)) return [];
+
+    return parsed
+      .filter((list) => list.confidence >= 0.3)
+      .map((list) => ({
+        faction: list.faction ?? "Unknown",
+        detachment: list.detachment ?? "",
+        units: (list.units ?? []).map((u: ParsedUnit) => ({
+          name: u.name ?? "Unknown Unit",
+          qty: u.qty ?? 1,
+          points: u.points ?? 0,
+          enhancements: Array.isArray(u.enhancements) ? u.enhancements : [],
+          wargear: Array.isArray(u.wargear) ? u.wargear : [],
+        })),
+        total_points: list.total_points ?? 0,
+        player_name: list.player_name ?? null,
+        raw_text: list.raw_text ?? "",
+        confidence: list.confidence ?? 0,
+        winner: list.winner ?? undefined,
+        key_moments: list.key_moments ?? undefined,
+      }));
+  } catch {
+    console.error(
+      "Failed to parse Haiku transcript response:",
+      text.slice(0, 200),
+    );
     return [];
   }
 }

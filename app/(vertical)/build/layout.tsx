@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
-import { getSiteBrand } from "@/lib/site";
+import { notFound } from "next/navigation";
+import { getSiteBrand, getSiteVertical } from "@/lib/site";
 
 export function generateMetadata(): Metadata {
+  const config = getSiteVertical();
+  if (config.slug === "simracing") return {};
+
   const brand = getSiteBrand();
   return {
     title: "Build My Army Cheap",
@@ -21,5 +25,9 @@ export default function BuildLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const config = getSiteVertical();
+  if (config.slug === "simracing") {
+    notFound();
+  }
   return children;
 }

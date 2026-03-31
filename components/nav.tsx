@@ -13,7 +13,7 @@ const allTabs: NavTab[] = [
   { name: "Watch", href: "/watch", key: "watch", icon: "\u25B6" },
   { name: "Setups", href: "/setups", key: "setups", icon: "\u2699", verticalOnly: "simracing" },
   { name: "Deals", href: "/deals", key: "deals", icon: "\u00A3" },
-  { name: "Build", href: "/build", key: "build", icon: "\u00A3" },
+  { name: "Build", href: "/build", key: "build", icon: "\uD83D\uDEE0", verticalOnly: "warhammer" },
   { name: "Live", href: "/live", key: "live", icon: "\u25CF" },
 ];
 

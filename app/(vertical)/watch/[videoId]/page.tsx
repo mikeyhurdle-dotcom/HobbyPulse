@@ -36,6 +36,8 @@ interface ContentList {
   detachment: string | null;
   total_points: number;
   list_index: number;
+  winner: string | null;
+  key_moments: string | null;
   categories: {
     name: string;
     slug: string;
@@ -157,7 +159,7 @@ export default async function VideoDetailPage({
        view_count, duration_seconds, game_system, parse_confidence,
        channels ( name, thumbnail_url ),
        content_lists (
-         id, player_name, detachment, total_points, list_index,
+         id, player_name, detachment, total_points, list_index, winner, key_moments,
          categories ( name, slug, colour ),
          list_items ( id, name, quantity, points, enhancements, wargear, sort_order )
        )`,
@@ -446,6 +448,16 @@ export default async function VideoDetailPage({
             ) : (
               <>
                 {/* ---- Tabletop: Army Lists ---- */}
+                {(() => {
+                  const winnerList = sortedLists.find((l) => l.winner);
+                  if (!winnerList?.winner) return null;
+                  return (
+                    <div className="inline-flex items-center gap-1.5 rounded-full bg-green-500/15 border border-green-500/30 px-3 py-1.5 text-sm font-bold text-green-400">
+                      <span>{"\uD83C\uDFC6"}</span>
+                      <span>{winnerList.winner} wins!</span>
+                    </div>
+                  );
+                })()}
                 <h2 className="text-lg font-bold tracking-tight">Army Lists</h2>
 
                 {sortedLists.length === 0 ? (

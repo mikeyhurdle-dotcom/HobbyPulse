@@ -185,6 +185,90 @@ export async function parseSimRacingContent(
 }
 
 // ---------------------------------------------------------------------------
+// Transcript-enhanced sim racing parser
+// ---------------------------------------------------------------------------
+
+const TRANSCRIPT_SETUP_PROMPT = `You are an expert sim racing content parser. You have access to both the YouTube video description AND the auto-generated transcript.
+
+Your job is to extract richer data by combining both sources:
+
+1. **Car setups** — from description AND transcript. Spoken values like "I'm running 21.5 psi front, 21.8 rear" or "I dropped the ride height to 52mm" should be captured.
+2. **Hardware impressions** — from transcript. Phrases like "the Moza R5 feels really good" or "better than the CSL DD" are valuable. Include brand + model + impression.
+3. **Lap times and race results** — from transcript. "My best lap was a 1:48.3" or "I finished P3".
+4. **Track-specific tips** — from transcript. "Turn 3 you need to brake earlier" or "kerb on the exit of T7 is very aggressive".
+
+For each setup/block you find, extract:
+- sim, car, track, setupData (all optional fields, camelCase keys), hardwareMentioned, rawText, confidence
+- **hardwareImpressions** — array of strings with brief impressions (e.g. "Moza R5 — feels better than CSL DD for FFB detail")
+- **lapTimes** — array of strings (e.g. "1:48.345 — best lap")
+- **trackTips** — array of strings (e.g. "Brake earlier into T3, avoid kerb at T7 exit")
+
+Return a JSON array. If no setup data AND no hardware found, return [].
+
+IMPORTANT:
+- Return ONLY valid JSON, no markdown code fences, no explanation.
+- Be strict about confidence: only return entries with confidence >= 0.3
+- The transcript may be noisy (auto-generated) — extract what you can, don't hallucinate.`;
+
+export async function parseSimRacingWithTranscript(
+  description: string,
+  transcript: string,
+): Promise<ParsedSetup[]> {
+  if (
+    (!description || description.trim().length < 20) &&
+    (!transcript || transcript.trim().length < 50)
+  ) {
+    return [];
+  }
+
+  const message = await client.messages.create({
+    model: "claude-haiku-4-5-20251001",
+    max_tokens: 4096,
+    system: TRANSCRIPT_SETUP_PROMPT,
+    messages: [
+      {
+        role: "user",
+        content: `Extract car setups, hardware impressions, and race data from this video.\n\n--- DESCRIPTION ---\n${description}\n--- END DESCRIPTION ---\n\n--- TRANSCRIPT ---\n${transcript}\n--- END TRANSCRIPT ---`,
+      },
+    ],
+  });
+
+  const text =
+    message.content[0].type === "text" ? message.content[0].text : "";
+
+  try {
+    const cleaned = text
+      .replace(/```json\s*/g, "")
+      .replace(/```\s*/g, "")
+      .trim();
+
+    const parsed: ParsedSetup[] = JSON.parse(cleaned);
+
+    if (!Array.isArray(parsed)) return [];
+
+    return parsed
+      .filter((s) => s.confidence >= 0.3)
+      .map((s) => ({
+        sim: s.sim ?? "Unknown",
+        car: s.car ?? "Unknown",
+        track: s.track ?? null,
+        setupData: s.setupData ?? {},
+        hardwareMentioned: Array.isArray(s.hardwareMentioned)
+          ? s.hardwareMentioned
+          : [],
+        rawText: s.rawText ?? "",
+        confidence: s.confidence ?? 0,
+      }));
+  } catch {
+    console.error(
+      "Failed to parse Haiku transcript setup response:",
+      text.slice(0, 200),
+    );
+    return [];
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Simple hardware mention scanner (no LLM needed)
 // ---------------------------------------------------------------------------
 
