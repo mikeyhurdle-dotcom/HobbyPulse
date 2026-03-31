@@ -33,6 +33,7 @@ export interface VerticalConfig {
   liveDescription: string;
   twitchGameIds: string[];
   liveSearchTerms: string[];
+  discoverySearchTerms: string[];
 }
 
 export const verticals: Record<string, VerticalConfig> = {
@@ -89,6 +90,11 @@ export const verticals: Record<string, VerticalConfig> = {
       "Live streams from Twitch and YouTube — updated every 5 minutes.",
     twitchGameIds: ["518030"],
     liveSearchTerms: ["warhammer 40k", "40k battle report"],
+    discoverySearchTerms: [
+      "warhammer 40k battle report",
+      "40k batrep",
+      "warhammer 40000 vs",
+    ],
   },
   simracing: {
     slug: "simracing",
@@ -149,6 +155,11 @@ export const verticals: Record<string, VerticalConfig> = {
       "Live sim racing streams from Twitch and YouTube — updated every 5 minutes.",
     twitchGameIds: ["28080", "506438", "2067888735"],
     liveSearchTerms: ["sim racing", "iracing", "acc", "assetto corsa", "f1 24"],
+    discoverySearchTerms: [
+      "sim racing race replay",
+      "iracing race onboard",
+      "acc race highlights",
+    ],
   },
 };
 
