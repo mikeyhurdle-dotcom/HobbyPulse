@@ -2,6 +2,7 @@
 type: reference
 project: HobbyPulse
 created: 2026-03-30
+updated: 2026-03-31
 ---
 
 # HobbyPulse — Architecture Overview
@@ -18,28 +19,34 @@ created: 2026-03-30
                     │         Same Codebase          │
                     ├────────────────┬───────────────┤
                     │                │               │
-              ┌─────▼─────┐  ┌──────▼──────┐        │
-              │ Vercel #1  │  │  Vercel #2  │        │
-              │ TabletopW. │  │ SimPitStop  │        │
-              │ VERTICAL=  │  │ VERTICAL=   │        │
-              │ warhammer  │  │ simracing   │        │
-              └─────┬──────┘  └──────┬──────┘        │
-                    │                │               │
-                    └────────┬───────┘               │
-                             │                       │
-                    ┌────────▼────────┐              │
-                    │    Supabase     │              │
-                    │  nspgvdytqsv... │              │
-                    │  (London)       │              │
-                    └────────▲────────┘              │
-                             │                       │
-                    ┌────────┴────────┐              │
-                    │   PulseBot 🦅   │              │
-                    │   (OpenClaw)    │              │
-                    │  VPS 77.42.20.44│              │
-                    │   @Hobbypulsebot│              │
-                    └─────────────────┘              │
+              ┌─────▼─────┐  ┌──────▼──────┐
+              │ Vercel #1  │  │  Vercel #2  │
+              │ TabletopW. │  │ SimPitStop  │
+              │ warhammer  │  │ simracing   │
+              └─────┬──────┘  └──────┬──────┘
+                    │                │
+                    └────────┬───────┘
+                             │
+                    ┌────────▼────────┐
+                    │    Supabase     │
+                    │  London (eu-w2) │
+                    └────────▲────────┘
+                             │
+              ┌──────────────┼──────────────┐
+              │              │              │
+     ┌────────┴───┐  ┌──────┴──────┐  ┌────┴──────┐
+     │ PulseBot   │  │ Your Mac    │  │ Supadata  │
+     │ (VPS)      │  │ (transcripts│  │ (future)  │
+     │ @Hobbypulse│  │  for now)   │  │           │
+     └────────────┘  └─────────────┘  └───────────┘
 ```
+
+## Parent Entity
+
+**HobbyPulse** — the parent brand that owns all vertical sites:
+- TabletopWatch (tabletopwatch.com) — tabletop gaming
+- SimPitStop (simpitstop.com) — sim racing
+- Future verticals as separate branded sites
 
 ## Components
 
@@ -47,89 +54,139 @@ created: 2026-03-30
 - **TabletopWatch** (hobbypulse.vercel.app) — `NEXT_PUBLIC_SITE_VERTICAL=warhammer`
 - **SimPitStop** (simpitstop.vercel.app) — `NEXT_PUBLIC_SITE_VERTICAL=simracing`
 - Next.js 15, App Router, React 19, TypeScript, Tailwind v4
-- SSG for static pages, SSR for dynamic content
-- API routes for crons, build, price alerts, heartbeat
 
 ### Supabase (Backend)
 - Project: `nspgvdytqsvnmbitbmey` (eu-west-2 London)
-- 12 tables: verticals, categories, channels, battle_reports, content_lists, list_items, products, listings, price_history, live_streams, price_alerts, ops_bot_health
+- 15 tables: verticals, categories, channels, battle_reports, content_lists, list_items, products, listings, price_history, live_streams, price_alerts, ops_bot_health, discovered_videos, channel_candidates, car_setups
 - RLS: public read on all tables, service_role writes
-- No user auth in v1
 
 ### PulseBot (Autonomous Agent)
-- Codename: Hawk 🦅
-- Runs on OpenClaw gateway (VPS 77.42.20.44)
+- Codename: Hawk 🦅 — runs on OpenClaw VPS (77.42.20.44)
 - Telegram: @Hobbypulsebot
-- Model: Gemini Flash (free) → Groq fallback → Mistral safety net
-- Replaces Vercel crons with smarter, more frequent polling
-- Reports to Mikey via Telegram
+- Model: Gemini Flash → Groq → Mistral (no Anthropic on bot)
 
-## Data Flow
+## Content Pipeline
+
+### Video Ingestion (RSS + Discovery)
 
 ```
-YouTube Channels ──► PulseBot/Cron ──► battle_reports ──► Watch Page
-                                           │
-                                     Haiku Parser
-                                           │
-                                    content_lists + list_items
-                                           │
-                                    Faction filters, army lists UI
+Monitored Channels (25)
+├── RSS feeds (free, unlimited) → detect new videos
+├── YouTube API (details only, ~50 units/day) → duration, views, stats
+├── Classifier → game system + content type
+└── Supabase battle_reports table
 
-Retailers ──► PulseBot/Cron ──► products + listings ──► Deals Page
-         (Element, Wayland,         │
-          Troll Trader, eBay)  price_history
-                                    │
-                              Price alerts → Resend emails
+Discovery Search (daily, ~300 quota)
+├── YouTube search for battle report keywords
+├── Unknown channel → discovered_videos + channel_candidates
+├── Battle report from unknown channel → also added to battle_reports
+└── 3+ battle reports from same channel → flagged as hot candidate
+    └── Admin reviews at /admin/discovery → approve → permanent RSS monitoring
+```
 
-Twitch/YouTube ──► PulseBot/Cron ──► live_streams ──► Live Page
+### Transcript Pipeline
+
+```
+Your Mac (or Supadata API in future)
+├── Fetch YouTube auto-captions (free, YouTube blocks cloud IPs)
+├── ~15,000 words per video (truncated)
+└── Store in battle_reports.transcript column
+
+Parse Cron (Vercel)
+├── Reads description + stored transcript
+├── Claude Haiku extracts:
+│   ├── Tabletop: army lists, winner, key moments, faction, points
+│   └── Sim racing: car setups, hardware mentions, sim, car, track
+└── Results: content_lists + list_items (tabletop) or car_setups (simracing)
+```
+
+### Deals Pipeline (needs eBay API — pending approval)
+
+```
+Retailers → Scrapers (Cheerio) → products + listings → price_history
+├── Tabletop: Element Games, Wayland Games, Troll Trader, eBay
+├── Sim Racing: Fanatec, Sim-Lab, Moza, eBay
+└── Price drops → price alerts → Resend emails
 ```
 
 ## API Routes
 
 | Route | Method | Purpose |
 |-------|--------|---------|
-| `/api/cron/youtube` | GET | Ingest videos from YouTube channels |
-| `/api/cron/parse` | GET | Parse video descriptions with Claude Haiku |
-| `/api/cron/deals` | GET | Scrape retailers for prices |
-| `/api/cron/live` | GET | Poll Twitch + YouTube for live streams |
+| `/api/cron/youtube` | GET | RSS-based video ingest (~50 API units) |
+| `/api/cron/parse` | GET | Haiku parsing (army lists or car setups) |
+| `/api/cron/deals` | GET | Retailer scraping |
+| `/api/cron/live` | GET | Twitch + YouTube live streams |
+| `/api/cron/discover` | GET | YouTube search for new battle reports |
 | `/api/cron/price-alerts` | GET | Check and send price drop emails |
-| `/api/seed-channels` | POST | One-time YouTube channel seeding |
-| `/api/build` | POST | Build My Army Cheap — parse list + find deals |
-| `/api/price-alert` | POST | Create a price alert subscription |
-| `/api/bot-heartbeat` | POST | PulseBot health reporting |
+| `/api/seed-channels` | POST | Seed YouTube channels |
+| `/api/build` | POST | Build My Army Cheap |
+| `/api/price-alert` | POST | Create price alert |
+| `/api/bot-heartbeat` | POST | PulseBot health |
+| `/api/channels/candidates` | GET | List channel candidates |
+| `/api/channels/approve` | POST | Approve/dismiss channel |
 
-All cron/seed endpoints protected by `Authorization: Bearer {CRON_SECRET}`.
+## Pages per Vertical
+
+| Page | TabletopWatch | SimPitStop |
+|------|:---:|:---:|
+| `/` | Home/landing | Home/landing |
+| `/watch` | Battle Reports (default) | Races & Replays (all content default) |
+| `/watch/[videoId]` | YouTube + army lists + winner | YouTube + car setups + hardware |
+| `/deals` | Miniature deals | Hardware deals |
+| `/deals/[slug]` | Price comparison | Price comparison |
+| `/live` | Live streams | Live streams |
+| `/build` | Build My Army Cheap | 404 (not applicable) |
+| `/setups` | 404 | Browse car setups |
+| `/about` | About | About |
+| `/privacy` | Privacy policy | Privacy policy |
+| `/admin/revenue` | Affiliate dashboard | Affiliate dashboard |
+| `/admin/discovery` | Channel candidates | Channel candidates |
+
+## Game Systems
+
+### Tabletop (colour-coded)
+| System | Colour | Badge |
+|--------|--------|-------|
+| Warhammer 40K | Purple `#7c3aed` | 40K |
+| Age of Sigmar | Gold `#d97706` | AoS |
+| The Old World | Deep Red `#991b1b` | TOW |
+| Kill Team | Teal `#0d9488` | KT |
+| Horus Heresy | Steel Blue `#475569` | 30K |
+| One Page Rules | Orange `#ea580c` | OPR |
+
+### Sim Racing (colour-coded)
+| System | Colour | Badge |
+|--------|--------|-------|
+| iRacing | Blue `#1E40AF` | iR |
+| ACC | Red `#DC2626` | ACC |
+| LMU | Amber `#D97706` | LMU |
+| F1 | Red `#EF4444` | F1 |
+| Hardware | Grey `#78716C` | HW |
 
 ## External APIs
 
-| API | Purpose | Auth | Quota |
-|-----|---------|------|-------|
-| YouTube Data v3 | Video ingest + live search | API key | 10K units/day |
-| Twitch Helix | Live stream polling | OAuth client_credentials | 800 req/min |
-| eBay Browse | Product search + deals | OAuth client_credentials | Generous |
-| Anthropic (Haiku) | Army list parsing + product normalisation | API key | Pay per token (~$0.50/mo) |
-| Resend | Price alert emails | API key | 100/day free |
+| API | Purpose | Auth | Cost |
+|-----|---------|------|------|
+| YouTube Data v3 | Video details (RSS does discovery) | API key | Free (10K units/day, using ~350) |
+| Twitch Helix | Live stream polling | OAuth client_credentials | Free |
+| eBay Browse | Product search + deals | OAuth client_credentials | Free (pending approval) |
+| Anthropic Haiku | Army list parsing + setup extraction | API key | ~$7-14/month |
+| Supadata (future) | YouTube transcripts | API key | ~$0.50/month |
+| Resend (future) | Price alert emails | API key | Free (100/day) |
 
-## Scraper Stack
+## Monthly Costs
 
-| Retailer | Method | Library |
-|----------|--------|---------|
-| Element Games | HTML scraping | Cheerio |
-| Wayland Games | HTML scraping | Cheerio |
-| Troll Trader | HTML scraping | Cheerio |
-| eBay | REST API | Fetch |
-
-## Cost at Scale
-
-| Service | Free Tier | Pro Tier |
-|---------|-----------|----------|
-| Vercel (×2) | Free | £20/mo each |
-| Supabase | Free | £25/mo |
-| Claude Haiku | ~£2/mo | ~£2/mo |
-| VPS (shared w/ SMASHD) | £0 marginal | — |
+| Service | Current | At Scale |
+|---------|:-------:|:--------:|
+| Vercel (×2) | Free | £40/mo (Pro) |
+| Supabase | Free | £25/mo (Pro) |
+| Claude Haiku | ~£2/mo | ~£12/mo |
+| Supadata (future) | — | ~£0.50/mo |
+| VPS (shared w/ SMASHD) | £0 | £0 |
 | Domains (×2) | — | ~£2/mo |
-| **Total** | **~£2/mo** | **~£69/mo** |
+| **Total** | **~£2/mo** | **~£80/mo** |
 
 ---
 
-*Created 2026-03-30*
+*Updated 2026-03-31*

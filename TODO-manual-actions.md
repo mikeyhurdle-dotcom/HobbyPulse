@@ -1,66 +1,73 @@
 # HobbyPulse — Manual Actions Required
 
-Things Claude can't do for you. Check these off as you go.
+Updated 2026-03-31. Check these off as you go.
 
-## Architecture Decision
+## Architecture
 
-- **Tabletop games** (40K, AoS, Kill Team, etc.) = ONE deployment, shared domain (brand TBD — "TabletopWatch" or similar)
-- **Sim Racing** = SEPARATE deployment as SimPitStop (simpitstop.com)
-- Each deploy uses `NEXT_PUBLIC_SITE_VERTICAL` env var to select config
-- Brand name for tabletop site needs workshopping — avoid using "Warhammer" in the name
+- **HobbyPulse** = parent entity owning all vertical sites
+- **TabletopWatch** (tabletopwatch.com) — tabletop gaming (40K, AoS, Old World, Kill Team)
+- **SimPitStop** (simpitstop.com) — sim racing
+- Same codebase, same Supabase DB, different Vercel projects
+- **PulseBot** (Hawk 🦅) on OpenClaw VPS — autonomous data engine
 
-## API Keys & Env Vars (set in Vercel)
+## API Keys — Current Status
 
-### Required for core functionality
-- [ ] `YOUTUBE_API_KEY` — Google Cloud Console → YouTube Data API v3. Newt Bot may already have one for Paddle Live — reuse or create a new key in the same GCP project
-- [ ] `SUPABASE_SERVICE_ROLE_KEY` — Supabase dashboard → Settings → API → service_role key (the secret one, NOT anon)
-- [ ] `ANTHROPIC_API_KEY` — console.anthropic.com → API Keys. Used by Haiku for army list parsing + product normalisation + Build My Army Cheap
-- [ ] `CRON_SECRET` — any random string (e.g. `openssl rand -hex 32`). Protects all cron endpoints
+### Connected and Working
+- [x] `YOUTUBE_API_KEY` — Own GCP project "HobbyPulse", fresh 10K quota
+- [x] `SUPABASE_SERVICE_ROLE_KEY` — Both projects
+- [x] `CRON_SECRET` — Both projects
+- [x] `ANTHROPIC_API_KEY` — HobbyPulse workspace, Haiku parsing working
+- [x] `TWITCH_CLIENT_ID` + `TWITCH_CLIENT_SECRET` — Both projects, 14 streams found
 
-### Required for deals & live
-- [ ] `EBAY_APP_ID` — eBay Developer Program → Application Keys → Production App ID
-- [ ] `EBAY_APP_SECRET` — same place, Production Cert ID (secret)
-- [ ] `EBAY_CAMPAIGN_ID` — eBay Partner Network → Campaigns → your campaign ID
-- [ ] `TWITCH_CLIENT_ID` — Twitch Developer Console → Register App → Client ID
-- [ ] `TWITCH_CLIENT_SECRET` — same place, Client Secret
+### Pending
+- [ ] `EBAY_APP_ID` + `EBAY_APP_SECRET` — Developer account pending approval (~1 business day). Check developer.ebay.com
+- [ ] `EBAY_CAMPAIGN_ID` — Sign up at partnernetwork.ebay.co.uk once dev account approved
+- [ ] `SUPADATA_API_KEY` — Sign up at supadata.ai for automated transcript fetching (~$0.50/month). Eliminates manual transcript script. (TEA-95)
 
-### Monetisation (all optional — features gracefully degrade)
-- [ ] `NEXT_PUBLIC_ADSENSE_PUB_ID` — apply at adsense.google.com (needs live site with content first)
-- [ ] `NEXT_PUBLIC_AD_SLOT_SIDEBAR` — AdSense ad unit ID for sidebar (300x250)
-- [ ] `NEXT_PUBLIC_AD_SLOT_BETWEEN` — AdSense ad unit ID for between-content (728x90)
-- [ ] `NEXT_PUBLIC_AD_SLOT_MOBILE` — AdSense ad unit ID for mobile footer (320x50)
-- [ ] `ELEMENT_GAMES_AFFILIATE_REF` — sign up at Element Games affiliate programme
-- [ ] `WAYLAND_GAMES_AFFILIATE_REF` — sign up at Wayland Games affiliate programme
+### Optional (features gracefully degrade)
+- [ ] `NEXT_PUBLIC_ADSENSE_PUB_ID` + ad slot IDs — Apply at adsense.google.com (needs custom domain)
+- [ ] `ELEMENT_GAMES_AFFILIATE_REF` — Apply at Element Games
+- [ ] `WAYLAND_GAMES_AFFILIATE_REF` — Apply at Wayland Games
 - [ ] `AMAZON_ASSOCIATES_TAG` — associates.amazon.co.uk
-- [ ] `RESEND_API_KEY` — resend.com (free tier: 100 emails/day) — for price alerts
-
-## Affiliate Programme Sign-ups
-
-- [ ] **eBay Partner Network** — partnernetwork.ebay.co.uk
-- [ ] **Element Games** — apply on their site
-- [ ] **Wayland Games** — apply on their site
-- [ ] **Amazon Associates** — associates.amazon.co.uk
-- [ ] **Google AdSense** — adsense.google.com (needs live content first)
-- [ ] **Fanatec** — check for affiliate programme (for SimPitStop)
-- [ ] **Digital Motorsport** — check for affiliate programme
-
-## One-Time Setup Tasks
-
-- [ ] **Run Supabase migration** — apply `supabase/migrations/003_price_alerts.sql` to create price_alerts table
-- [ ] **Seed YouTube channels** — POST `/api/seed-channels` with `Authorization: Bearer <CRON_SECRET>`
-- [ ] **Trigger first YouTube poll** — GET `/api/cron/youtube` with same auth
-- [ ] **Trigger first parse** — GET `/api/cron/parse` after videos ingested
-- [ ] **Trigger first deals scrape** — GET `/api/cron/deals`
-- [ ] **Buy domain(s)** — tabletopwatch.com (or final brand), simpitstop.com
-- [ ] **Create second Vercel project** for SimPitStop (same repo, `NEXT_PUBLIC_SITE_VERTICAL=simracing`)
+- [ ] `RESEND_API_KEY` — resend.com (free 100/day) for price alerts
+- [ ] `NEXT_PUBLIC_GA4_ID` — Google Analytics
+- [ ] `NEXT_PUBLIC_POSTHOG_KEY` — PostHog analytics
 
 ## Domains to Buy
-
-- [ ] **tabletopwatch.com** — confirmed brand name (available as of 2026-03-31)
-- [ ] **simpitstop.com** — confirmed brand name (available as of 2026-03-31)
+- [ ] **tabletopwatch.com** — confirmed available 2026-03-31
+- [ ] **simpitstop.com** — confirmed available 2026-03-31
 - [ ] Configure custom domains in Vercel once purchased
 
-## Duplicate Linear Issues (cleaned up)
+## Affiliate Programme Sign-ups
+- [ ] eBay Partner Network (partnernetwork.ebay.co.uk)
+- [ ] Element Games affiliate
+- [ ] Wayland Games affiliate
+- [ ] Amazon Associates (associates.amazon.co.uk)
+- [ ] Fanatec (for SimPitStop — check if programme exists)
+- [ ] Google AdSense (needs custom domain + content)
 
-- [x] PLA-346 — marked as Duplicate
-- [x] PLA-348 — marked as Duplicate
+## One-Time Setup Tasks
+- [x] Seed tabletop YouTube channels (10 channels, 161 videos)
+- [x] Seed sim racing YouTube channels (14 channels, 199 videos)
+- [x] Trigger first YouTube poll (working — RSS-based)
+- [x] Trigger first parse — 19 army lists, 215 units, 5 winners
+- [x] Seed sim racing products (68 products across 16 manufacturers)
+- [x] Seed AoS/Old World/Kill Team factions (49 factions)
+- [x] Seed sim racing categories (15 categories)
+- [x] Deploy PulseBot to VPS (@Hobbypulsebot paired)
+- [ ] Apply price_alerts migration (supabase/migrations/003_price_alerts.sql) — already applied
+- [ ] Run transcript fetcher periodically: `python3 scripts/fetch-transcripts.py` (until Supadata is set up)
+- [ ] Trigger first deals scrape (needs eBay API keys)
+- [ ] Re-seed "Art of War 40k" channel (removed wrong channel, correct one not yet added)
+
+## Future Data Sources to Integrate
+- [ ] **Faction win rates** — scrape Stat Check / 40KStats / The Honest Wargamer for tournament win rates. Placeholder UI built (FactionMeta component). (TEA to be created)
+- [ ] **Pastebin/external links** — some channels (Tabletop Titans) post army lists on Pastebin. Future enhancement to follow those links.
+
+## Linear Backlog Summary
+- TEA-79: Evaluate Beauty/Skincare (Low — parked)
+- TEA-80: Complete API keys & affiliate sign-ups (High)
+- TEA-84: Add more tabletop games — AoS, KT done, 30K/OPR next (Low)
+- TEA-85: Pillar blog content for SEO (Low)
+- TEA-87: Apply for Google AdSense (Medium — needs domain)
+- TEA-95: Replace transcript script with Supadata API (High)

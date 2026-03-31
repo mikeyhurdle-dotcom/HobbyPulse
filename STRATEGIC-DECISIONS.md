@@ -6,7 +6,7 @@ created: 2026-03-30
 
 # HobbyPulse — Strategic Decisions Log
 
-Key decisions made during the build session on 2026-03-30 and their rationale.
+Key decisions made during build sessions on 2026-03-30 and 2026-03-31 and their rationale.
 
 ---
 
@@ -135,4 +135,84 @@ Key decisions made during the build session on 2026-03-30 and their rationale.
 
 ---
 
-*Updated 2026-03-30*
+## 10. TabletopWatch brand name confirmed
+
+**Decision:** TabletopWatch (tabletopwatch.com)
+
+**Rationale:**
+- Domain available (.com, .co.uk, all major TLDs)
+- No existing companies using the name
+- "Watch" works on two levels: watch videos + watch prices/deals
+- Broad enough for all tabletop games, not just Warhammer
+- SEO-friendly — "tabletop watch" is a natural search phrase
+- Competitors researched: HobbyForge (taken), DiceHammer (taken), WarTable (taken), MiniWatch (parked)
+
+---
+
+## 11. HobbyPulse as parent entity
+
+**Decision:** HobbyPulse is the parent brand/business entity. Individual sites are brands underneath it.
+
+**Rationale:**
+- One business registration covers all verticals
+- One set of affiliate accounts (eBay Partner Network, Amazon Associates, etc.)
+- One AdSense account with multiple domains
+- Each site can be sold independently if one takes off
+- Structure: HobbyPulse → TabletopWatch, SimPitStop, [future verticals]
+
+---
+
+## 12. RSS feeds over YouTube search API
+
+**Decision:** Use free YouTube RSS feeds for channel monitoring instead of the search API.
+
+**Rationale:**
+- YouTube search.list costs 100 quota units per channel per poll
+- RSS feeds are free and unlimited — returns latest 15 videos per channel
+- Reduced daily quota from ~3,000 units to ~350 units (90% saving)
+- YouTube API only used for video details (1 unit per 50 videos)
+- Enables polling every 2 hours without quota concerns
+
+---
+
+## 13. Transcript extraction for richer data
+
+**Decision:** Fetch YouTube auto-captions and feed them to Haiku alongside descriptions for dramatically richer data extraction.
+
+**Rationale:**
+- Description-only parsing: 2 army lists from 20 videos
+- With transcripts: 10 army lists from 8 videos (5x improvement)
+- Extracts data nobody else has: who won, key tactical moments, spoken army lists
+- Cost: ~$0.014 per video (~$7/month at 500 videos)
+- YouTube blocks cloud IPs from fetching captions — use Supadata API (~$0.50/month) for automated access
+
+---
+
+## 14. Faction win rates from tournament data
+
+**Decision:** Scrape publicly available tournament win rate data (Stat Check, 40KStats, The Honest Wargamer) to show alongside battle reports.
+
+**Rationale:**
+- Adds context: "Death Guard currently has a 48% win rate this season"
+- Public data — tournament results are reported openly
+- Richer than our own data (tournaments are competitive, not casual)
+- Placeholder UI already built (FactionMeta component)
+- Implementation: scrape existing meta sites, not calculate our own (yet)
+
+---
+
+## 15. SimPitStop value proposition: car setups + hardware detection
+
+**Decision:** The sim racing killer feature is car setup extraction and hardware-from-video detection, NOT just a filtered YouTube feed.
+
+**Rationale:**
+- Without setup extraction, SimPitStop is just YouTube with a different skin
+- Car setup extraction = the sim racing equivalent of army list parsing
+- Hardware mentions link every product to the deals page (affiliate revenue)
+- 90 hardware setups extracted from first batch of 184 videos
+- Dedicated /setups page for browsing by sim, car, track
+- No competitor combines video content + hardware deals + setup extraction
+
+---
+
+*Updated 2026-03-31*
