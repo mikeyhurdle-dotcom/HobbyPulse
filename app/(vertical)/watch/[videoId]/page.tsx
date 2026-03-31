@@ -5,10 +5,12 @@ import { Nav } from "@/components/nav";
 import { AdSidebar } from "@/components/ad-slot";
 import { JsonLd } from "@/components/json-ld";
 import { RelatedVideos } from "@/components/related-videos";
+import { CrossSystemRecommendations } from "@/components/cross-system-recommendations";
 import { supabase } from "@/lib/supabase";
 import { getSiteVertical, getSiteBrand } from "@/lib/site";
 import { videoSchema, breadcrumbSchema } from "@/lib/structured-data";
-import { classifyVideo, VIDEO_TYPE_CONFIG } from "@/lib/classify";
+import { classifyVideo, classifyGameSystem, VIDEO_TYPE_CONFIG } from "@/lib/classify";
+import { getGameSystem } from "@/config/game-systems";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -47,6 +49,7 @@ interface BattleReport {
   published_at: string;
   view_count: number;
   duration_seconds: number;
+  game_system: string | null;
   parse_confidence: number | null;
   channels: {
     name: string;
@@ -137,7 +140,7 @@ export default async function VideoDetailPage({
     .from("battle_reports")
     .select(
       `id, youtube_video_id, title, description, thumbnail_url, published_at,
-       view_count, duration_seconds, parse_confidence,
+       view_count, duration_seconds, game_system, parse_confidence,
        channels ( name, thumbnail_url ),
        content_lists (
          id, player_name, detachment, total_points, list_index,
@@ -221,11 +224,30 @@ export default async function VideoDetailPage({
             </div>
 
             {/* Title + meta */}
-            <div className="space-y-2">
+            <div
+              className="space-y-2 rounded-lg pl-4"
+              style={{
+                borderLeftWidth: "4px",
+                borderLeftStyle: "solid",
+                borderLeftColor: getGameSystem(battleReport.game_system ?? classifyGameSystem(battleReport.title)).colour,
+              }}
+            >
               <div className="flex items-center gap-3 flex-wrap">
                 <h1 className="text-xl sm:text-2xl font-bold tracking-tight leading-snug">
                   {battleReport.title}
                 </h1>
+                {(() => {
+                  const gs = getGameSystem(battleReport.game_system ?? classifyGameSystem(battleReport.title));
+                  return (
+                    <span
+                      className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold text-white shrink-0"
+                      style={{ backgroundColor: gs.colour }}
+                    >
+                      <span>{gs.icon}</span>
+                      <span>{gs.name}</span>
+                    </span>
+                  );
+                })()}
                 {(() => {
                   const ct = classifyVideo(battleReport.title, battleReport.duration_seconds);
                   const cfg = VIDEO_TYPE_CONFIG[ct];
@@ -423,6 +445,12 @@ export default async function VideoDetailPage({
         <RelatedVideos
           currentVideoId={battleReport.youtube_video_id}
           categoryIds={categoryIdsForRelated}
+        />
+
+        {/* Cross-system recommendations */}
+        <CrossSystemRecommendations
+          currentGameSystem={battleReport.game_system ?? classifyGameSystem(battleReport.title)}
+          factionSlugs={uniqueCategorySlugs}
         />
       </main>
     </>

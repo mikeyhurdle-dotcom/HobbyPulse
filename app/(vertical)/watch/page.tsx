@@ -6,10 +6,12 @@ import { supabase } from "@/lib/supabase";
 import { getSiteVertical, getSiteBrand } from "@/lib/site";
 import {
   classifyVideo,
+  classifyGameSystem,
   isShort,
   VIDEO_TYPE_CONFIG,
   type VideoType,
 } from "@/lib/classify";
+import { GAME_SYSTEMS, GAME_SYSTEM_LIST, getGameSystem } from "@/config/game-systems";
 
 export function generateMetadata(): Metadata {
   const brand = getSiteBrand();
@@ -38,6 +40,7 @@ interface BattleReport {
   published_at: string;
   view_count: number;
   duration_seconds: number;
+  game_system: string | null;
   channels: {
     name: string;
     thumbnail_url: string | null;
@@ -55,6 +58,7 @@ interface BattleReport {
 interface ClassifiedReport extends BattleReport {
   _contentType: VideoType;
   _isShort: boolean;
+  _gameSystemId: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -125,9 +129,10 @@ export default async function WatchPage({
     sort?: string;
     type?: string;
     shorts?: string;
+    game?: string;
   }>;
 }) {
-  const { q, faction, sort, type, shorts } = await searchParams;
+  const { q, faction, sort, type, shorts, game } = await searchParams;
   const config = getSiteVertical();
 
   // Default to battle-report when no type param is present
@@ -139,6 +144,10 @@ export default async function WatchPage({
         : "battle-report";
 
   const includeShorts = shorts === "true";
+
+  // Game system filter — "all" or absent means show everything
+  const activeGame: string | "all" =
+    game && game !== "all" && GAME_SYSTEMS[game] ? game : "all";
 
   // Fetch the vertical_id
   const { data: verticalRow } = await supabase
@@ -160,11 +169,16 @@ export default async function WatchPage({
   let query = supabase
     .from("battle_reports")
     .select(
-      `id, youtube_video_id, title, thumbnail_url, published_at, view_count, duration_seconds,
+      `id, youtube_video_id, title, thumbnail_url, published_at, view_count, duration_seconds, game_system,
        channels ( name, thumbnail_url ),
        content_lists ( id, category_id, categories ( name, colour ) )`,
     )
     .eq("vertical_id", verticalId ?? "");
+
+  // Game system filter
+  if (activeGame !== "all") {
+    query = query.eq("game_system", activeGame);
+  }
 
   // Search filter
   if (q) {
@@ -201,6 +215,7 @@ export default async function WatchPage({
     ...r,
     _contentType: classifyVideo(r.title, r.duration_seconds),
     _isShort: isShort(r.duration_seconds),
+    _gameSystemId: r.game_system ?? classifyGameSystem(r.title),
   }));
 
   // Apply content type + shorts filters
@@ -251,6 +266,11 @@ export default async function WatchPage({
     if (q) params.set("q", q);
     if (faction) params.set("faction", faction);
     if (sort && sort !== "newest") params.set("sort", sort);
+    if (key === "game") {
+      if (value && value !== "all") params.set("game", value);
+    } else if (activeGame !== "all") {
+      params.set("game", activeGame);
+    }
     if (key === "type") {
       if (value) params.set("type", value);
       // If value is null, no type param means default (battle-report)
@@ -321,6 +341,40 @@ export default async function WatchPage({
             Filter
           </button>
         </form>
+
+        {/* Game system pill bar */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-2 mb-2 scrollbar-none">
+          {/* "All" pill */}
+          <Link
+            href={buildUrl("game", "all")}
+            className="shrink-0 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium border transition-colors"
+            style={{
+              borderColor: activeGame === "all" ? "var(--vertical-accent)" : "var(--border)",
+              backgroundColor: activeGame === "all" ? "var(--vertical-accent)" : "transparent",
+              color: activeGame === "all" ? "#fff" : "var(--muted)",
+            }}
+          >
+            All Games
+          </Link>
+          {GAME_SYSTEM_LIST.map((gs) => {
+            const isActive = activeGame === gs.id;
+            return (
+              <Link
+                key={gs.id}
+                href={buildUrl("game", gs.id)}
+                className="shrink-0 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium border transition-colors"
+                style={{
+                  borderColor: isActive ? gs.colour : "var(--border)",
+                  backgroundColor: isActive ? gs.colour : "transparent",
+                  color: isActive ? "#fff" : "var(--muted)",
+                }}
+              >
+                <span>{gs.icon}</span>
+                <span>{gs.shortName}</span>
+              </Link>
+            );
+          })}
+        </div>
 
         {/* Content type pill bar */}
         <div className="flex items-center gap-2 overflow-x-auto pb-2 mb-2 scrollbar-none">
@@ -415,11 +469,22 @@ export default async function WatchPage({
             {filtered.map((report) => {
               const badges = getFactionBadges(report.content_lists ?? []);
               const typeConfig = VIDEO_TYPE_CONFIG[report._contentType];
+              const gs = getGameSystem(report._gameSystemId);
               return (
                 <Link
                   key={report.id}
                   href={`/watch/${report.youtube_video_id}`}
-                  className="group rounded-xl border border-[var(--border)] bg-[var(--surface)] overflow-hidden transition-all duration-200 hover:scale-[1.02] hover:border-[var(--border-light)] hover:shadow-lg hover:shadow-[var(--accent-glow)]"
+                  className="group rounded-xl overflow-hidden transition-all duration-200 hover:scale-[1.02] hover:shadow-lg"
+                  style={{
+                    borderWidth: "1px",
+                    borderStyle: "solid",
+                    borderColor: "var(--border)",
+                    borderLeftWidth: "4px",
+                    borderLeftColor: gs.colour,
+                    backgroundColor: "var(--surface)",
+                    "--card-glow": `${gs.colour}33`,
+                  } as React.CSSProperties}
+                  onMouseEnter={undefined}
                 >
                   {/* Thumbnail */}
                   <div className="relative aspect-video bg-[var(--surface-hover)]">
@@ -436,9 +501,17 @@ export default async function WatchPage({
                       </div>
                     )}
 
-                    {/* Content type badge — top-left */}
+                    {/* Game system badge — top-left */}
                     <span
                       className="absolute top-2 left-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold text-white backdrop-blur-sm"
+                      style={{ backgroundColor: `${gs.colour}cc` }}
+                    >
+                      {gs.shortName}
+                    </span>
+
+                    {/* Content type badge — top-right */}
+                    <span
+                      className="absolute top-2 right-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold text-white backdrop-blur-sm"
                       style={{ backgroundColor: `${typeConfig.colour}cc` }}
                     >
                       <span>{typeConfig.icon}</span>

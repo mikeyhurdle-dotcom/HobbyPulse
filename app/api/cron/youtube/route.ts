@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { getVideoDetails, parseDuration } from "@/lib/youtube";
-import { classifyVideo, isBattleReport, isShort } from "@/lib/classify";
+import { classifyVideo, classifyGameSystem, isBattleReport, isShort } from "@/lib/classify";
 import { fetchChannelFeed } from "@/lib/youtube-rss";
 import { getSiteVertical } from "@/lib/site";
 
@@ -141,6 +141,7 @@ export async function GET(request: NextRequest) {
           duration_seconds: durationSeconds,
           view_count: parseInt(video.statistics?.viewCount || "0", 10),
           content_type: classifyVideo(video.snippet.title, durationSeconds),
+          game_system: classifyGameSystem(video.snippet.title),
           is_short: isShort(durationSeconds),
         };
       });

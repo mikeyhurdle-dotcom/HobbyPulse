@@ -54,13 +54,11 @@ Things Claude can't do for you. Check these off as you go.
 - [ ] **Buy domain(s)** — tabletopwatch.com (or final brand), simpitstop.com
 - [ ] **Create second Vercel project** for SimPitStop (same repo, `NEXT_PUBLIC_SITE_VERTICAL=simracing`)
 
-## Brand Workshopping (parked)
+## Domains to Buy
 
-Tabletop site name candidates — needs to be:
-- Not trademark-infringing (no "Warhammer", "Games Workshop", "Citadel")
-- SEO-friendly for tabletop gaming
-- Broad enough for 40K + AoS + Kill Team + other games
-- Options to explore: TabletopWatch, MiniWatch, WarTableTop, PaintedDice, HobbyForge, etc.
+- [ ] **tabletopwatch.com** — confirmed brand name (available as of 2026-03-31)
+- [ ] **simpitstop.com** — confirmed brand name (available as of 2026-03-31)
+- [ ] Configure custom domains in Vercel once purchased
 
 ## Duplicate Linear Issues (cleaned up)
 

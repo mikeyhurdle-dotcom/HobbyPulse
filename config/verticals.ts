@@ -94,6 +94,11 @@ export const verticals: Record<string, VerticalConfig> = {
       "warhammer 40k battle report",
       "40k batrep",
       "warhammer 40000 vs",
+      "age of sigmar battle report",
+      "aos batrep",
+      "old world battle report",
+      "warhammer fantasy battle report",
+      "kill team battle report",
     ],
   },
   simracing: {

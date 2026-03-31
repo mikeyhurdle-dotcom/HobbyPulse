@@ -55,7 +55,7 @@ Key decisions made during the build session on 2026-03-30 and their rationale.
 - A generic tabletop name also allows expansion beyond GW games
 - Working name "TabletopWatch" is safe and descriptive
 
-**Brand name still needs workshopping.** Candidates: TabletopWatch, MiniWatch, HobbyForge, PaintedDice, etc.
+**Brand name confirmed: TabletopWatch** (tabletopwatch.com). Domain available. Researched on 2026-03-31 — HobbyForge, DiceHammer, WarTable all taken by existing companies. TabletopWatch is clean, broad, and "watch" works on two levels (watch videos + watch prices).
 
 ---
 

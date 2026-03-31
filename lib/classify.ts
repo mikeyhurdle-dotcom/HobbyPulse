@@ -142,3 +142,62 @@ export function classifyVideo(title: string, durationSeconds: number): VideoType
 export function isShort(durationSeconds: number): boolean {
   return durationSeconds < 120;
 }
+
+// ---------------------------------------------------------------------------
+// Game system classifier
+// ---------------------------------------------------------------------------
+
+/**
+ * Classify the game system from a video title.
+ *
+ * Rules are evaluated in priority order — first match wins.
+ * Default is "40k".
+ */
+export function classifyGameSystem(title: string): string {
+  const t = ` ${title.toLowerCase()} `; // pad with spaces for word-boundary matching
+
+  // Age of Sigmar
+  if (
+    t.includes("age of sigmar") ||
+    t.includes(" aos ") ||
+    (t.includes("sigmar") && !t.includes("warhammer") )
+  ) {
+    return "aos";
+  }
+
+  // The Old World / Warhammer Fantasy
+  if (
+    t.includes("old world") ||
+    t.includes(" tow ") ||
+    t.includes("warhammer fantasy")
+  ) {
+    return "tow";
+  }
+
+  // Kill Team
+  if (t.includes("kill team") || t.includes("killteam")) {
+    return "kt";
+  }
+
+  // Horus Heresy / 30K
+  if (
+    t.includes("horus heresy") ||
+    t.includes(" 30k ") ||
+    t.includes("heresy") ||
+    t.includes("legion")
+  ) {
+    return "30k";
+  }
+
+  // One Page Rules
+  if (
+    t.includes("grimdark future") ||
+    t.includes("age of fantasy") ||
+    t.includes("one page rules") ||
+    t.includes(" opr ")
+  ) {
+    return "opr";
+  }
+
+  return "40k";
+}
