@@ -5,6 +5,7 @@ import {
   getVideoDetails,
   parseDuration,
 } from "@/lib/youtube";
+import { classifyVideo, isShort } from "@/lib/classify";
 import { getSiteVertical } from "@/lib/site";
 
 export const runtime = "nodejs";
@@ -92,17 +93,22 @@ export async function GET(request: NextRequest) {
       const videoDetails = await getVideoDetails(videoIds);
 
       // 3. Upsert into battle_reports
-      const rows = videoDetails.map((video) => ({
-        vertical_id: channel.vertical_id,
-        channel_id: channel.id,
-        youtube_video_id: video.id,
-        title: video.snippet.title,
-        description: video.snippet.description,
-        thumbnail_url: video.snippet.thumbnails.high?.url ?? video.snippet.thumbnails.medium?.url ?? null,
-        published_at: video.snippet.publishedAt,
-        duration_seconds: parseDuration(video.contentDetails?.duration ?? "PT0S"),
-        view_count: parseInt(video.statistics?.viewCount || "0", 10),
-      }));
+      const rows = videoDetails.map((video) => {
+        const durationSeconds = parseDuration(video.contentDetails?.duration ?? "PT0S");
+        return {
+          vertical_id: channel.vertical_id,
+          channel_id: channel.id,
+          youtube_video_id: video.id,
+          title: video.snippet.title,
+          description: video.snippet.description,
+          thumbnail_url: video.snippet.thumbnails.high?.url ?? video.snippet.thumbnails.medium?.url ?? null,
+          published_at: video.snippet.publishedAt,
+          duration_seconds: durationSeconds,
+          view_count: parseInt(video.statistics?.viewCount || "0", 10),
+          content_type: classifyVideo(video.snippet.title, durationSeconds),
+          is_short: isShort(durationSeconds),
+        };
+      });
 
       const { error: upsertError } = await supabase
         .from("battle_reports")

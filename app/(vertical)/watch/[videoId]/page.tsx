@@ -8,6 +8,7 @@ import { RelatedVideos } from "@/components/related-videos";
 import { supabase } from "@/lib/supabase";
 import { getSiteVertical, getSiteBrand } from "@/lib/site";
 import { videoSchema, breadcrumbSchema } from "@/lib/structured-data";
+import { classifyVideo, VIDEO_TYPE_CONFIG } from "@/lib/classify";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -221,16 +222,35 @@ export default async function VideoDetailPage({
 
             {/* Title + meta */}
             <div className="space-y-2">
-              <h1 className="text-xl sm:text-2xl font-bold tracking-tight leading-snug">
-                {battleReport.title}
-              </h1>
+              <div className="flex items-center gap-3 flex-wrap">
+                <h1 className="text-xl sm:text-2xl font-bold tracking-tight leading-snug">
+                  {battleReport.title}
+                </h1>
+                {(() => {
+                  const ct = classifyVideo(battleReport.title, battleReport.duration_seconds);
+                  const cfg = VIDEO_TYPE_CONFIG[ct];
+                  return (
+                    <span
+                      className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold text-white shrink-0"
+                      style={{ backgroundColor: cfg.colour }}
+                    >
+                      <span>{cfg.icon}</span>
+                      <span>{cfg.label}</span>
+                    </span>
+                  );
+                })()}
+              </div>
               <div className="flex items-center gap-3">
-                {battleReport.channels?.thumbnail_url && (
+                {battleReport.channels?.thumbnail_url ? (
                   <img
                     src={battleReport.channels.thumbnail_url}
                     alt={battleReport.channels.name ?? ""}
                     className="w-8 h-8 rounded-full"
                   />
+                ) : (
+                  <div className="w-8 h-8 rounded-full bg-[var(--surface-hover)] flex items-center justify-center text-[var(--muted)] text-xs shrink-0">
+                    ?
+                  </div>
                 )}
                 <div>
                   <p className="text-sm font-medium">

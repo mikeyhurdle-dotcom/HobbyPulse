@@ -4,6 +4,12 @@ import { Nav } from "@/components/nav";
 import { AdBetweenContent } from "@/components/ad-slot";
 import { supabase } from "@/lib/supabase";
 import { getSiteVertical, getSiteBrand } from "@/lib/site";
+import {
+  classifyVideo,
+  isShort,
+  VIDEO_TYPE_CONFIG,
+  type VideoType,
+} from "@/lib/classify";
 
 export function generateMetadata(): Metadata {
   const brand = getSiteBrand();
@@ -45,6 +51,11 @@ interface BattleReport {
   }[];
 }
 
+interface ClassifiedReport extends BattleReport {
+  _contentType: VideoType;
+  _isShort: boolean;
+}
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -77,6 +88,17 @@ function formatDuration(seconds: number): string {
   return `${m}:${String(s).padStart(2, "0")}`;
 }
 
+// All valid content type keys for filtering
+const ALL_CONTENT_TYPES: VideoType[] = [
+  "battle-report",
+  "news",
+  "tactics",
+  "painting",
+  "review",
+  "lore",
+  "other",
+];
+
 // ---------------------------------------------------------------------------
 // Page
 // ---------------------------------------------------------------------------
@@ -84,10 +106,21 @@ function formatDuration(seconds: number): string {
 export default async function WatchPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; faction?: string; sort?: string }>;
+  searchParams: Promise<{
+    q?: string;
+    faction?: string;
+    sort?: string;
+    type?: string;
+    shorts?: string;
+  }>;
 }) {
-  const { q, faction, sort } = await searchParams;
+  const { q, faction, sort, type, shorts } = await searchParams;
   const config = getSiteVertical();
+
+  const activeType = type && ALL_CONTENT_TYPES.includes(type as VideoType)
+    ? (type as VideoType)
+    : null;
+  const includeShorts = shorts === "true";
 
   // Fetch the vertical_id
   const { data: verticalRow } = await supabase
@@ -105,7 +138,7 @@ export default async function WatchPage({
     .eq("vertical_id", verticalId ?? "")
     .order("name");
 
-  // Build the battle_reports query
+  // Build the battle_reports query — fetch more so we can filter client-side
   let query = supabase
     .from("battle_reports")
     .select(
@@ -139,10 +172,43 @@ export default async function WatchPage({
     query = query.order("published_at", { ascending: false });
   }
 
-  query = query.limit(30);
+  // Fetch extra to allow for filtering
+  query = query.limit(200);
 
   const { data: reports } = await query;
-  const battleReports = (reports ?? []) as unknown as BattleReport[];
+  const rawReports = (reports ?? []) as unknown as BattleReport[];
+
+  // Classify at display time (migration may not have run yet)
+  const classified: ClassifiedReport[] = rawReports.map((r) => ({
+    ...r,
+    _contentType: classifyVideo(r.title, r.duration_seconds),
+    _isShort: isShort(r.duration_seconds),
+  }));
+
+  // Apply content type + shorts filters
+  let filtered = classified.filter((r) => {
+    if (!includeShorts && r._isShort) return false;
+    if (activeType && r._contentType !== activeType) return false;
+    return true;
+  });
+
+  // Cap at 30 after filtering
+  filtered = filtered.slice(0, 30);
+
+  // Count per type (before filtering by type, but after shorts filter)
+  const typeCounts: Record<VideoType, number> = {
+    "battle-report": 0,
+    news: 0,
+    tactics: 0,
+    painting: 0,
+    review: 0,
+    lore: 0,
+    other: 0,
+  };
+  for (const r of classified) {
+    if (!includeShorts && r._isShort) continue;
+    typeCounts[r._contentType]++;
+  }
 
   // Deduplicate faction badges per report
   const getFactionBadges = (
@@ -159,6 +225,26 @@ export default async function WatchPage({
     return badges;
   };
 
+  /** Build a URL preserving current search params but setting/removing one key. */
+  function buildUrl(key: string, value: string | null): string {
+    const params = new URLSearchParams();
+    if (q) params.set("q", q);
+    if (faction) params.set("faction", faction);
+    if (sort && sort !== "newest") params.set("sort", sort);
+    if (key === "type") {
+      if (value) params.set("type", value);
+    } else if (activeType) {
+      params.set("type", activeType);
+    }
+    if (key === "shorts") {
+      if (value === "true") params.set("shorts", "true");
+    } else if (includeShorts) {
+      params.set("shorts", "true");
+    }
+    const qs = params.toString();
+    return `/watch${qs ? `?${qs}` : ""}`;
+  }
+
   return (
     <>
       <Nav active="watch" />
@@ -169,7 +255,7 @@ export default async function WatchPage({
         </p>
 
         {/* Filter bar */}
-        <form className="flex flex-wrap gap-3 mb-8">
+        <form className="flex flex-wrap gap-3 mb-4">
           {/* Search */}
           <input
             type="text"
@@ -211,11 +297,71 @@ export default async function WatchPage({
           </button>
         </form>
 
+        {/* Content type pill bar */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-2 mb-2 scrollbar-none">
+          {/* All pill */}
+          <Link
+            href={buildUrl("type", null)}
+            className="shrink-0 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium border transition-colors"
+            style={{
+              borderColor: !activeType ? "var(--vertical-accent)" : "var(--border)",
+              backgroundColor: !activeType ? "var(--vertical-accent)" : "transparent",
+              color: !activeType ? "#fff" : "var(--muted)",
+            }}
+          >
+            All
+            <span className="opacity-70">
+              {Object.values(typeCounts).reduce((a, b) => a + b, 0)}
+            </span>
+          </Link>
+
+          {ALL_CONTENT_TYPES.map((ct) => {
+            const cfg = VIDEO_TYPE_CONFIG[ct];
+            const isActive = activeType === ct;
+            const count = typeCounts[ct];
+            return (
+              <Link
+                key={ct}
+                href={buildUrl("type", ct)}
+                className="shrink-0 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium border transition-colors"
+                style={{
+                  borderColor: isActive ? cfg.colour : "var(--border)",
+                  backgroundColor: isActive ? cfg.colour : "transparent",
+                  color: isActive ? "#fff" : "var(--muted)",
+                }}
+              >
+                <span>{cfg.icon}</span>
+                <span>{cfg.label}</span>
+                <span className="opacity-70">{count}</span>
+              </Link>
+            );
+          })}
+        </div>
+
+        {/* Include Shorts toggle */}
+        <div className="flex items-center gap-2 mb-8">
+          <Link
+            href={buildUrl("shorts", includeShorts ? null : "true")}
+            className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium border transition-colors"
+            style={{
+              borderColor: includeShorts ? "var(--vertical-accent)" : "var(--border)",
+              backgroundColor: includeShorts ? "var(--vertical-accent)" : "transparent",
+              color: includeShorts ? "#fff" : "var(--muted)",
+            }}
+          >
+            <span className="inline-block w-3 h-3 rounded-sm border" style={{
+              borderColor: includeShorts ? "#fff" : "var(--border-light)",
+              backgroundColor: includeShorts ? "#fff" : "transparent",
+            }} />
+            Include Shorts
+          </Link>
+        </div>
+
         {/* Ad slot */}
         <AdBetweenContent className="mb-8" />
 
         {/* Video grid */}
-        {battleReports.length === 0 ? (
+        {filtered.length === 0 ? (
           <div className="text-center py-16">
             <p className="text-[var(--muted)] text-lg">No videos found.</p>
             <p className="text-[var(--muted)] text-sm mt-1">
@@ -224,13 +370,14 @@ export default async function WatchPage({
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {battleReports.map((report) => {
+            {filtered.map((report) => {
               const badges = getFactionBadges(report.content_lists ?? []);
+              const typeConfig = VIDEO_TYPE_CONFIG[report._contentType];
               return (
                 <Link
                   key={report.id}
                   href={`/watch/${report.youtube_video_id}`}
-                  className="group rounded-xl border border-[var(--border)] bg-[var(--surface)] overflow-hidden hover:border-[var(--border-light)] hover:bg-[var(--surface-hover)] transition-all"
+                  className="group rounded-xl border border-[var(--border)] bg-[var(--surface)] overflow-hidden transition-all duration-200 hover:scale-[1.02] hover:border-[var(--border-light)] hover:shadow-lg hover:shadow-[var(--accent-glow)]"
                 >
                   {/* Thumbnail */}
                   <div className="relative aspect-video bg-[var(--surface-hover)]">
@@ -246,7 +393,17 @@ export default async function WatchPage({
                         No thumbnail
                       </div>
                     )}
-                    {/* Duration badge */}
+
+                    {/* Content type badge — top-left */}
+                    <span
+                      className="absolute top-2 left-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold text-white backdrop-blur-sm"
+                      style={{ backgroundColor: `${typeConfig.colour}cc` }}
+                    >
+                      <span>{typeConfig.icon}</span>
+                      <span>{typeConfig.label}</span>
+                    </span>
+
+                    {/* Duration badge — bottom-right */}
                     {report.duration_seconds > 0 && (
                       <span className="absolute bottom-2 right-2 bg-black/80 text-white text-xs font-[family-name:var(--font-mono)] px-1.5 py-0.5 rounded">
                         {formatDuration(report.duration_seconds)}
@@ -256,28 +413,36 @@ export default async function WatchPage({
 
                   {/* Info */}
                   <div className="p-4 space-y-2">
-                    <h3 className="text-sm font-medium leading-snug line-clamp-2 group-hover:text-[var(--vertical-accent-light)] transition-colors">
-                      {report.title}
-                    </h3>
-
-                    {/* Channel + meta */}
-                    <div className="flex items-center gap-2">
-                      {report.channels?.thumbnail_url && (
+                    {/* Title + channel avatar row */}
+                    <div className="flex items-start gap-3">
+                      {/* Channel avatar */}
+                      {report.channels?.thumbnail_url ? (
                         <img
                           src={report.channels.thumbnail_url}
                           alt={report.channels.name ?? ""}
-                          className="w-5 h-5 rounded-full"
+                          className="w-8 h-8 rounded-full shrink-0 mt-0.5"
                         />
+                      ) : (
+                        <div className="w-8 h-8 rounded-full shrink-0 mt-0.5 bg-[var(--surface-hover)] flex items-center justify-center text-[var(--muted)] text-xs">
+                          ?
+                        </div>
                       )}
-                      <span className="text-xs text-[var(--muted)] truncate">
-                        {report.channels?.name ?? "Unknown channel"}
-                      </span>
-                    </div>
 
-                    <div className="flex items-center gap-2 text-xs text-[var(--muted)]">
-                      <span>{formatViews(report.view_count)}</span>
-                      <span>-</span>
-                      <span>{formatDate(report.published_at)}</span>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-sm font-medium leading-snug line-clamp-2 group-hover:text-[var(--vertical-accent-light)] transition-colors">
+                          {report.title}
+                        </h3>
+
+                        {/* Channel name */}
+                        <p className="text-xs text-[var(--muted)] truncate mt-1">
+                          {report.channels?.name ?? "Unknown channel"}
+                        </p>
+
+                        {/* Views + date */}
+                        <p className="text-xs text-[var(--muted)]">
+                          {formatViews(report.view_count)} &middot; {formatDate(report.published_at)}
+                        </p>
+                      </div>
                     </div>
 
                     {/* Faction badges */}

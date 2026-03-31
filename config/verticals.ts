@@ -55,7 +55,7 @@ export const verticals: Record<string, VerticalConfig> = {
       "MWG Studios",
       "Winters SEO",
       "Auspex Tactics",
-      "Art of War",
+      "Art of War 40k",
       "Mordian Glory",
       "Guerrilla Miniature Games",
       "The Honest Wargamer",
