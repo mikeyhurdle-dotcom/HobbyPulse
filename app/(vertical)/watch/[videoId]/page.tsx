@@ -10,10 +10,11 @@ import { supabase } from "@/lib/supabase";
 import { getSiteVertical, getSiteBrand } from "@/lib/site";
 import { videoSchema, breadcrumbSchema } from "@/lib/structured-data";
 import { classifyVideo, classifyGameSystem, VIDEO_TYPE_CONFIG } from "@/lib/classify";
-import { getGameSystem } from "@/config/game-systems";
+import { getGameSystem, SIMRACING_SYSTEMS } from "@/config/game-systems";
 import { RulesBadge } from "@/components/rules-badge";
 import { FactionMeta } from "@/components/faction-meta";
 import { wahapediaLink } from "@/lib/external-links";
+import { CopySetupButton } from "@/components/copy-setup-button";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -59,6 +60,16 @@ interface BattleReport {
     thumbnail_url: string | null;
   } | null;
   content_lists: ContentList[];
+}
+
+interface CarSetup {
+  id: string;
+  sim: string;
+  car: string;
+  track: string | null;
+  setup_data: Record<string, string>;
+  hardware_mentioned: string[] | null;
+  confidence: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -166,6 +177,20 @@ export default async function VideoDetailPage({
   );
   for (const list of sortedLists) {
     list.list_items?.sort((a, b) => a.sort_order - b.sort_order);
+  }
+
+  // Fetch car setups for sim racing vertical
+  const isSimRacing = config.slug === "simracing";
+  let carSetups: CarSetup[] = [];
+  if (isSimRacing) {
+    const { data: setups } = await supabase
+      .from("car_setups")
+      .select("id, sim, car, track, setup_data, hardware_mentioned, confidence")
+      .eq("battle_report_id", battleReport.id)
+      .order("confidence", { ascending: false });
+    if (setups) {
+      carSetups = setups as CarSetup[];
+    }
   }
 
   // Collect unique category slugs, then resolve to IDs for the related videos query
@@ -310,159 +335,265 @@ export default async function VideoDetailPage({
             )}
           </div>
 
-          {/* Army lists sidebar */}
+          {/* Sidebar */}
           <div className="space-y-6">
-            <h2 className="text-lg font-bold tracking-tight">Army Lists</h2>
+            {isSimRacing ? (
+              <>
+                {/* ---- Sim racing: Car Setups ---- */}
+                {carSetups.length > 0 && (
+                  <>
+                    <h2 className="text-lg font-bold tracking-tight">Car Setups</h2>
+                    {carSetups.map((setup) => {
+                      // Resolve sim colour from game-systems config
+                      const simKey = setup.sim.toLowerCase().replace(/\s+/g, "");
+                      const simSystem = SIMRACING_SYSTEMS[simKey];
+                      const simColour = simSystem?.colour ?? "var(--vertical-accent)";
 
-            {sortedLists.length === 0 ? (
-              <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-6 text-center">
-                <p className="text-sm text-[var(--muted)]">
-                  No parsed army lists yet.
-                </p>
-                <p className="text-xs text-[var(--muted)] mt-1">
-                  Lists are automatically extracted from video descriptions.
-                </p>
-              </div>
-            ) : (
-              sortedLists.map((list) => {
-                // Build the raw text for "Buy This Army" pre-fill
-                const armyListText = (list.list_items ?? [])
-                  .map((item) =>
-                    `${item.quantity > 1 ? `${item.quantity}x ` : ""}${item.name} [${item.points} pts]`,
-                  )
-                  .join("\n");
+                      // Build formatted setup text for copy
+                      const setupLines = Object.entries(setup.setup_data ?? {})
+                        .filter(([, v]) => v !== undefined && v !== "")
+                        .map(([k, v]) => {
+                          const label = k.replace(/([A-Z])/g, " $1").replace(/^./, (s) => s.toUpperCase());
+                          return `${label}: ${v}`;
+                        });
+                      const copyText = [
+                        `Sim: ${setup.sim}`,
+                        `Car: ${setup.car}`,
+                        setup.track ? `Track: ${setup.track}` : null,
+                        "",
+                        ...setupLines,
+                      ]
+                        .filter((l) => l !== null)
+                        .join("\n");
 
-                return (
-                  <div key={list.id} className="space-y-2">
-                    <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] overflow-hidden">
-                      {/* List header */}
-                      <div className="px-4 py-3 border-b border-[var(--border)] bg-[var(--surface-hover)]">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            {list.categories && (
+                      return (
+                        <div
+                          key={setup.id}
+                          className="rounded-xl border border-[var(--border)] bg-[var(--surface)] overflow-hidden"
+                        >
+                          {/* Setup header */}
+                          <div className="px-4 py-3 border-b border-[var(--border)] bg-[var(--surface-hover)]">
+                            <div className="flex items-center gap-2 flex-wrap">
                               <span
-                                className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium border"
-                                style={{
-                                  borderColor:
-                                    list.categories.colour ?? "var(--border-light)",
-                                  color: list.categories.colour ?? "var(--muted)",
-                                  backgroundColor: list.categories.colour
-                                    ? `${list.categories.colour}15`
-                                    : "transparent",
-                                }}
+                                className="inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-bold text-white"
+                                style={{ backgroundColor: simColour }}
                               >
-                                {list.categories.name}
+                                {setup.sim}
                               </span>
-                            )}
-                            {list.player_name && (
-                              <span className="text-sm font-medium">
-                                {list.player_name}
-                              </span>
+                              <span className="text-sm font-medium">{setup.car}</span>
+                            </div>
+                            {setup.track && (
+                              <p className="text-xs text-[var(--muted)] mt-1">
+                                {setup.track}
+                              </p>
                             )}
                           </div>
-                          <span className="text-xs font-[family-name:var(--font-mono)] text-[var(--muted)]">
-                            {list.total_points} pts
-                          </span>
+
+                          {/* Setup data grid */}
+                          {Object.keys(setup.setup_data ?? {}).length > 0 && (
+                            <div className="px-4 py-3">
+                              <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                                {Object.entries(setup.setup_data ?? {})
+                                  .filter(([, v]) => v !== undefined && v !== "")
+                                  .map(([key, value]) => {
+                                    const label = key
+                                      .replace(/([A-Z])/g, " $1")
+                                      .replace(/^./, (s) => s.toUpperCase());
+                                    return (
+                                      <div key={key} className="min-w-0">
+                                        <p className="text-[10px] text-[var(--muted)] truncate">
+                                          {label}
+                                        </p>
+                                        <p className="text-sm font-medium font-[family-name:var(--font-mono)]">
+                                          {value}
+                                        </p>
+                                      </div>
+                                    );
+                                  })}
+                              </div>
+                              <div className="mt-3">
+                                <CopySetupButton text={copyText} />
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Hardware mentioned */}
+                          {setup.hardware_mentioned &&
+                            setup.hardware_mentioned.length > 0 && (
+                              <div className="px-4 py-3 border-t border-[var(--border)]">
+                                <p className="text-[10px] text-[var(--muted)] mb-2 uppercase tracking-wider font-medium">
+                                  Hardware mentioned
+                                </p>
+                                <div className="flex flex-wrap gap-1.5">
+                                  {setup.hardware_mentioned.map((hw) => (
+                                    <Link
+                                      key={hw}
+                                      href={`/deals?q=${encodeURIComponent(hw)}`}
+                                      className="inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-medium border border-[var(--border)] text-[var(--muted)] hover:text-[var(--foreground)] hover:border-[var(--vertical-accent)] transition-colors"
+                                    >
+                                      {hw}
+                                    </Link>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
                         </div>
-                        {list.detachment && (
-                          <p className="text-xs text-[var(--muted)] mt-1">
-                            {list.detachment}
-                          </p>
-                        )}
-                        {/* Faction meta placeholder */}
-                        {list.categories && (
-                          <div className="mt-2">
-                            <FactionMeta
-                              factionName={list.categories.name}
-                              gameSystem={battleReport.game_system ?? classifyGameSystem(battleReport.title)}
-                            />
-                          </div>
-                        )}
-                      </div>
+                      );
+                    })}
+                  </>
+                )}
+              </>
+            ) : (
+              <>
+                {/* ---- Tabletop: Army Lists ---- */}
+                <h2 className="text-lg font-bold tracking-tight">Army Lists</h2>
 
-                      {/* Unit table */}
-                      <div className="divide-y divide-[var(--border)]">
-                        {(list.list_items ?? []).map((item) => (
-                          <div
-                            key={item.id}
-                            className="px-4 py-2.5 hover:bg-[var(--surface-hover)] transition-colors"
-                          >
-                            <div className="flex items-start justify-between gap-2">
-                              <div className="flex-1 min-w-0">
-                                <span className="flex items-center gap-1.5">
-                                  <Link
-                                    href={`/deals?q=${encodeURIComponent(item.name)}`}
-                                    className="text-sm font-medium hover:text-[var(--vertical-accent-light)] transition-colors"
-                                    title={`Find deals for ${item.name}`}
-                                  >
-                                    {item.quantity > 1 && (
-                                      <span className="text-[var(--muted)] mr-1">
-                                        {item.quantity}x
-                                      </span>
-                                    )}
-                                    {item.name}
-                                  </Link>
-                                  <a
-                                    href={`/deals?q=${encodeURIComponent(item.name)}`}
-                                    className="text-xs opacity-50 hover:opacity-100 transition-opacity shrink-0"
-                                    title={`Find deals for ${item.name}`}
-                                  >
-                                    &#128176;
-                                  </a>
-                                  <a
-                                    href={wahapediaLink(item.name, battleReport.game_system ?? classifyGameSystem(battleReport.title))}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-xs opacity-50 hover:opacity-100 transition-opacity shrink-0"
-                                    title={`View ${item.name} datasheet on Wahapedia`}
-                                  >
-                                    &#128214;
-                                  </a>
-                                </span>
+                {sortedLists.length === 0 ? (
+                  <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-6 text-center">
+                    <p className="text-sm text-[var(--muted)]">
+                      No parsed army lists yet.
+                    </p>
+                    <p className="text-xs text-[var(--muted)] mt-1">
+                      Lists are automatically extracted from video descriptions.
+                    </p>
+                  </div>
+                ) : (
+                  sortedLists.map((list) => {
+                    const armyListText = (list.list_items ?? [])
+                      .map((item) =>
+                        `${item.quantity > 1 ? `${item.quantity}x ` : ""}${item.name} [${item.points} pts]`,
+                      )
+                      .join("\n");
 
-                                {/* Enhancements */}
-                                {item.enhancements && item.enhancements.length > 0 && (
-                                  <div className="flex flex-wrap gap-1 mt-1">
-                                    {item.enhancements.map((enh, i) => (
-                                      <span
-                                        key={i}
-                                        className="text-[10px] text-[var(--accent-light)] bg-[var(--accent-glow)] rounded px-1.5 py-0.5"
-                                      >
-                                        {enh}
-                                      </span>
-                                    ))}
-                                  </div>
+                    return (
+                      <div key={list.id} className="space-y-2">
+                        <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] overflow-hidden">
+                          {/* List header */}
+                          <div className="px-4 py-3 border-b border-[var(--border)] bg-[var(--surface-hover)]">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                {list.categories && (
+                                  <span
+                                    className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium border"
+                                    style={{
+                                      borderColor:
+                                        list.categories.colour ?? "var(--border-light)",
+                                      color: list.categories.colour ?? "var(--muted)",
+                                      backgroundColor: list.categories.colour
+                                        ? `${list.categories.colour}15`
+                                        : "transparent",
+                                    }}
+                                  >
+                                    {list.categories.name}
+                                  </span>
                                 )}
-
-                                {/* Wargear */}
-                                {item.wargear && item.wargear.length > 0 && (
-                                  <p className="text-[10px] text-[var(--muted)] mt-0.5 truncate">
-                                    {item.wargear.join(", ")}
-                                  </p>
+                                {list.player_name && (
+                                  <span className="text-sm font-medium">
+                                    {list.player_name}
+                                  </span>
                                 )}
                               </div>
-                              <span className="text-xs font-[family-name:var(--font-mono)] text-[var(--muted)] whitespace-nowrap">
-                                {item.points} pts
+                              <span className="text-xs font-[family-name:var(--font-mono)] text-[var(--muted)]">
+                                {list.total_points} pts
                               </span>
                             </div>
+                            {list.detachment && (
+                              <p className="text-xs text-[var(--muted)] mt-1">
+                                {list.detachment}
+                              </p>
+                            )}
+                            {list.categories && (
+                              <div className="mt-2">
+                                <FactionMeta
+                                  factionName={list.categories.name}
+                                  gameSystem={battleReport.game_system ?? classifyGameSystem(battleReport.title)}
+                                />
+                              </div>
+                            )}
                           </div>
-                        ))}
-                      </div>
-                    </div>
 
-                    {/* Buy This Army CTA */}
-                    {(list.list_items ?? []).length > 0 && (
-                      <Link
-                        href={`/build?list=${encodeURIComponent(armyListText)}`}
-                        className="flex items-center justify-center gap-2 w-full rounded-xl bg-[var(--vertical-accent)] px-4 py-3 text-sm font-bold text-white hover:opacity-90 transition-opacity"
-                      >
-                        <span>{"\u00A3"}</span>
-                        <span>Buy This Army</span>
-                      </Link>
-                    )}
-                  </div>
-                );
-              })
+                          {/* Unit table */}
+                          <div className="divide-y divide-[var(--border)]">
+                            {(list.list_items ?? []).map((item) => (
+                              <div
+                                key={item.id}
+                                className="px-4 py-2.5 hover:bg-[var(--surface-hover)] transition-colors"
+                              >
+                                <div className="flex items-start justify-between gap-2">
+                                  <div className="flex-1 min-w-0">
+                                    <span className="flex items-center gap-1.5">
+                                      <Link
+                                        href={`/deals?q=${encodeURIComponent(item.name)}`}
+                                        className="text-sm font-medium hover:text-[var(--vertical-accent-light)] transition-colors"
+                                        title={`Find deals for ${item.name}`}
+                                      >
+                                        {item.quantity > 1 && (
+                                          <span className="text-[var(--muted)] mr-1">
+                                            {item.quantity}x
+                                          </span>
+                                        )}
+                                        {item.name}
+                                      </Link>
+                                      <a
+                                        href={`/deals?q=${encodeURIComponent(item.name)}`}
+                                        className="text-xs opacity-50 hover:opacity-100 transition-opacity shrink-0"
+                                        title={`Find deals for ${item.name}`}
+                                      >
+                                        &#128176;
+                                      </a>
+                                      <a
+                                        href={wahapediaLink(item.name, battleReport.game_system ?? classifyGameSystem(battleReport.title))}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-xs opacity-50 hover:opacity-100 transition-opacity shrink-0"
+                                        title={`View ${item.name} datasheet on Wahapedia`}
+                                      >
+                                        &#128214;
+                                      </a>
+                                    </span>
+
+                                    {item.enhancements && item.enhancements.length > 0 && (
+                                      <div className="flex flex-wrap gap-1 mt-1">
+                                        {item.enhancements.map((enh, i) => (
+                                          <span
+                                            key={i}
+                                            className="text-[10px] text-[var(--accent-light)] bg-[var(--accent-glow)] rounded px-1.5 py-0.5"
+                                          >
+                                            {enh}
+                                          </span>
+                                        ))}
+                                      </div>
+                                    )}
+
+                                    {item.wargear && item.wargear.length > 0 && (
+                                      <p className="text-[10px] text-[var(--muted)] mt-0.5 truncate">
+                                        {item.wargear.join(", ")}
+                                      </p>
+                                    )}
+                                  </div>
+                                  <span className="text-xs font-[family-name:var(--font-mono)] text-[var(--muted)] whitespace-nowrap">
+                                    {item.points} pts
+                                  </span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {(list.list_items ?? []).length > 0 && (
+                          <Link
+                            href={`/build?list=${encodeURIComponent(armyListText)}`}
+                            className="flex items-center justify-center gap-2 w-full rounded-xl bg-[var(--vertical-accent)] px-4 py-3 text-sm font-bold text-white hover:opacity-90 transition-opacity"
+                          >
+                            <span>{"\u00A3"}</span>
+                            <span>Buy This Army</span>
+                          </Link>
+                        )}
+                      </div>
+                    );
+                  })
+                )}
+              </>
             )}
 
             {/* Parse confidence */}

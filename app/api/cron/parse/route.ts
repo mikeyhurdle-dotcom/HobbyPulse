@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { parseArmyList } from "@/lib/parser";
+import { parseSimRacingContent } from "@/lib/setup-parser";
 import { getSiteVertical } from "@/lib/site";
 
 export const runtime = "nodejs";
@@ -68,107 +69,161 @@ export async function GET(request: NextRequest) {
   let totalItemsCreated = 0;
   const errors: string[] = [];
 
+  const isSimRacing = siteVertical.slug === "simracing";
+
   // 2. Parse each report
   for (const report of reports) {
     try {
-      const lists = await parseArmyList(report.description ?? "", siteVertical.slug);
+      if (isSimRacing) {
+        // ---- Sim racing: parse setups and insert into car_setups ----
+        const setups = await parseSimRacingContent(report.description ?? "");
 
-      // Even if no lists found, mark as parsed so we don't retry
-      const maxConfidence =
-        lists.length > 0
-          ? Math.max(...lists.map((l) => l.confidence))
-          : 0;
+        const maxConfidence =
+          setups.length > 0
+            ? Math.max(...setups.map((s) => s.confidence))
+            : 0;
 
-      // 3. Look up category IDs by faction name
-      const factionNames = [...new Set(lists.map((l) => l.faction))];
-      let categoryMap: Record<string, string> = {};
+        for (const setup of setups) {
+          const { error: setupError } = await supabase
+            .from("car_setups")
+            .insert({
+              battle_report_id: report.id,
+              sim: setup.sim,
+              car: setup.car,
+              track: setup.track,
+              setup_data: setup.setupData,
+              hardware_mentioned: setup.hardwareMentioned,
+              raw_text: setup.rawText,
+              confidence: setup.confidence,
+            });
 
-      if (factionNames.length > 0) {
-        const { data: categories } = await supabase
-          .from("categories")
-          .select("id, name")
-          .in("name", factionNames);
-
-        if (categories) {
-          categoryMap = Object.fromEntries(
-            categories.map((c) => [c.name, c.id]),
-          );
-        }
-      }
-
-      // 4. Insert content_lists and list_items
-      for (let i = 0; i < lists.length; i++) {
-        const list = lists[i];
-        const categoryId = categoryMap[list.faction] ?? null;
-
-        const { data: insertedList, error: listError } = await supabase
-          .from("content_lists")
-          .insert({
-            battle_report_id: report.id,
-            category_id: categoryId,
-            player_name: list.player_name,
-            detachment: list.detachment,
-            total_points: list.total_points,
-            list_index: i,
-            raw_text: list.raw_text,
-          })
-          .select("id")
-          .single();
-
-        if (listError) {
-          console.error(
-            `Error inserting content_list for report ${report.id}:`,
-            listError,
-          );
-          errors.push(`report ${report.id} list ${i}: ${listError.message}`);
-          continue;
-        }
-
-        totalListsCreated++;
-
-        // Insert individual list items
-        if (list.units.length > 0) {
-          const itemRows = list.units.map((unit, sortOrder) => ({
-            content_list_id: insertedList.id,
-            name: unit.name,
-            quantity: unit.qty,
-            points: unit.points,
-            enhancements: unit.enhancements,
-            wargear: unit.wargear,
-            sort_order: sortOrder,
-          }));
-
-          const { error: itemsError } = await supabase
-            .from("list_items")
-            .insert(itemRows);
-
-          if (itemsError) {
+          if (setupError) {
             console.error(
-              `Error inserting list_items for list ${insertedList.id}:`,
-              itemsError,
+              `Error inserting car_setup for report ${report.id}:`,
+              setupError,
             );
-            errors.push(`list ${insertedList.id} items: ${itemsError.message}`);
+            errors.push(`report ${report.id} setup: ${setupError.message}`);
           } else {
-            totalItemsCreated += itemRows.length;
+            totalListsCreated++;
           }
         }
-      }
 
-      // 5. Update the battle report as parsed
-      const { error: updateError } = await supabase
-        .from("battle_reports")
-        .update({
-          parsed_at: new Date().toISOString(),
-          parse_confidence: maxConfidence,
-        })
-        .eq("id", report.id);
+        // Update the battle report as parsed
+        const { error: updateError } = await supabase
+          .from("battle_reports")
+          .update({
+            parsed_at: new Date().toISOString(),
+            parse_confidence: maxConfidence,
+          })
+          .eq("id", report.id);
 
-      if (updateError) {
-        console.error(
-          `Error updating parsed_at for report ${report.id}:`,
-          updateError,
-        );
-        errors.push(`update report ${report.id}: ${updateError.message}`);
+        if (updateError) {
+          console.error(
+            `Error updating parsed_at for report ${report.id}:`,
+            updateError,
+          );
+          errors.push(`update report ${report.id}: ${updateError.message}`);
+        }
+      } else {
+        // ---- Warhammer / tabletop: existing army list parsing ----
+        const lists = await parseArmyList(report.description ?? "", siteVertical.slug);
+
+        const maxConfidence =
+          lists.length > 0
+            ? Math.max(...lists.map((l) => l.confidence))
+            : 0;
+
+        // 3. Look up category IDs by faction name
+        const factionNames = [...new Set(lists.map((l) => l.faction))];
+        let categoryMap: Record<string, string> = {};
+
+        if (factionNames.length > 0) {
+          const { data: categories } = await supabase
+            .from("categories")
+            .select("id, name")
+            .in("name", factionNames);
+
+          if (categories) {
+            categoryMap = Object.fromEntries(
+              categories.map((c) => [c.name, c.id]),
+            );
+          }
+        }
+
+        // 4. Insert content_lists and list_items
+        for (let i = 0; i < lists.length; i++) {
+          const list = lists[i];
+          const categoryId = categoryMap[list.faction] ?? null;
+
+          const { data: insertedList, error: listError } = await supabase
+            .from("content_lists")
+            .insert({
+              battle_report_id: report.id,
+              category_id: categoryId,
+              player_name: list.player_name,
+              detachment: list.detachment,
+              total_points: list.total_points,
+              list_index: i,
+              raw_text: list.raw_text,
+            })
+            .select("id")
+            .single();
+
+          if (listError) {
+            console.error(
+              `Error inserting content_list for report ${report.id}:`,
+              listError,
+            );
+            errors.push(`report ${report.id} list ${i}: ${listError.message}`);
+            continue;
+          }
+
+          totalListsCreated++;
+
+          // Insert individual list items
+          if (list.units.length > 0) {
+            const itemRows = list.units.map((unit, sortOrder) => ({
+              content_list_id: insertedList.id,
+              name: unit.name,
+              quantity: unit.qty,
+              points: unit.points,
+              enhancements: unit.enhancements,
+              wargear: unit.wargear,
+              sort_order: sortOrder,
+            }));
+
+            const { error: itemsError } = await supabase
+              .from("list_items")
+              .insert(itemRows);
+
+            if (itemsError) {
+              console.error(
+                `Error inserting list_items for list ${insertedList.id}:`,
+                itemsError,
+              );
+              errors.push(`list ${insertedList.id} items: ${itemsError.message}`);
+            } else {
+              totalItemsCreated += itemRows.length;
+            }
+          }
+        }
+
+        // 5. Update the battle report as parsed
+        const { error: updateError } = await supabase
+          .from("battle_reports")
+          .update({
+            parsed_at: new Date().toISOString(),
+            parse_confidence: maxConfidence,
+          })
+          .eq("id", report.id);
+
+        if (updateError) {
+          console.error(
+            `Error updating parsed_at for report ${report.id}:`,
+            updateError,
+          );
+          errors.push(`update report ${report.id}: ${updateError.message}`);
+        }
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);

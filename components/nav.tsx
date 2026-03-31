@@ -1,8 +1,17 @@
 import Link from "next/link";
-import { getSiteBrand } from "@/lib/site";
+import { getSiteBrand, getSiteVertical } from "@/lib/site";
 
-const tabs = [
+interface NavTab {
+  name: string;
+  href: string;
+  key: string;
+  icon: string;
+  verticalOnly?: string; // Only show for this vertical slug
+}
+
+const allTabs: NavTab[] = [
   { name: "Watch", href: "/watch", key: "watch", icon: "\u25B6" },
+  { name: "Setups", href: "/setups", key: "setups", icon: "\u2699", verticalOnly: "simracing" },
   { name: "Deals", href: "/deals", key: "deals", icon: "\u00A3" },
   { name: "Build", href: "/build", key: "build", icon: "\u00A3" },
   { name: "Live", href: "/live", key: "live", icon: "\u25CF" },
@@ -10,6 +19,12 @@ const tabs = [
 
 export function Nav({ active }: { active: string }) {
   const brand = getSiteBrand();
+  const vertical = getSiteVertical();
+
+  // Filter tabs based on current vertical
+  const tabs = allTabs.filter(
+    (tab) => !tab.verticalOnly || tab.verticalOnly === vertical.slug,
+  );
 
   return (
     <nav className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--background)]/80 backdrop-blur-xl">
