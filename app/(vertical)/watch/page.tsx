@@ -12,6 +12,7 @@ import {
   type VideoType,
 } from "@/lib/classify";
 import { GAME_SYSTEMS, GAME_SYSTEM_LIST, getGameSystem } from "@/config/game-systems";
+import { getCurrentVersion } from "@/lib/rules-versions";
 
 export function generateMetadata(): Metadata {
   const brand = getSiteBrand();
@@ -244,6 +245,18 @@ export default async function WatchPage({
   }
 
   const totalCount = Object.values(typeCounts).reduce((a, b) => a + b, 0);
+
+  // Fetch current rules versions for staleness dots on cards
+  const uniqueGameSystems = [
+    ...new Set(classified.map((r) => r._gameSystemId)),
+  ];
+  const currentVersions: Record<string, { effective_date: string }> = {};
+  for (const gs of uniqueGameSystems) {
+    const ver = await getCurrentVersion(gs);
+    if (ver) {
+      currentVersions[gs] = { effective_date: ver.effective_date };
+    }
+  }
 
   // Deduplicate faction badges per report
   const getFactionBadges = (
@@ -553,10 +566,34 @@ export default async function WatchPage({
                           {report.channels?.name ?? "Unknown channel"}
                         </p>
 
-                        {/* Views + date */}
-                        <p className="text-xs text-[var(--muted)]">
-                          {formatViews(report.view_count)} &middot;{" "}
-                          {formatDate(report.published_at)}
+                        {/* Views + date + staleness dot */}
+                        <p className="text-xs text-[var(--muted)] flex items-center gap-1.5">
+                          <span>
+                            {formatViews(report.view_count)} &middot;{" "}
+                            {formatDate(report.published_at)}
+                          </span>
+                          {(() => {
+                            const cv = currentVersions[report._gameSystemId];
+                            if (!cv) return null;
+                            const isCurrent =
+                              new Date(report.published_at) >=
+                              new Date(cv.effective_date);
+                            return (
+                              <span
+                                className="inline-block w-2 h-2 rounded-full shrink-0"
+                                style={{
+                                  backgroundColor: isCurrent
+                                    ? "var(--success)"
+                                    : "#f59e0b",
+                                }}
+                                title={
+                                  isCurrent
+                                    ? "Current rules"
+                                    : "Points may have changed"
+                                }
+                              />
+                            );
+                          })()}
                         </p>
                       </div>
                     </div>

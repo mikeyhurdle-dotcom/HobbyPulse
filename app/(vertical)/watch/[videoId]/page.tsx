@@ -11,6 +11,9 @@ import { getSiteVertical, getSiteBrand } from "@/lib/site";
 import { videoSchema, breadcrumbSchema } from "@/lib/structured-data";
 import { classifyVideo, classifyGameSystem, VIDEO_TYPE_CONFIG } from "@/lib/classify";
 import { getGameSystem } from "@/config/game-systems";
+import { RulesBadge } from "@/components/rules-badge";
+import { FactionMeta } from "@/components/faction-meta";
+import { wahapediaLink } from "@/lib/external-links";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -262,6 +265,12 @@ export default async function VideoDetailPage({
                   );
                 })()}
               </div>
+              {/* Rules version staleness badge */}
+              <RulesBadge
+                gameSystem={battleReport.game_system ?? classifyGameSystem(battleReport.title)}
+                publishedAt={battleReport.published_at}
+              />
+
               <div className="flex items-center gap-3">
                 {battleReport.channels?.thumbnail_url ? (
                   <img
@@ -360,6 +369,15 @@ export default async function VideoDetailPage({
                             {list.detachment}
                           </p>
                         )}
+                        {/* Faction meta placeholder */}
+                        {list.categories && (
+                          <div className="mt-2">
+                            <FactionMeta
+                              factionName={list.categories.name}
+                              gameSystem={battleReport.game_system ?? classifyGameSystem(battleReport.title)}
+                            />
+                          </div>
+                        )}
                       </div>
 
                       {/* Unit table */}
@@ -371,17 +389,36 @@ export default async function VideoDetailPage({
                           >
                             <div className="flex items-start justify-between gap-2">
                               <div className="flex-1 min-w-0">
-                                <Link
-                                  href={`/deals?q=${encodeURIComponent(item.name)}`}
-                                  className="text-sm font-medium hover:text-[var(--vertical-accent-light)] transition-colors"
-                                >
-                                  {item.quantity > 1 && (
-                                    <span className="text-[var(--muted)] mr-1">
-                                      {item.quantity}x
-                                    </span>
-                                  )}
-                                  {item.name}
-                                </Link>
+                                <span className="flex items-center gap-1.5">
+                                  <Link
+                                    href={`/deals?q=${encodeURIComponent(item.name)}`}
+                                    className="text-sm font-medium hover:text-[var(--vertical-accent-light)] transition-colors"
+                                    title={`Find deals for ${item.name}`}
+                                  >
+                                    {item.quantity > 1 && (
+                                      <span className="text-[var(--muted)] mr-1">
+                                        {item.quantity}x
+                                      </span>
+                                    )}
+                                    {item.name}
+                                  </Link>
+                                  <a
+                                    href={`/deals?q=${encodeURIComponent(item.name)}`}
+                                    className="text-xs opacity-50 hover:opacity-100 transition-opacity shrink-0"
+                                    title={`Find deals for ${item.name}`}
+                                  >
+                                    &#128176;
+                                  </a>
+                                  <a
+                                    href={wahapediaLink(item.name, battleReport.game_system ?? classifyGameSystem(battleReport.title))}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-xs opacity-50 hover:opacity-100 transition-opacity shrink-0"
+                                    title={`View ${item.name} datasheet on Wahapedia`}
+                                  >
+                                    &#128214;
+                                  </a>
+                                </span>
 
                                 {/* Enhancements */}
                                 {item.enhancements && item.enhancements.length > 0 && (
