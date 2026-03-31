@@ -122,7 +122,6 @@ export const verticals: Record<string, VerticalConfig> = {
       "Coach Dave Academy",
       "Boosted Media",
       "Dan Suzuki",
-      "Ermin Hamidovic",
       "Sim Racing Garage",
       "Chris Haye",
       "Karl Gosling",

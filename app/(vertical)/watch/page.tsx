@@ -140,13 +140,14 @@ export default async function WatchPage({
   const { q, faction, sort, type, shorts, game } = await searchParams;
   const config = getSiteVertical();
 
-  // Default to battle-report when no type param is present
+  // Default: tabletop → battle reports only, sim racing → all content (reviews drive deals)
+  const defaultType: VideoType | "all" = config.slug === "simracing" ? "all" : "battle-report";
   const activeType: VideoType | "all" =
     type === "all"
       ? "all"
       : type && ALL_CONTENT_TYPES.includes(type as VideoType)
         ? (type as VideoType)
-        : "battle-report";
+        : defaultType;
 
   const includeShorts = shorts === "true";
 

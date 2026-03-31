@@ -46,15 +46,26 @@ export function isBattleReport(title: string, durationSeconds: number, vertical:
   let titleMatch = false;
 
   if (vertical === "simracing") {
-    // Sim racing: races, onboards, race replays
-    titleMatch =
+    // Sim racing: must have BOTH a race keyword AND a sim/game indicator
+    const hasSimIndicator =
+      t.includes("iracing") || t.includes("i racing") ||
+      t.includes("acc") || t.includes("assetto") ||
+      t.includes("f1 24") || t.includes("f1 25") ||
+      t.includes("lmu") || t.includes("le mans ultimate") ||
+      t.includes("rfactor") || t.includes("gt7") ||
+      t.includes("sim") || t.includes("automobilista");
+
+    const hasRaceKeyword =
       t.includes("race") ||
       t.includes("onboard") ||
-      t.includes("hotlap") ||
-      t.includes("hot lap") ||
+      t.includes("hotlap") || t.includes("hot lap") ||
       t.includes("qualifying") ||
       t.includes("race replay") ||
-      (t.includes("lap") && (t.includes("iracing") || t.includes("acc") || t.includes("f1")));
+      t.includes("lap record") ||
+      t.includes("endurance");
+
+    // Require both — "race" alone is too broad (catches real-life motorsport vlogs)
+    titleMatch = hasRaceKeyword && hasSimIndicator;
   } else {
     // Tabletop: battle reports
     const hasBattleReportKeyword =
