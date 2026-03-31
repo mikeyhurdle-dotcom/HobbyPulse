@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { parseArmyList, parseWithTranscript } from "@/lib/parser";
 import { parseSimRacingContent, parseSimRacingWithTranscript } from "@/lib/setup-parser";
-import { fetchTranscript } from "@/lib/youtube-transcript";
 import { getSiteVertical } from "@/lib/site";
 
 export const runtime = "nodejs";
@@ -48,7 +47,7 @@ export async function GET(request: NextRequest) {
   // 1. Find unparsed battle reports for this vertical
   const { data: reports, error: fetchError } = await supabase
     .from("battle_reports")
-    .select("id, description, youtube_video_id, duration_seconds, content_type")
+    .select("id, description, transcript, youtube_video_id, duration_seconds, content_type")
     .eq("vertical_id", verticalRow.id)
     .is("parsed_at", null)
     .order("published_at", { ascending: false })
@@ -75,16 +74,8 @@ export async function GET(request: NextRequest) {
   // 2. Parse each report
   for (const report of reports) {
     try {
-      // Determine if this video is eligible for transcript fetching:
-      // Only fetch for battle-report / race content or videos longer than 15 minutes
-      const isBattleContent =
-        report.content_type === "battle-report" ||
-        (report.duration_seconds && report.duration_seconds > 900);
-
-      let transcript: string | null = null;
-      if (isBattleContent && report.youtube_video_id) {
-        transcript = await fetchTranscript(report.youtube_video_id);
-      }
+      // Use stored transcript if available (fetched by local script)
+      const transcript: string | null = report.transcript ?? null;
 
       if (isSimRacing) {
         // ---- Sim racing: parse setups and insert into car_setups ----
