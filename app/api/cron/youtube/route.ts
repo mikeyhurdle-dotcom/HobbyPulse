@@ -140,8 +140,8 @@ export async function GET(request: NextRequest) {
           published_at: video.snippet.publishedAt,
           duration_seconds: durationSeconds,
           view_count: parseInt(video.statistics?.viewCount || "0", 10),
-          content_type: classifyVideo(video.snippet.title, durationSeconds),
-          game_system: classifyGameSystem(video.snippet.title),
+          content_type: classifyVideo(video.snippet.title, durationSeconds, siteVertical.slug),
+          game_system: classifyGameSystem(video.snippet.title, siteVertical.slug),
           is_short: isShort(durationSeconds),
         };
       });

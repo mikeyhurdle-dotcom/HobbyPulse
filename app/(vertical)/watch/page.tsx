@@ -11,19 +11,23 @@ import {
   VIDEO_TYPE_CONFIG,
   type VideoType,
 } from "@/lib/classify";
-import { GAME_SYSTEMS, GAME_SYSTEM_LIST, getGameSystem } from "@/config/game-systems";
+import { GAME_SYSTEMS, getGameSystem, getSystemsForVertical } from "@/config/game-systems";
 import { getCurrentVersion } from "@/lib/rules-versions";
 
 export function generateMetadata(): Metadata {
   const brand = getSiteBrand();
+  const config = getSiteVertical();
+  const isSimRacing = config.slug === "simracing";
+  const title = isSimRacing ? "Races & Replays" : "Battle Reports";
+  const description = isSimRacing
+    ? "Race replays, onboards, and setup guides from the sim racing community."
+    : "Cross-channel battle reports with structured army lists. Filter by faction, search by creator.";
   return {
-    title: `Battle Reports`,
-    description:
-      "Cross-channel battle reports with structured army lists. Filter by faction, search by creator.",
+    title,
+    description,
     openGraph: {
-      title: `Battle Reports | ${brand.siteName}`,
-      description:
-        "Cross-channel battle reports with structured army lists. Filter by faction, search by creator.",
+      title: `${title} | ${brand.siteName}`,
+      description,
     },
     twitter: { card: "summary_large_image" },
   };
@@ -305,11 +309,12 @@ export default async function WatchPage({
       <Nav active="watch" />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
         <h1 className="text-3xl font-bold tracking-tight mb-2">
-          Battle Reports
+          {config.slug === "simracing" ? "Races & Replays" : "Battle Reports"}
         </h1>
         <p className="text-[var(--muted)] mb-6">
-          Cross-channel battle reports with structured army lists. Filter by
-          faction, search by creator.
+          {config.slug === "simracing"
+            ? "Race replays, onboards, and setup guides from the sim racing community."
+            : "Cross-channel battle reports with structured army lists. Filter by faction, search by creator."}
         </p>
 
         {/* Filter bar */}
@@ -369,7 +374,7 @@ export default async function WatchPage({
           >
             All Games
           </Link>
-          {GAME_SYSTEM_LIST.map((gs) => {
+          {getSystemsForVertical(config.slug).map((gs) => {
             const isActive = activeGame === gs.id;
             return (
               <Link
