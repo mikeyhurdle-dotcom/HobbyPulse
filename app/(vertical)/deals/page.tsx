@@ -220,12 +220,14 @@ export default async function DealsPage({
 
         {/* Product grid */}
         {sorted.length === 0 ? (
-          <div className="text-center py-16">
-            <p className="text-[var(--muted)] text-lg">No deals found yet.</p>
-            <p className="text-[var(--muted)] text-sm mt-1">
-              Deals are updated daily. Check back soon!
-            </p>
-          </div>
+          q ? (
+            <div className="text-center py-16">
+              <p className="text-muted-foreground text-lg">No deals match your search.</p>
+              <p className="text-muted-foreground text-sm mt-1">
+                Try a different search term.
+              </p>
+            </div>
+          ) : null
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {sorted.map((product) => (

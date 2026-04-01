@@ -13,6 +13,9 @@ import {
 } from "@/lib/classify";
 import { GAME_SYSTEMS, getGameSystem, getSystemsForVertical } from "@/config/game-systems";
 import { getCurrentVersion } from "@/lib/rules-versions";
+import { Search } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 export function generateMetadata(): Metadata {
   const brand = getSiteBrand();
@@ -99,7 +102,7 @@ function formatDuration(seconds: number): string {
   return `${m}:${String(s).padStart(2, "0")}`;
 }
 
-// Pill bar order: Battle Reports first, then All, then the rest
+// Pill bar order
 const PILL_ORDER: (VideoType | "all")[] = [
   "battle-report",
   "all",
@@ -110,7 +113,6 @@ const PILL_ORDER: (VideoType | "all")[] = [
   "lore",
 ];
 
-// All valid content type keys for filtering
 const ALL_CONTENT_TYPES: VideoType[] = [
   "battle-report",
   "news",
@@ -133,14 +135,12 @@ export default async function WatchPage({
     faction?: string;
     sort?: string;
     type?: string;
-    shorts?: string;
     game?: string;
   }>;
 }) {
-  const { q, faction, sort, type, shorts, game } = await searchParams;
+  const { q, faction, sort, type, game } = await searchParams;
   const config = getSiteVertical();
 
-  // Default: tabletop → battle reports only, sim racing → all content (reviews drive deals)
   const defaultType: VideoType | "all" = config.slug === "simracing" ? "all" : "battle-report";
   const activeType: VideoType | "all" =
     type === "all"
@@ -149,13 +149,9 @@ export default async function WatchPage({
         ? (type as VideoType)
         : defaultType;
 
-  const includeShorts = shorts === "true";
-
-  // Game system filter — "all" or absent means show everything
   const activeGame: string | "all" =
     game && game !== "all" && GAME_SYSTEMS[game] ? game : "all";
 
-  // Fetch the vertical_id
   const { data: verticalRow } = await supabase
     .from("verticals")
     .select("id")
@@ -164,14 +160,12 @@ export default async function WatchPage({
 
   const verticalId = verticalRow?.id;
 
-  // Fetch categories for the filter dropdown
   const { data: categories } = await supabase
     .from("categories")
     .select("id, name, slug, colour")
     .eq("vertical_id", verticalId ?? "")
     .order("name");
 
-  // Build the battle_reports query — fetch more so we can filter client-side
   let query = supabase
     .from("battle_reports")
     .select(
@@ -181,17 +175,14 @@ export default async function WatchPage({
     )
     .eq("vertical_id", verticalId ?? "");
 
-  // Game system filter
   if (activeGame !== "all") {
     query = query.eq("game_system", activeGame);
   }
 
-  // Search filter
   if (q) {
     query = query.ilike("title", `%${q}%`);
   }
 
-  // Faction filter — filter by category_id on the joined content_lists
   if (faction) {
     const matchedCategory = categories?.find((c) => c.slug === faction);
     if (matchedCategory) {
@@ -203,20 +194,17 @@ export default async function WatchPage({
     }
   }
 
-  // Sort
   if (sort === "views") {
     query = query.order("view_count", { ascending: false });
   } else {
     query = query.order("published_at", { ascending: false });
   }
 
-  // Fetch extra to allow for filtering
   query = query.limit(200);
 
   const { data: reports } = await query;
   const rawReports = (reports ?? []) as unknown as BattleReport[];
 
-  // Classify at display time (migration may not have run yet)
   const classified: ClassifiedReport[] = rawReports.map((r) => ({
     ...r,
     _contentType: classifyVideo(r.title, r.duration_seconds),
@@ -224,17 +212,16 @@ export default async function WatchPage({
     _gameSystemId: r.game_system ?? classifyGameSystem(r.title),
   }));
 
-  // Apply content type + shorts filters
+  // Filter out shorts always, apply content type filter
   let filtered = classified.filter((r) => {
-    if (!includeShorts && r._isShort) return false;
+    if (r._isShort) return false;
     if (activeType !== "all" && r._contentType !== activeType) return false;
     return true;
   });
 
-  // Cap at 30 after filtering
   filtered = filtered.slice(0, 30);
 
-  // Count per type (before filtering by type, but after shorts filter)
+  // Count per type (after shorts filter)
   const typeCounts: Record<VideoType, number> = {
     "battle-report": 0,
     news: 0,
@@ -245,13 +232,12 @@ export default async function WatchPage({
     other: 0,
   };
   for (const r of classified) {
-    if (!includeShorts && r._isShort) continue;
+    if (r._isShort) continue;
     typeCounts[r._contentType]++;
   }
 
   const totalCount = Object.values(typeCounts).reduce((a, b) => a + b, 0);
 
-  // Fetch current rules versions for staleness dots on cards
   const uniqueGameSystems = [
     ...new Set(classified.map((r) => r._gameSystemId)),
   ];
@@ -263,7 +249,6 @@ export default async function WatchPage({
     }
   }
 
-  // Deduplicate faction badges per report
   const getFactionBadges = (
     lists: BattleReport["content_lists"],
   ): { name: string; colour: string | null }[] => {
@@ -278,7 +263,6 @@ export default async function WatchPage({
     return badges;
   };
 
-  /** Build a URL preserving current search params but setting/removing one key. */
   function buildUrl(key: string, value: string | null): string {
     const params = new URLSearchParams();
     if (q) params.set("q", q);
@@ -291,185 +275,157 @@ export default async function WatchPage({
     }
     if (key === "type") {
       if (value) params.set("type", value);
-      // If value is null, no type param means default (battle-report)
     } else if (activeType !== "battle-report") {
-      // Only include type param if it's not the default
       params.set("type", activeType);
-    }
-    if (key === "shorts") {
-      if (value === "true") params.set("shorts", "true");
-    } else if (includeShorts) {
-      params.set("shorts", "true");
     }
     const qs = params.toString();
     return `/watch${qs ? `?${qs}` : ""}`;
   }
 
+  const isSimRacing = config.slug === "simracing";
+
   return (
     <>
       <Nav active="watch" />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-        <h1 className="text-3xl font-bold tracking-tight mb-2">
-          {config.slug === "simracing" ? "Races & Replays" : "Battle Reports"}
-        </h1>
-        <p className="text-[var(--muted)] mb-6">
-          {config.slug === "simracing"
-            ? "Race replays, onboards, and setup guides from the sim racing community."
-            : "Cross-channel battle reports with structured army lists. Filter by faction, search by creator."}
-        </p>
-
-        {/* Filter bar */}
-        <form className="flex flex-wrap gap-3 mb-4">
-          {/* Search */}
-          <input
-            type="text"
-            name="q"
-            defaultValue={q ?? ""}
-            placeholder="Search videos..."
-            className="flex-1 min-w-[200px] rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-sm text-[var(--foreground)] placeholder:text-[var(--muted)] focus:outline-none focus:ring-2 focus:ring-[var(--vertical-accent)] focus:border-transparent"
-          />
-
-          {/* Faction dropdown */}
-          <select
-            name="faction"
-            defaultValue={faction ?? ""}
-            className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-sm text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--vertical-accent)]"
-          >
-            <option value="">All Factions</option>
-            {(categories ?? []).map((cat) => (
-              <option key={cat.id} value={cat.slug}>
-                {cat.name}
-              </option>
-            ))}
-          </select>
-
-          {/* Sort */}
-          <select
-            name="sort"
-            defaultValue={sort ?? "newest"}
-            className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-sm text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--vertical-accent)]"
-          >
-            <option value="newest">Newest</option>
-            <option value="views">Most Viewed</option>
-          </select>
-
-          <button
-            type="submit"
-            className="rounded-lg bg-[var(--vertical-accent)] px-5 py-2 text-sm font-medium text-white hover:opacity-90 transition-opacity"
-          >
-            Filter
-          </button>
-        </form>
-
-        {/* Game system pill bar */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 mb-2 scrollbar-none">
-          {/* "All" pill */}
-          <Link
-            href={buildUrl("game", "all")}
-            className="shrink-0 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium border transition-colors"
-            style={{
-              borderColor: activeGame === "all" ? "var(--vertical-accent)" : "var(--border)",
-              backgroundColor: activeGame === "all" ? "var(--vertical-accent)" : "transparent",
-              color: activeGame === "all" ? "#fff" : "var(--muted)",
-            }}
-          >
-            All Games
-          </Link>
-          {getSystemsForVertical(config.slug).map((gs) => {
-            const isActive = activeGame === gs.id;
-            return (
-              <Link
-                key={gs.id}
-                href={buildUrl("game", gs.id)}
-                className="shrink-0 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium border transition-colors"
-                style={{
-                  borderColor: isActive ? gs.colour : "var(--border)",
-                  backgroundColor: isActive ? gs.colour : "transparent",
-                  color: isActive ? "#fff" : "var(--muted)",
-                }}
-              >
-                <span>{gs.icon}</span>
-                <span>{gs.shortName}</span>
-              </Link>
-            );
-          })}
+        {/* Header */}
+        <div className="mb-6">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-1">
+            {isSimRacing ? "Races & Replays" : "Battle Reports"}
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            {isSimRacing
+              ? "Race replays, onboards, and setup guides from the sim racing community."
+              : "Cross-channel battle reports with structured army lists."}
+          </p>
         </div>
 
-        {/* Content type pill bar */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 mb-2 scrollbar-none">
-          {PILL_ORDER.map((pill) => {
-            if (pill === "all") {
-              // "All" pill
-              const isActive = activeType === "all";
+        {/* ============================================================= */}
+        {/* Filters — collapsed into a compact layout                      */}
+        {/* ============================================================= */}
+        <div className="space-y-3 mb-8">
+          {/* Row 1: Search + dropdowns */}
+          <form className="flex flex-wrap items-center gap-2">
+            <div className="relative flex-1 min-w-[200px]">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <input
+                type="text"
+                name="q"
+                defaultValue={q ?? ""}
+                placeholder="Search videos..."
+                className="w-full rounded-lg border border-input bg-background pl-9 pr-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              />
+            </div>
+
+            <select
+              name="faction"
+              defaultValue={faction ?? ""}
+              className="rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            >
+              <option value="">All Factions</option>
+              {(categories ?? []).map((cat) => (
+                <option key={cat.id} value={cat.slug}>
+                  {cat.name}
+                </option>
+              ))}
+            </select>
+
+            <select
+              name="sort"
+              defaultValue={sort ?? "newest"}
+              className="rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            >
+              <option value="newest">Newest</option>
+              <option value="views">Most Viewed</option>
+            </select>
+
+            <button
+              type="submit"
+              className="rounded-lg bg-[var(--vertical-accent)] px-4 py-2 text-sm font-medium text-white hover:opacity-90 transition-opacity"
+            >
+              Filter
+            </button>
+          </form>
+
+          {/* Row 2: Game system + content type pills in a single scrollable row */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+            {/* Game system pills */}
+            <Link
+              href={buildUrl("game", "all")}
+              className="shrink-0 inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium border transition-colors"
+              style={{
+                borderColor: activeGame === "all" ? "var(--vertical-accent)" : "var(--border)",
+                backgroundColor: activeGame === "all" ? "var(--vertical-accent)" : "transparent",
+                color: activeGame === "all" ? "#fff" : undefined,
+              }}
+            >
+              All
+            </Link>
+            {getSystemsForVertical(config.slug).map((gs) => {
+              const isActive = activeGame === gs.id;
               return (
                 <Link
-                  key="all"
-                  href={buildUrl("type", "all")}
-                  className="shrink-0 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium border transition-colors"
+                  key={gs.id}
+                  href={buildUrl("game", gs.id)}
+                  className="shrink-0 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium border transition-colors"
                   style={{
-                    borderColor: isActive
-                      ? "var(--vertical-accent)"
-                      : "var(--border)",
-                    backgroundColor: isActive
-                      ? "var(--vertical-accent)"
-                      : "transparent",
-                    color: isActive ? "#fff" : "var(--muted)",
+                    borderColor: isActive ? gs.colour : "var(--border)",
+                    backgroundColor: isActive ? gs.colour : "transparent",
+                    color: isActive ? "#fff" : undefined,
                   }}
                 >
-                  All
-                  <span className="opacity-70">{totalCount}</span>
+                  <span>{gs.icon}</span>
+                  <span>{gs.shortName}</span>
                 </Link>
               );
-            }
+            })}
 
-            // Content type pill
-            const ct = pill;
-            const cfg = VIDEO_TYPE_CONFIG[ct];
-            const isActive = activeType === ct;
-            const count = typeCounts[ct];
-            return (
-              <Link
-                key={ct}
-                href={buildUrl("type", ct === "battle-report" ? null : ct)}
-                className="shrink-0 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium border transition-colors"
-                style={{
-                  borderColor: isActive ? cfg.colour : "var(--border)",
-                  backgroundColor: isActive ? cfg.colour : "transparent",
-                  color: isActive ? "#fff" : "var(--muted)",
-                }}
-              >
-                <span>{cfg.icon}</span>
-                <span>{cfg.label}</span>
-                <span className="opacity-70">{count}</span>
-              </Link>
-            );
-          })}
-        </div>
+            {/* Divider */}
+            <span className="shrink-0 w-px h-5 bg-border mx-1" />
 
-        {/* Include Shorts toggle */}
-        <div className="flex items-center gap-2 mb-8">
-          <Link
-            href={buildUrl("shorts", includeShorts ? null : "true")}
-            className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium border transition-colors"
-            style={{
-              borderColor: includeShorts
-                ? "var(--vertical-accent)"
-                : "var(--border)",
-              backgroundColor: includeShorts
-                ? "var(--vertical-accent)"
-                : "transparent",
-              color: includeShorts ? "#fff" : "var(--muted)",
-            }}
-          >
-            <span
-              className="inline-block w-3 h-3 rounded-sm border"
-              style={{
-                borderColor: includeShorts ? "#fff" : "var(--border-light)",
-                backgroundColor: includeShorts ? "#fff" : "transparent",
-              }}
-            />
-            Include Shorts
-          </Link>
+            {/* Content type pills */}
+            {PILL_ORDER.map((pill) => {
+              if (pill === "all") {
+                const isActive = activeType === "all";
+                return (
+                  <Link
+                    key="all-type"
+                    href={buildUrl("type", "all")}
+                    className="shrink-0 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium border transition-colors"
+                    style={{
+                      borderColor: isActive ? "var(--vertical-accent)" : "var(--border)",
+                      backgroundColor: isActive ? "var(--vertical-accent)" : "transparent",
+                      color: isActive ? "#fff" : undefined,
+                    }}
+                  >
+                    All Types
+                    <span className="opacity-60">{totalCount}</span>
+                  </Link>
+                );
+              }
+
+              const cfg = VIDEO_TYPE_CONFIG[pill];
+              const isActive = activeType === pill;
+              const count = typeCounts[pill];
+              if (count === 0) return null;
+              return (
+                <Link
+                  key={pill}
+                  href={buildUrl("type", pill === "battle-report" ? null : pill)}
+                  className="shrink-0 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium border transition-colors"
+                  style={{
+                    borderColor: isActive ? cfg.colour : "var(--border)",
+                    backgroundColor: isActive ? cfg.colour : "transparent",
+                    color: isActive ? "#fff" : undefined,
+                  }}
+                >
+                  <span>{cfg.icon}</span>
+                  <span className="hidden sm:inline">{cfg.label}</span>
+                  <span className="opacity-60">{count}</span>
+                </Link>
+              );
+            })}
+          </div>
         </div>
 
         {/* Ad slot */}
@@ -478,13 +434,13 @@ export default async function WatchPage({
         {/* Video grid */}
         {filtered.length === 0 ? (
           <div className="text-center py-16">
-            <p className="text-[var(--muted)] text-lg">No videos found.</p>
-            <p className="text-[var(--muted)] text-sm mt-1">
+            <p className="text-muted-foreground text-lg">No videos found.</p>
+            <p className="text-muted-foreground text-sm mt-1">
               Try adjusting your filters or check back later.
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {filtered.map((report) => {
               const badges = getFactionBadges(report.content_lists ?? []);
               const typeConfig = VIDEO_TYPE_CONFIG[report._contentType];
@@ -493,139 +449,131 @@ export default async function WatchPage({
                 <Link
                   key={report.id}
                   href={`/watch/${report.youtube_video_id}`}
-                  className="group rounded-xl overflow-hidden transition-all duration-200 hover:scale-[1.02] hover:shadow-lg"
-                  style={{
-                    borderWidth: "1px",
-                    borderStyle: "solid",
-                    borderColor: "var(--border)",
-                    borderLeftWidth: "4px",
-                    borderLeftColor: gs.colour,
-                    backgroundColor: "var(--surface)",
-                    "--card-glow": `${gs.colour}33`,
-                  } as React.CSSProperties}
-                  onMouseEnter={undefined}
+                  className="group"
                 >
-                  {/* Thumbnail */}
-                  <div className="relative aspect-video bg-[var(--surface-hover)]">
-                    {report.thumbnail_url ? (
-                      <img
-                        src={report.thumbnail_url}
-                        alt={report.title}
-                        className="w-full h-full object-cover"
-                        loading="lazy"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-[var(--muted)]">
-                        No thumbnail
-                      </div>
-                    )}
-
-                    {/* Game system badge — top-left */}
-                    <span
-                      className="absolute top-2 left-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold text-white backdrop-blur-sm"
-                      style={{ backgroundColor: `${gs.colour}cc` }}
-                    >
-                      {gs.shortName}
-                    </span>
-
-                    {/* Content type badge — top-right */}
-                    <span
-                      className="absolute top-2 right-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold text-white backdrop-blur-sm"
-                      style={{ backgroundColor: `${typeConfig.colour}cc` }}
-                    >
-                      <span>{typeConfig.icon}</span>
-                      <span>{typeConfig.label}</span>
-                    </span>
-
-                    {/* Duration badge — bottom-right */}
-                    {report.duration_seconds > 0 && (
-                      <span className="absolute bottom-2 right-2 bg-black/80 text-white text-xs font-[family-name:var(--font-mono)] px-1.5 py-0.5 rounded">
-                        {formatDuration(report.duration_seconds)}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Info */}
-                  <div className="p-4 space-y-2">
-                    {/* Title + channel avatar row */}
-                    <div className="flex items-start gap-3">
-                      {/* Channel avatar */}
-                      {report.channels?.thumbnail_url ? (
+                  <Card className="overflow-hidden border-border bg-card hover:border-[var(--vertical-accent)]/40 transition-all hover:shadow-md">
+                    {/* Thumbnail */}
+                    <div className="relative aspect-video bg-muted">
+                      {report.thumbnail_url ? (
                         <img
-                          src={report.channels.thumbnail_url}
-                          alt={report.channels.name ?? ""}
-                          className="w-8 h-8 rounded-full shrink-0 mt-0.5"
+                          src={report.thumbnail_url}
+                          alt={report.title}
+                          className="w-full h-full object-cover"
+                          loading="lazy"
                         />
                       ) : (
-                        <div className="w-8 h-8 rounded-full shrink-0 mt-0.5 bg-[var(--surface-hover)] flex items-center justify-center text-[var(--muted)] text-xs">
-                          ?
+                        <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                          No thumbnail
                         </div>
                       )}
 
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-sm font-medium leading-snug line-clamp-2 group-hover:text-[var(--vertical-accent-light)] transition-colors">
-                          {report.title}
-                        </h3>
+                      {/* Game system badge */}
+                      <Badge
+                        className="absolute top-2 left-2 text-[10px] border-0"
+                        style={{ backgroundColor: `${gs.colour}dd`, color: "#fff" }}
+                      >
+                        {gs.shortName}
+                      </Badge>
 
-                        {/* Channel name */}
-                        <p className="text-xs text-[var(--muted)] truncate mt-1">
-                          {report.channels?.name ?? "Unknown channel"}
-                        </p>
+                      {/* Content type badge */}
+                      <Badge
+                        className="absolute top-2 right-2 text-[10px] border-0"
+                        style={{ backgroundColor: `${typeConfig.colour}dd`, color: "#fff" }}
+                      >
+                        {typeConfig.icon} {typeConfig.label}
+                      </Badge>
 
-                        {/* Views + date + staleness dot */}
-                        <p className="text-xs text-[var(--muted)] flex items-center gap-1.5">
-                          <span>
-                            {formatViews(report.view_count)} &middot;{" "}
-                            {formatDate(report.published_at)}
-                          </span>
-                          {(() => {
-                            const cv = currentVersions[report._gameSystemId];
-                            if (!cv) return null;
-                            const isCurrent =
-                              new Date(report.published_at) >=
-                              new Date(cv.effective_date);
-                            return (
-                              <span
-                                className="inline-block w-2 h-2 rounded-full shrink-0"
-                                style={{
-                                  backgroundColor: isCurrent
-                                    ? "var(--success)"
-                                    : "#f59e0b",
-                                }}
-                                title={
-                                  isCurrent
-                                    ? "Current rules"
-                                    : "Points may have changed"
-                                }
-                              />
-                            );
-                          })()}
-                        </p>
-                      </div>
+                      {/* Duration */}
+                      {report.duration_seconds > 0 && (
+                        <span className="absolute bottom-2 right-2 bg-black/80 text-white text-[10px] font-[family-name:var(--font-mono)] px-1.5 py-0.5 rounded">
+                          {formatDuration(report.duration_seconds)}
+                        </span>
+                      )}
+
+                      {/* Game system accent bar */}
+                      <div
+                        className="absolute bottom-0 left-0 right-0 h-0.5"
+                        style={{ backgroundColor: gs.colour }}
+                      />
                     </div>
 
-                    {/* Faction badges */}
-                    {badges.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5 pt-1">
-                        {badges.map((badge) => (
-                          <span
-                            key={badge.name}
-                            className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium border"
-                            style={{
-                              borderColor:
-                                badge.colour ?? "var(--border-light)",
-                              color: badge.colour ?? "var(--muted)",
-                              backgroundColor: badge.colour
-                                ? `${badge.colour}15`
-                                : "transparent",
-                            }}
-                          >
-                            {badge.name}
-                          </span>
-                        ))}
+                    {/* Info */}
+                    <CardContent className="p-3.5 space-y-2">
+                      <div className="flex items-start gap-2.5">
+                        {/* Channel avatar */}
+                        {report.channels?.thumbnail_url ? (
+                          <img
+                            src={report.channels.thumbnail_url}
+                            alt={report.channels.name ?? ""}
+                            className="w-7 h-7 rounded-full shrink-0 mt-0.5"
+                          />
+                        ) : (
+                          <div className="w-7 h-7 rounded-full shrink-0 mt-0.5 bg-muted flex items-center justify-center text-muted-foreground text-[10px]">
+                            ?
+                          </div>
+                        )}
+
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-sm font-medium leading-snug line-clamp-2 group-hover:text-[var(--vertical-accent-light)] transition-colors">
+                            {report.title}
+                          </h3>
+                          <p className="text-xs text-muted-foreground truncate mt-1">
+                            {report.channels?.name ?? "Unknown channel"}
+                          </p>
+                          <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                            <span>
+                              {formatViews(report.view_count)} &middot;{" "}
+                              {formatDate(report.published_at)}
+                            </span>
+                            {(() => {
+                              const cv = currentVersions[report._gameSystemId];
+                              if (!cv) return null;
+                              const isCurrent =
+                                new Date(report.published_at) >=
+                                new Date(cv.effective_date);
+                              return (
+                                <span
+                                  className="inline-block w-1.5 h-1.5 rounded-full shrink-0"
+                                  style={{
+                                    backgroundColor: isCurrent
+                                      ? "var(--success)"
+                                      : "#f59e0b",
+                                  }}
+                                  title={
+                                    isCurrent
+                                      ? "Current rules"
+                                      : "Points may have changed"
+                                  }
+                                />
+                              );
+                            })()}
+                          </p>
+                        </div>
                       </div>
-                    )}
-                  </div>
+
+                      {/* Faction badges */}
+                      {badges.length > 0 && (
+                        <div className="flex flex-wrap gap-1 pt-0.5">
+                          {badges.map((badge) => (
+                            <span
+                              key={badge.name}
+                              className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium border"
+                              style={{
+                                borderColor:
+                                  badge.colour ?? "var(--border)",
+                                color: badge.colour ?? undefined,
+                                backgroundColor: badge.colour
+                                  ? `${badge.colour}15`
+                                  : "transparent",
+                              }}
+                            >
+                              {badge.name}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
                 </Link>
               );
             })}

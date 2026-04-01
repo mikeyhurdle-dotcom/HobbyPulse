@@ -1,64 +1,71 @@
 import Link from "next/link";
 import { getSiteBrand, getSiteVertical } from "@/lib/site";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { MobileNav } from "@/components/mobile-nav";
 
 interface NavTab {
   name: string;
   href: string;
   key: string;
   icon: string;
-  verticalOnly?: string; // Only show for this vertical slug
+  verticalOnly?: string;
 }
 
 const allTabs: NavTab[] = [
-  { name: "Watch", href: "/watch", key: "watch", icon: "\u25B6" },
-  { name: "Setups", href: "/setups", key: "setups", icon: "\u2699", verticalOnly: "simracing" },
-  { name: "Deals", href: "/deals", key: "deals", icon: "\u00A3" },
-  { name: "Build", href: "/build", key: "build", icon: "\uD83D\uDEE0", verticalOnly: "warhammer" },
-  { name: "Live", href: "/live", key: "live", icon: "\u25CF" },
+  { name: "Watch", href: "/watch", key: "watch", icon: "▶" },
+  { name: "Setups", href: "/setups", key: "setups", icon: "⚙", verticalOnly: "simracing" },
+  { name: "Deals", href: "/deals", key: "deals", icon: "£" },
+  { name: "Build", href: "/build", key: "build", icon: "🔧", verticalOnly: "warhammer" },
+  { name: "Live", href: "/live", key: "live", icon: "●" },
 ];
 
 export function Nav({ active }: { active: string }) {
   const brand = getSiteBrand();
   const vertical = getSiteVertical();
 
-  // Filter tabs based on current vertical
   const tabs = allTabs.filter(
     (tab) => !tab.verticalOnly || tab.verticalOnly === vertical.slug,
   );
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--background)]/80 backdrop-blur-xl">
+    <nav className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-xl">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between h-14">
+          {/* Logo */}
           <Link
             href="/"
-            className="font-[family-name:var(--font-display)] font-bold text-lg tracking-tight hover:text-[var(--accent-light)] transition-colors"
+            className="font-[family-name:var(--font-display)] font-bold text-lg tracking-tight hover:text-[var(--vertical-accent-light)] transition-colors"
           >
             {brand.siteName}
           </Link>
 
-          {/* Tab navigation */}
-          <div className="flex items-center gap-1">
+          {/* Desktop nav */}
+          <div className="hidden md:flex items-center gap-1">
             {tabs.map((tab) => (
               <Link
                 key={tab.key}
                 href={tab.href}
-                className={`relative px-3 sm:px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                className={`relative px-3 lg:px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                   active === tab.key
-                    ? "bg-[var(--surface-raised)] text-[var(--foreground)]"
-                    : "text-[var(--muted)] hover:text-[var(--foreground)] hover:bg-[var(--surface)]"
+                    ? "bg-secondary text-foreground"
+                    : "text-muted-foreground hover:text-foreground hover:bg-secondary"
                 }`}
               >
-                <span className="sm:hidden text-xs mr-1">{tab.icon}</span>
                 <span>{tab.name}</span>
                 {active === tab.key && (
                   <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-6 h-0.5 rounded-full bg-[var(--vertical-accent)]" />
                 )}
                 {tab.key === "live" && (
-                  <span className="ml-1.5 inline-block w-1.5 h-1.5 rounded-full bg-[var(--danger)] animate-pulse" />
+                  <span className="ml-1.5 inline-block w-1.5 h-1.5 rounded-full bg-danger animate-pulse" />
                 )}
               </Link>
             ))}
+          </div>
+
+          {/* Right side: theme toggle + mobile menu */}
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <MobileNav tabs={tabs} active={active} brand={brand} />
           </div>
         </div>
       </div>

@@ -1,36 +1,165 @@
 @import "tailwindcss";
 
+/* ------------------------------------------------------------------ */
+/* shadcn/ui base layer — Tailwind v4 compatible                      */
+/* ------------------------------------------------------------------ */
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-body), "DM Sans", system-ui, sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display), "Syne", system-ui, sans-serif;
+  }
+
+  code, pre, [data-mono] {
+    font-family: var(--font-mono), "IBM Plex Mono", monospace;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Light mode (default)                                                */
+/* ------------------------------------------------------------------ */
+
 :root {
-  --background: #09090b;
-  --foreground: #f4f4f5;
-  --accent: #7c3aed;
-  --accent-light: #a78bfa;
-  --accent-glow: rgba(124, 58, 237, 0.15);
-  --surface: #111113;
-  --surface-hover: #1a1a1f;
-  --surface-raised: #1e1e24;
-  --border: #27272a;
-  --border-light: #3f3f46;
-  --muted: #71717a;
+  --background: oklch(0.985 0.002 247);
+  --foreground: oklch(0.145 0.015 260);
+
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0.015 260);
+
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0.015 260);
+
+  --primary: oklch(0.205 0.025 260);
+  --primary-foreground: oklch(0.985 0.002 247);
+
+  --secondary: oklch(0.955 0.005 247);
+  --secondary-foreground: oklch(0.205 0.025 260);
+
+  --muted: oklch(0.955 0.005 247);
+  --muted-foreground: oklch(0.52 0.015 260);
+
+  --accent: oklch(0.955 0.005 247);
+  --accent-foreground: oklch(0.205 0.025 260);
+
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.985 0.002 247);
+
+  --border: oklch(0.922 0.004 247);
+  --input: oklch(0.922 0.004 247);
+  --ring: oklch(0.708 0.165 254.624);
+
+  --radius: 0.625rem;
+
+  /* Surface tokens (app-specific) */
+  --surface: oklch(0.97 0.003 247);
+  --surface-hover: oklch(0.955 0.005 247);
+  --surface-raised: oklch(0.985 0.002 247);
+  --border-light: oklch(0.88 0.005 247);
+
+  --success: #16a34a;
+  --danger: #dc2626;
+
+  /* Per-vertical theming — injected inline by layout */
+  --vertical-accent: oklch(0.708 0.165 254.624);
+  --vertical-accent-light: oklch(0.746 0.16 254);
+  --vertical-accent-glow: oklch(0.708 0.165 254.624 / 0.1);
+}
+
+/* ------------------------------------------------------------------ */
+/* Dark mode                                                           */
+/* ------------------------------------------------------------------ */
+
+.dark {
+  --background: oklch(0.105 0.02 260);
+  --foreground: oklch(0.94 0.005 247);
+
+  --card: oklch(0.13 0.02 260);
+  --card-foreground: oklch(0.94 0.005 247);
+
+  --popover: oklch(0.13 0.02 260);
+  --popover-foreground: oklch(0.94 0.005 247);
+
+  --primary: oklch(0.94 0.005 247);
+  --primary-foreground: oklch(0.205 0.025 260);
+
+  --secondary: oklch(0.18 0.02 260);
+  --secondary-foreground: oklch(0.94 0.005 247);
+
+  --muted: oklch(0.18 0.02 260);
+  --muted-foreground: oklch(0.556 0.015 260);
+
+  --accent: oklch(0.18 0.02 260);
+  --accent-foreground: oklch(0.94 0.005 247);
+
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.94 0.005 247);
+
+  --border: oklch(0.22 0.015 260);
+  --input: oklch(0.22 0.015 260);
+  --ring: oklch(0.708 0.165 254.624);
+
+  /* Surface tokens (app-specific) */
+  --surface: oklch(0.14 0.02 260);
+  --surface-hover: oklch(0.17 0.02 260);
+  --surface-raised: oklch(0.19 0.02 260);
+  --border-light: oklch(0.28 0.015 260);
+
   --success: #22c55e;
   --danger: #ef4444;
 
-  /* Per-vertical theming — injected inline by the [vertical] layout.
-     These fallbacks match the default accent so the home page still works. */
-  --vertical-accent: var(--accent);
-  --vertical-accent-light: var(--accent-light);
+  --vertical-accent: oklch(0.708 0.165 254.624);
+  --vertical-accent-light: oklch(0.746 0.16 254);
+  --vertical-accent-glow: oklch(0.708 0.165 254.624 / 0.15);
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-body), "DM Sans", system-ui, sans-serif;
-}
+/* ------------------------------------------------------------------ */
+/* Inline style utilities for CSS custom properties                    */
+/* ------------------------------------------------------------------ */
 
-h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-display), "Syne", system-ui, sans-serif;
-}
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
 
-code, pre, [data-mono] {
-  font-family: var(--font-mono), "IBM Plex Mono", monospace;
+  /* App-specific surface tokens */
+  --color-surface: var(--surface);
+  --color-surface-hover: var(--surface-hover);
+  --color-surface-raised: var(--surface-raised);
+  --color-border-light: var(--border-light);
+  --color-success: var(--success);
+  --color-danger: var(--danger);
+  --color-vertical-accent: var(--vertical-accent);
+  --color-vertical-accent-light: var(--vertical-accent-light);
+  --color-vertical-accent-glow: var(--vertical-accent-glow);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
 }

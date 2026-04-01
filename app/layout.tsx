@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Syne, DM_Sans, IBM_Plex_Mono } from "next/font/google";
 import { getSiteVertical, getSiteBrand } from "@/lib/site";
+import { ThemeProvider } from "@/components/theme-provider";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { AdMobileFooter } from "@/components/ad-slot";
 import { Analytics } from "@/components/analytics";
 import { Footer } from "@/components/footer";
@@ -42,7 +44,7 @@ export default function RootLayout({
   const config = getSiteVertical();
 
   return (
-    <html lang="en" className="dark">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${syne.variable} ${dmSans.variable} ${ibmPlexMono.variable} antialiased`}
         data-vertical={config.slug}
@@ -50,12 +52,22 @@ export default function RootLayout({
           {
             "--vertical-accent": config.theme.accent,
             "--vertical-accent-light": config.theme.accentLight,
+            "--vertical-accent-glow": config.theme.accentGlow,
           } as React.CSSProperties
         }
       >
-        {children}
-        <Footer />
-        <AdMobileFooter />
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <TooltipProvider>
+            {children}
+            <Footer />
+            <AdMobileFooter />
+          </TooltipProvider>
+        </ThemeProvider>
         <Analytics />
       </body>
     </html>

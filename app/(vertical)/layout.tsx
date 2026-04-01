@@ -36,6 +36,7 @@ export default function VerticalLayout({
         {
           "--vertical-accent": config.theme.accent,
           "--vertical-accent-light": config.theme.accentLight,
+          "--vertical-accent-glow": config.theme.accentGlow,
         } as React.CSSProperties
       }
     >

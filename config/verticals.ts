@@ -11,6 +11,7 @@ export interface VerticalRetailer {
 export interface VerticalTheme {
   accent: string;
   accentLight: string;
+  accentGlow: string;
 }
 
 export interface VerticalBrand {
@@ -47,8 +48,9 @@ export const verticals: Record<string, VerticalConfig> = {
       domain: "tabletopwatch.com",
     },
     theme: {
-      accent: "#7c3aed",
-      accentLight: "#a78bfa",
+      accent: "oklch(0.72 0.14 75)",       // amber/gold
+      accentLight: "oklch(0.80 0.12 75)",   // lighter gold
+      accentGlow: "oklch(0.72 0.14 75 / 0.15)",
     },
     channels: [
       "Tabletop Titans",
@@ -111,8 +113,9 @@ export const verticals: Record<string, VerticalConfig> = {
       domain: "simpitstop.com",
     },
     theme: {
-      accent: "#dc2626",
-      accentLight: "#f87171",
+      accent: "oklch(0.577 0.245 27.325)",   // racing red
+      accentLight: "oklch(0.65 0.22 25)",     // lighter red
+      accentGlow: "oklch(0.577 0.245 27.325 / 0.15)",
     },
     channels: [
       "Jimmy Broadbent",
