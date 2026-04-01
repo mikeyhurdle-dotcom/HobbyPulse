@@ -106,15 +106,18 @@ Append `?mkevt=1&mkcid=1&mkrid=710-53481-19255-0&campid={EBAY_CAMPAIGN_ID}` to i
 
 ## Retailer Scrapers
 
-All use HTTP GET + HTML parsing (cheerio-style).
+Scrapers run server-side via the `/api/cron/deals` Vercel endpoint. You trigger the endpoint; it runs the scrapers internally. Current status:
 
-| Retailer | Search URL Pattern | Selector Notes |
-|----------|-------------------|----------------|
-| Element Games | `https://elementgames.co.uk/catalogsearch/result/?q={query}` | `.product-item` cards, Magento layout |
-| Wayland Games | `https://www.waylandgames.co.uk/search?s={query}` | `.product-miniature` cards |
-| Troll Trader | `https://thetrolltrader.com/search?q={query}` | `.product-card` cards, Shopify layout |
-| Fanatec | `https://fanatec.com/eu-en/search?sSearch={query}` | Product listing |
-| Sim-Lab | `https://sim-lab.eu/search?q={query}` | Shopify layout |
+| Retailer | Status | Notes |
+|----------|--------|-------|
+| Element Games | **Working** | Search at `/search?q=`, HTML parsing, ~100+ results per term. 15% off GW RRP. |
+| Troll Trader | **Working** | Shopify site, JSON extraction from script tags, ~50 results per term. Second-hand/NOS. |
+| Wayland Games | **Disabled** | Cloudflare blocks all automated requests (403). Re-enable when affiliate data feed available. |
+| eBay | **Needs API keys** | Requires EBAY_APP_ID + EBAY_APP_SECRET + EBAY_CAMPAIGN_ID env vars on Vercel. |
+| Fanatec | Not built | Sim racing vertical — future. |
+| Sim-Lab | Not built | Sim racing vertical — future. |
+
+**Search terms** (25 for warhammer): Combat Patrol, Starter Set, Space Marines, Tyranids, Necrons, Orks, Aeldari, Death Guard, Thousand Sons, Adeptus Mechanicus, Tau Empire, Imperial Knights, Chaos Space Marines, World Eaters, Custodes, Grey Knights, Intercessors, Terminators, Redemptor Dreadnought, Wraithknight, Hive Tyrant, Carnifex, Citadel Paint, Contrast Paint.
 
 ## Resend Email API
 

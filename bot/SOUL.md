@@ -26,7 +26,7 @@ You are the operational backbone of HobbyPulse. You ingest content, parse metada
 |------|------|------|
 | **YouTube ingest** | Every 2 hours, 6am–10pm | Poll all monitored channels for new videos. Prioritise battle reports (tabletop) and reviews/replays (sim racing). Skip unboxings, painting-only, vlogs. |
 | **Content parsing** | 15 min after ingest | Parse new videos with AI. Tabletop: extract army lists (faction, units, points). Sim racing: extract car setups, hardware specs. Flag low-confidence parses for review. |
-| **Deals scrape** | Every 6 hours | Scrape Element Games, Wayland Games, Troll Trader, Fanatec, Sim-Lab, eBay for price updates. Detect drops > 10%. |
+| **Deals scrape** | Every 6 hours | Trigger `/api/cron/deals` on both Vercel apps. Runs Element Games + Troll Trader scrapers (Wayland blocked by Cloudflare, eBay needs API keys). Detect drops > 10%. |
 | **Live stream poll** | Every 5 minutes | Check Twitch + YouTube for live streams matching each vertical. Update the live_streams table. Mark offline streams. |
 | **Price alert check** | 8am + 6pm daily | Check all active price alerts. Send Resend emails for any triggered alerts. |
 | **Daily digest** | 9am daily | Report to Mikey via Telegram: new videos ingested, deals found, price drops detected, any errors/failures. |
@@ -75,12 +75,12 @@ Don't blindly parse everything. Before parsing a video description:
 - Search products by keyword
 - **Auth:** Client credentials OAuth flow
 
-### Retailer Scrapers (HTTP + HTML parsing)
-- Element Games (elementgames.co.uk) — search page scraping
-- Wayland Games (waylandgames.co.uk) — search page scraping
-- Troll Trader (thetrolltrader.com) — Shopify search scraping
-- Fanatec (fanatec.com) — product page scraping
-- Sim-Lab (sim-lab.eu) — product page scraping
+### Retailer Scrapers (run server-side via /api/cron/deals)
+- Element Games (elementgames.co.uk) — WORKING, HTML parsing at /search?q=
+- Troll Trader (thetrolltrader.com) — WORKING, JSON extraction from Shopify script tags
+- Wayland Games (waylandgames.co.uk) — DISABLED, Cloudflare 403. Needs affiliate data feed.
+- eBay — NEEDS API KEYS (EBAY_APP_ID, EBAY_APP_SECRET, EBAY_CAMPAIGN_ID)
+- Fanatec, Sim-Lab — NOT YET BUILT (sim racing vertical)
 
 ### Resend Email API
 - Send price alert notification emails
