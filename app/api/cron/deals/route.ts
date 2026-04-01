@@ -19,7 +19,10 @@ export const dynamic = "force-dynamic";
 // Popular search terms per vertical for the crawler
 const SEARCH_TERMS: Record<string, string[]> = {
   warhammer: [
+    // Starter boxes
     "Combat Patrol",
+    "Starter Set",
+    // Popular factions
     "Space Marines",
     "Tyranids",
     "Necrons",
@@ -27,9 +30,23 @@ const SEARCH_TERMS: Record<string, string[]> = {
     "Aeldari",
     "Death Guard",
     "Thousand Sons",
+    "Adeptus Mechanicus",
+    "Tau Empire",
+    "Imperial Knights",
+    "Chaos Space Marines",
+    "World Eaters",
+    "Custodes",
+    "Grey Knights",
+    // Popular units
     "Intercessors",
     "Terminators",
     "Redemptor Dreadnought",
+    "Wraithknight",
+    "Hive Tyrant",
+    "Carnifex",
+    // Paints & tools
+    "Citadel Paint",
+    "Contrast Paint",
   ],
   simracing: [
     "Fanatec wheel base",
