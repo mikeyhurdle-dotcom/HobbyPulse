@@ -28,8 +28,9 @@ export interface Scraper {
 import { ElementGamesScraper } from "./element-games";
 import { WaylandGamesScraper } from "./wayland-games";
 import { TrollTraderScraper } from "./troll-trader";
+import { ShopifyScraper } from "./shopify";
 
-export { ElementGamesScraper, WaylandGamesScraper, TrollTraderScraper };
+export { ElementGamesScraper, WaylandGamesScraper, TrollTraderScraper, ShopifyScraper };
 
 /**
  * Get all scrapers for a given vertical.
@@ -44,6 +45,22 @@ export function getScrapersForVertical(vertical: string): Scraper[] {
     ];
   }
 
-  // Other verticals can be added later
+  if (vertical === "simracing") {
+    return [
+      // Moza Racing — Shopify, direct-to-consumer (EUR prices)
+      new ShopifyScraper({
+        name: "Moza Racing",
+        baseUrl: "https://mozaracing.com",
+        currency: "EUR",
+      }),
+      // Trak Racer — Shopify, rigs & cockpits (GBP)
+      new ShopifyScraper({
+        name: "Trak Racer",
+        baseUrl: "https://trakracer.com",
+        currency: "GBP",
+      }),
+    ];
+  }
+
   return [];
 }

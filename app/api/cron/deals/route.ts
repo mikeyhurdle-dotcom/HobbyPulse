@@ -52,10 +52,38 @@ const SEARCH_TERMS: Record<string, string[]> = {
     "Contrast Paint",
   ],
   simracing: [
-    "Fanatec wheel base",
-    "Sim racing rig",
+    // Wheelbases
+    "Direct drive wheel base",
+    "CSL DD",
+    "Moza R5",
+    "Moza R9",
+    "Moza R12",
+    "Moza R16",
+    "Simagic Alpha",
+    // Pedals
     "Racing pedals",
-    "Direct drive wheel",
+    "Load cell pedals",
+    "Moza CRP",
+    "Moza SRP",
+    // Steering wheels
+    "Sim racing wheel",
+    "Formula wheel",
+    "GT wheel rim",
+    "Moza GS",
+    "Moza FSR",
+    // Rigs & cockpits
+    "Sim racing rig",
+    "Sim racing cockpit",
+    "Aluminium profile rig",
+    "GT Lite",
+    // Monitors & VR
+    "Triple monitor mount",
+    "Ultrawide monitor sim racing",
+    // Accessories
+    "Handbrake sim racing",
+    "Sequential shifter",
+    "H-pattern shifter",
+    "Button box",
   ],
 };
 
