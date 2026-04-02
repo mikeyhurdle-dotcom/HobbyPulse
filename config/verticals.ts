@@ -108,9 +108,9 @@ export const verticals: Record<string, VerticalConfig> = {
     name: "Sim Racing",
     description: "Race replays, setup guides, wheels, pedals, and rigs",
     brand: {
-      siteName: "SimPitStop",
+      siteName: "SimRaceWatch",
       tagline: "Race replays, setup guides, and the best hardware deals",
-      domain: "simpitstop.com",
+      domain: "simracewatch.com",
     },
     theme: {
       accent: "oklch(0.577 0.245 27.325)",   // racing red

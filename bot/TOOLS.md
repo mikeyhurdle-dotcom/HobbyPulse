@@ -124,7 +124,7 @@ Scrapers run server-side via the `/api/cron/deals` Vercel endpoint. You trigger 
 - **Base URL:** `https://api.resend.com`
 - **Auth:** Bearer token
 - **Endpoint:** `POST /emails`
-- **From:** `alerts@tabletopwatch.com` or `alerts@simpitstop.com`
+- **From:** `alerts@tabletopwatch.com` or `alerts@simracewatch.com`
 
 ```json
 {
@@ -142,7 +142,7 @@ Both sites have the same API endpoints. Auth via `Authorization: Bearer {CRON_SE
 | Site | Base URL |
 |------|----------|
 | TabletopWatch | `https://hobbypulse.vercel.app` |
-| SimPitStop | `https://simpitstop.vercel.app` |
+| SimRaceWatch | `https://simracewatch.vercel.app` |
 
 | Endpoint | Method | Purpose |
 |----------|--------|---------|

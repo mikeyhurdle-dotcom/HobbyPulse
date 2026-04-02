@@ -8,7 +8,7 @@ created: 2026-03-31
 
 ## Goal
 
-Redesign TabletopWatch + SimPitStop from generic AI-generated dark template to a polished, professional "clean data product with personality" — reusable across all verticals.
+Redesign TabletopWatch + SimRaceWatch from generic AI-generated dark template to a polished, professional "clean data product with personality" — reusable across all verticals.
 
 ## Direction
 
@@ -35,7 +35,7 @@ Use tweakcn.com to generate:
 - Dark: dark navy (#0c1222), amber/gold accent (#d4a843)
 - NOT purple — that's the AI-generated default
 
-**SimPitStop:**
+**SimRaceWatch:**
 - Light: clean white, charcoal accents
 - Dark: dark charcoal (#141414), racing red (#dc2626)
 

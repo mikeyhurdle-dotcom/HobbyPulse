@@ -70,7 +70,7 @@ Create `/root/.openclaw/agents/pulsebot/agent/auth-profiles.json`:
   "vercel": {
     "cron_secret": "<CRON_SECRET>",
     "tabletop_url": "https://hobbypulse.vercel.app",
-    "simpitstop_url": "https://simpitstop.vercel.app"
+    "simracewatch_url": "https://simracewatch.vercel.app"
   }
 }
 ```

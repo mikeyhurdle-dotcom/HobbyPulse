@@ -5,14 +5,14 @@
 Multi-niche hobby content + deals platform. Same codebase deployed as separate branded sites per vertical via `NEXT_PUBLIC_SITE_VERTICAL` env var.
 
 - **TabletopWatch** (warhammer) — Warhammer 40K battle reports, army lists, miniature deals
-- **SimPitStop** (simracing) — Sim racing replays, setup guides, hardware deals
+- **SimRaceWatch** (simracing) — Sim racing replays, setup guides, hardware deals
 
 ## Tech Stack
 
 - Next.js 15 (App Router), React 19, TypeScript, Tailwind v4
 - Supabase (project: nspgvdytqsvnmbitbmey, eu-west-2 London)
 - Claude Haiku for content parsing
-- Vercel hosting (two projects: hobbypulse + simpitstop)
+- Vercel hosting (two projects: hobbypulse + simracewatch)
 - PulseBot (Hawk) on OpenClaw VPS for autonomous data operations
 
 ## Key Files
@@ -46,7 +46,7 @@ Multi-niche hobby content + deals platform. Same codebase deployed as separate b
 - **next-themes** for light/dark mode toggle (default: dark, respects system preference)
 - Per-vertical theming via `--vertical-accent` CSS variable injected at root layout level
 - **TabletopWatch palette:** amber/gold accent (`oklch(0.72 0.14 75)`) on navy backgrounds
-- **SimPitStop palette:** racing red accent (`oklch(0.577 0.245 27.325)`) on charcoal backgrounds
+- **SimRaceWatch palette:** racing red accent (`oklch(0.577 0.245 27.325)`) on charcoal backgrounds
 - Fonts: Syne (display), DM Sans (body), IBM Plex Mono (data)
 - Mobile: hamburger menu via shadcn Sheet, single-row collapsed filters
 - **Never show winner/spoiler badges** on video pages — ruins the viewing experience
@@ -64,7 +64,7 @@ Multi-niche hobby content + deals platform. Same codebase deployed as separate b
 
 ## Testing
 
-- **Automated test suite:** `GET /api/test` — 18 checks (TabletopWatch), 16 checks (SimPitStop). Protected by CRON_SECRET.
+- **Automated test suite:** `GET /api/test` — 18 checks (TabletopWatch), 16 checks (SimRaceWatch). Protected by CRON_SECRET.
 - **Build flow test:** `GET /api/test/build` — exercises army list parsing → deal matching
 - **Price alert test:** `GET /api/test/price-alert` — exercises alert creation flow
 - **Manual testing plan:** `TESTING-PLAN.md` — 7 user journeys with step-by-step checks

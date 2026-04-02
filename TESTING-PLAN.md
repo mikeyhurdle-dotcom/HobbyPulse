@@ -2,7 +2,7 @@
 
 ## Overview
 
-End-to-end testing from the perspective of a new user discovering the site. Covers both TabletopWatch (hobbypulse.vercel.app) and SimPitStop (simpitstop.vercel.app).
+End-to-end testing from the perspective of a new user discovering the site. Covers both TabletopWatch (hobbypulse.vercel.app) and SimRaceWatch (simracewatch.vercel.app).
 
 ---
 
@@ -55,7 +55,7 @@ End-to-end testing from the perspective of a new user discovering the site. Cove
 
 | Step | Action | Expected Result |
 |------|--------|-----------------|
-| 3.1 | Open simpitstop.vercel.app | Hero section with "Browse Replays" CTA, real stats, featured videos |
+| 3.1 | Open simracewatch.vercel.app | Hero section with "Browse Replays" CTA, real stats, featured videos |
 | 3.2 | Click "Car Setups" in nav | Setups page loads with filter dropdowns (Sim, Car, Track) |
 | 3.3 | Filter by sim (e.g. "iRacing") | Grid filters to iRacing setups only |
 | 3.4 | Click a setup card | Navigates to video detail page |
@@ -94,7 +94,7 @@ End-to-end testing from the perspective of a new user discovering the site. Cove
 
 | Step | Action | Expected Result |
 |------|--------|-----------------|
-| 5.1 | Load site (default dark) | Dark background, light text, amber/gold accent (TabletopWatch) or red accent (SimPitStop) |
+| 5.1 | Load site (default dark) | Dark background, light text, amber/gold accent (TabletopWatch) or red accent (SimRaceWatch) |
 | 5.2 | Click theme toggle | Switches to light mode — light background, dark text, same accent colours |
 | 5.3 | Navigate to Watch page | Light theme persists across navigation |
 | 5.4 | Check video cards in light mode | Thumbnails, badges, text all have good contrast |
@@ -126,9 +126,9 @@ End-to-end testing from the perspective of a new user discovering the site. Cove
 
 Both sites use the same codebase. Verify differences are correct.
 
-| Check | TabletopWatch | SimPitStop |
+| Check | TabletopWatch | SimRaceWatch |
 |-------|:---:|:---:|
-| Brand name in nav | TabletopWatch | SimPitStop |
+| Brand name in nav | TabletopWatch | SimRaceWatch |
 | Accent colour | Amber/gold | Racing red |
 | Nav tabs | Watch, Deals, Build, Live | Watch, Setups, Deals, Live |
 | Home hero CTA | "Browse Battle Reports" + "Build My Army Cheap" | "Browse Replays" + "Car Setups" |

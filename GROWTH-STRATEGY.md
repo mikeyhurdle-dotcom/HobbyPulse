@@ -16,7 +16,7 @@ SEO is the primary engine. Social is the accelerant. Never pay for traffic — t
 
 | Action | Owner | Automated? |
 |--------|:-----:|:----------:|
-| Buy tabletopwatch.com + simpitstop.com | Mikey | No |
+| Buy tabletopwatch.com + simracewatch.com | Mikey | No |
 | Configure custom domains in Vercel | Claude | — |
 | Submit to Google Search Console | Mikey | No |
 | Ensure sitemaps + robots.txt are correct | Done | — |
@@ -26,7 +26,7 @@ SEO is the primary engine. Social is the accelerant. Never pay for traffic — t
 
 **SEO surface at launch:**
 - TabletopWatch: ~161 video pages, 65 products, faction pages
-- SimPitStop: ~199 video pages, 68 products, sim/hardware pages
+- SimRaceWatch: ~199 video pages, 68 products, sim/hardware pages
 - Total: ~500+ indexable pages from day one
 
 ## Phase 2: Reddit Launch (Week 1 After Domain)
@@ -49,7 +49,7 @@ SEO is the primary engine. Social is the accelerant. Never pay for traffic — t
 - Title: "TabletopWatch now covers AoS — cross-channel battle reports with army lists"
 - Content: Same angle but AoS-specific.
 
-### SimPitStop — Reddit Launch Posts
+### SimRaceWatch — Reddit Launch Posts
 
 **Post 1: r/simracing (700K members)**
 - Title: "I built a site that extracts what hardware YouTubers are using and compares prices"
@@ -57,7 +57,7 @@ SEO is the primary engine. Social is the accelerant. Never pay for traffic — t
 - Angle: "I wanted to know what gear creators actually use without watching the whole video"
 
 **Post 2: r/iRacing or r/ACCompetizione**
-- Title: "SimPitStop — race replays from 14 channels filtered by sim, plus live streams and hardware deals"
+- Title: "SimRaceWatch — race replays from 14 channels filtered by sim, plus live streams and hardware deals"
 - Content: Show the Watch page filtered by iRacing, the live streams page, and a hardware deal.
 
 ### Reddit Rules
@@ -85,7 +85,7 @@ SEO is the primary engine. Social is the accelerant. Never pay for traffic — t
 
 ### Twitter Account Setup
 - TabletopWatch: @TabletopWatch (or @TabletopWatchHQ)
-- SimPitStop: @SimPitStop
+- SimRaceWatch: @SimRaceWatch
 
 ### Implementation
 - PulseBot drafts tweets → posts to Twitter via API

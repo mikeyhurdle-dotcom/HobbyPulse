@@ -21,7 +21,7 @@ updated: 2026-03-31
                     │                │               │
               ┌─────▼─────┐  ┌──────▼──────┐
               │ Vercel #1  │  │  Vercel #2  │
-              │ TabletopW. │  │ SimPitStop  │
+              │ TabletopW. │  │ SimRaceWatch  │
               │ warhammer  │  │ simracing   │
               └─────┬──────┘  └──────┬──────┘
                     │                │
@@ -45,14 +45,14 @@ updated: 2026-03-31
 
 **HobbyPulse** — the parent brand that owns all vertical sites:
 - TabletopWatch (tabletopwatch.com) — tabletop gaming
-- SimPitStop (simpitstop.com) — sim racing
+- SimRaceWatch (simracewatch.com) — sim racing
 - Future verticals as separate branded sites
 
 ## Components
 
 ### Vercel Projects (Frontend + API)
 - **TabletopWatch** (hobbypulse.vercel.app) — `NEXT_PUBLIC_SITE_VERTICAL=warhammer`
-- **SimPitStop** (simpitstop.vercel.app) — `NEXT_PUBLIC_SITE_VERTICAL=simracing`
+- **SimRaceWatch** (simracewatch.vercel.app) — `NEXT_PUBLIC_SITE_VERTICAL=simracing`
 - Next.js 15, App Router, React 19, TypeScript, Tailwind v4
 
 ### Supabase (Backend)
@@ -128,7 +128,7 @@ Retailers → Scrapers (Cheerio) → products + listings → price_history
 
 ## Pages per Vertical
 
-| Page | TabletopWatch | SimPitStop |
+| Page | TabletopWatch | SimRaceWatch |
 |------|:---:|:---:|
 | `/` | Home/landing | Home/landing |
 | `/watch` | Battle Reports (default) | Races & Replays (all content default) |

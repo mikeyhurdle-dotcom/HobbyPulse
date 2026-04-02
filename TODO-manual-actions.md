@@ -6,7 +6,7 @@ Updated 2026-03-31. Check these off as you go.
 
 - **HobbyPulse** = parent entity owning all vertical sites
 - **TabletopWatch** (tabletopwatch.com) — tabletop gaming (40K, AoS, Old World, Kill Team)
-- **SimPitStop** (simpitstop.com) — sim racing
+- **SimRaceWatch** (simracewatch.com) — sim racing
 - Same codebase, same Supabase DB, different Vercel projects
 - **PulseBot** (Hawk 🦅) on OpenClaw VPS — autonomous data engine
 
@@ -35,7 +35,7 @@ Updated 2026-03-31. Check these off as you go.
 
 ## Domains to Buy
 - [ ] **tabletopwatch.com** — confirmed available 2026-03-31
-- [ ] **simpitstop.com** — confirmed available 2026-03-31
+- [ ] **simracewatch.com** — confirmed available 2026-03-31
 - [ ] Configure custom domains in Vercel once purchased
 
 ## Affiliate Programme Sign-ups
@@ -43,7 +43,7 @@ Updated 2026-03-31. Check these off as you go.
 - [ ] Element Games affiliate
 - [ ] Wayland Games affiliate
 - [ ] Amazon Associates (associates.amazon.co.uk)
-- [ ] Fanatec (for SimPitStop — check if programme exists)
+- [ ] Fanatec (for SimRaceWatch — check if programme exists)
 - [ ] Google AdSense (needs custom domain + content)
 
 ## One-Time Setup Tasks

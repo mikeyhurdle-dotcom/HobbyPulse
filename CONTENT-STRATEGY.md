@@ -36,7 +36,7 @@ Every blog post should answer a question people are Googling AND link directly t
 | "Warhammer 40K meta report — {month} 2026" | Parsed army lists — which factions appear most, trending units | /watch (faction filter) |
 | "Most popular army lists this week" | Content parser data — aggregated list appearances | /watch |
 
-## Priority 4: SimPitStop Content (separate site)
+## Priority 4: SimRaceWatch Content (separate site)
 
 | Post | Data Source | Links To |
 |------|-----------|----------|

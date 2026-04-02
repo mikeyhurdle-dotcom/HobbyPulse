@@ -9,7 +9,7 @@ aliases:
 
 # PulseBot (Hawk 🦅)
 
-The autonomous data engine behind HobbyPulse. Manages both TabletopWatch and SimPitStop from a single bot on the OpenClaw VPS.
+The autonomous data engine behind HobbyPulse. Manages both TabletopWatch and SimRaceWatch from a single bot on the OpenClaw VPS.
 
 ## Quick Reference
 

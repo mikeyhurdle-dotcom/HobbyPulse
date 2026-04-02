@@ -7,7 +7,7 @@ _No sessions yet. PulseBot has not been deployed._
 ## Key Facts
 
 - Project launched: 2026-03-30
-- Two sites: TabletopWatch (warhammer) + SimPitStop (simracing)
+- Two sites: TabletopWatch (warhammer) + SimRaceWatch (simracing)
 - Same codebase, same Supabase DB, different Vercel projects
 - Supabase project ID: nspgvdytqsvnmbitbmey (eu-west-2 London)
 - GitHub repo: mikeyhurdle-dotcom/HobbyPulse

@@ -5,5 +5,5 @@
 - **Telegram:** @HobbyPulseBot
 - **Workspace:** `/root/.openclaw/workspace-pulsebot/`
 - **Owner:** Mikey Hurdle
-- **Project:** HobbyPulse (TabletopWatch + SimPitStop)
+- **Project:** HobbyPulse (TabletopWatch + SimRaceWatch)
 - **Created:** 2026-03-30

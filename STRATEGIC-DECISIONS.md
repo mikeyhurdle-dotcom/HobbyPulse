@@ -26,7 +26,7 @@ Key decisions made during build sessions on 2026-03-30 and 2026-03-31 and their 
 | Vertical | Brand | Domain (TBD) |
 |----------|-------|-------------|
 | Tabletop (40K, AoS, etc.) | TabletopWatch (working name) | tabletopwatch.com |
-| Sim Racing | SimPitStop | simpitstop.com |
+| Sim Racing | SimRaceWatch | simracewatch.com |
 
 ---
 
@@ -158,7 +158,7 @@ Key decisions made during build sessions on 2026-03-30 and 2026-03-31 and their 
 - One set of affiliate accounts (eBay Partner Network, Amazon Associates, etc.)
 - One AdSense account with multiple domains
 - Each site can be sold independently if one takes off
-- Structure: HobbyPulse → TabletopWatch, SimPitStop, [future verticals]
+- Structure: HobbyPulse → TabletopWatch, SimRaceWatch, [future verticals]
 
 ---
 
@@ -201,12 +201,12 @@ Key decisions made during build sessions on 2026-03-30 and 2026-03-31 and their 
 
 ---
 
-## 15. SimPitStop value proposition: car setups + hardware detection
+## 15. SimRaceWatch value proposition: car setups + hardware detection
 
 **Decision:** The sim racing killer feature is car setup extraction and hardware-from-video detection, NOT just a filtered YouTube feed.
 
 **Rationale:**
-- Without setup extraction, SimPitStop is just YouTube with a different skin
+- Without setup extraction, SimRaceWatch is just YouTube with a different skin
 - Car setup extraction = the sim racing equivalent of army list parsing
 - Hardware mentions link every product to the deals page (affiliate revenue)
 - 90 hardware setups extracted from first batch of 184 videos
