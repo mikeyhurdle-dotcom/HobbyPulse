@@ -7,11 +7,17 @@
 // ---------------------------------------------------------------------------
 
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@supabase/supabase-js";
 import { getScrapersForVertical, type ScrapedProduct } from "@/lib/scrapers";
 import { searchEbay, type EbayProduct } from "@/lib/ebay";
 import { normaliseProduct } from "@/lib/normalise";
 import { getSiteVertical } from "@/lib/site";
+
+// Use service role key for writes (bypasses RLS)
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+);
 
 export const maxDuration = 300;
 export const dynamic = "force-dynamic";
