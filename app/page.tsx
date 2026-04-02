@@ -33,17 +33,26 @@ interface FeaturedVideo {
 async function getHomeData() {
   const config = getSiteVertical();
 
+  // Resolve vertical UUID
+  const { data: verticalRow } = await supabase
+    .from("verticals")
+    .select("id")
+    .eq("slug", config.slug)
+    .single();
+
+  const verticalId = verticalRow?.id;
+
   const [videosRes, liveRes] = await Promise.all([
     supabase
-      .from("videos")
+      .from("battle_reports")
       .select("id, youtube_video_id, title, thumbnail_url, published_at, view_count, duration_seconds, game_system, channels(name, thumbnail_url)")
-      .eq("vertical", config.slug)
+      .eq("vertical_id", verticalId ?? "")
       .order("published_at", { ascending: false })
       .limit(200),
     supabase
       .from("live_streams")
       .select("id", { count: "exact", head: true })
-      .eq("vertical", config.slug)
+      .eq("vertical_id", verticalId ?? "")
       .eq("is_live", true),
   ]);
 
