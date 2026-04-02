@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getSiteBrand, getSiteVertical } from "@/lib/site";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { MobileNav } from "@/components/mobile-nav";
+import { NavAuth } from "@/components/nav-auth";
 
 interface NavTab {
   name: string;
@@ -19,13 +20,41 @@ const allTabs: NavTab[] = [
   { name: "Live", href: "/live", key: "live", icon: "●" },
 ];
 
-export function Nav({ active }: { active: string }) {
+export async function Nav({ active }: { active: string }) {
   const brand = getSiteBrand();
   const vertical = getSiteVertical();
 
   const tabs = allTabs.filter(
     (tab) => !tab.verticalOnly || tab.verticalOnly === vertical.slug,
   );
+
+  // Auth — gracefully degrade if Supabase auth is not configured
+  let authUser: {
+    email: string;
+    displayName: string | null;
+    avatarUrl: string | null;
+  } | null = null;
+
+  try {
+    const { createClient } = await import("@/lib/supabase/server");
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (user) {
+      authUser = {
+        email: user.email ?? "",
+        displayName:
+          user.user_metadata?.full_name ??
+          user.user_metadata?.name ??
+          null,
+        avatarUrl: user.user_metadata?.avatar_url ?? null,
+      };
+    }
+  } catch {
+    // Auth not configured — sign-in button will be hidden
+  }
 
   return (
     <nav className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-xl">
@@ -62,8 +91,9 @@ export function Nav({ active }: { active: string }) {
             ))}
           </div>
 
-          {/* Right side: theme toggle + mobile menu */}
+          {/* Right side: auth + theme toggle + mobile menu */}
           <div className="flex items-center gap-2">
+            <NavAuth user={authUser} />
             <ThemeToggle />
             <MobileNav tabs={tabs} active={active} brand={brand} />
           </div>

@@ -9,6 +9,7 @@ import { getGameSystem } from "@/config/game-systems";
 import { Play, TrendingUp, Radio, ArrowRight, Zap } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { NewsletterForm } from "@/components/newsletter-form";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -344,6 +345,13 @@ export default async function HomePage() {
               ))}
             </div>
           </div>
+        </section>
+
+        {/* ============================================================= */}
+        {/* Newsletter Signup                                              */}
+        {/* ============================================================= */}
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 pb-12">
+          <NewsletterForm vertical={config.slug} />
         </section>
       </main>
     </>
