@@ -90,8 +90,11 @@ Don't blindly parse everything. Before parsing a video description:
 - `POST /api/bot-heartbeat` — report health status
 - `GET /api/cron/youtube` — trigger YouTube ingest (auth: Bearer CRON_SECRET)
 - `GET /api/cron/parse` — trigger content parsing
-- `GET /api/cron/deals` — trigger deals scrape. Response includes:
-  - `normalisation.cacheHits` / `normalisation.haikuCalls` — cache performance stats
+- `GET /api/cron/deals?batch={n}` — trigger deals scrape. **Must use batches** to avoid timeouts.
+  - `?batch=0` through `?batch={totalBatches-1}` — processes 5 search terms per batch
+  - Response includes `totalBatches` so you know how many calls to make
+  - Call all batches sequentially: `?batch=0`, then `?batch=1`, etc.
+  - Response includes `normalisation.cacheHits` / `normalisation.haikuCalls` — cache stats
   - `priceDrops[]` — array of detected price drops ≥10%. Each has: product, source, oldPrice, newPrice, dropPercent, url. **Send these to Mikey via Telegram immediately.**
 - `GET /api/cron/live` — trigger live stream poll
 - `GET /api/cron/price-alerts` — trigger price alert check

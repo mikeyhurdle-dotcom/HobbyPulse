@@ -136,8 +136,34 @@ export async function GET(request: Request) {
   }
 
   const verticalId = verticalRow.id;
-  const searchTerms = SEARCH_TERMS[verticalSlug] ?? [];
+  const allTerms = SEARCH_TERMS[verticalSlug] ?? [];
   const scrapers = getScrapersForVertical(verticalSlug);
+
+  // Batch support: ?batch=0 processes terms 0-4, ?batch=1 processes 5-9, etc.
+  // ?batch=all (or omitted) processes everything (may timeout on large term lists).
+  const BATCH_SIZE = 5;
+  const url = new URL(request.url);
+  const batchParam = url.searchParams.get("batch");
+  const totalBatches = Math.ceil(allTerms.length / BATCH_SIZE);
+
+  let searchTerms: string[];
+  let batchInfo: string;
+
+  if (batchParam === null || batchParam === "all") {
+    searchTerms = allTerms;
+    batchInfo = `all (${allTerms.length} terms)`;
+  } else {
+    const batchIdx = parseInt(batchParam, 10);
+    if (isNaN(batchIdx) || batchIdx < 0 || batchIdx >= totalBatches) {
+      return NextResponse.json(
+        { error: `Invalid batch index. Use 0-${totalBatches - 1} or "all".` },
+        { status: 400 },
+      );
+    }
+    const start = batchIdx * BATCH_SIZE;
+    searchTerms = allTerms.slice(start, start + BATCH_SIZE);
+    batchInfo = `${batchIdx}/${totalBatches - 1} (terms ${start}-${start + searchTerms.length - 1})`;
+  }
 
   for (const term of searchTerms) {
     // Scrape retailers
@@ -194,6 +220,8 @@ export async function GET(request: Request) {
     ok: true,
     timestamp: new Date().toISOString(),
     vertical: verticalSlug,
+    batch: batchInfo,
+    totalBatches,
     productsUpserted,
     listingsUpserted,
     normalisation: { cacheHits, haikuCalls },
