@@ -21,8 +21,7 @@ The autonomous data engine behind HobbyPulse. Manages both TabletopWatch and Sim
 | VPS | 77.42.20.44 |
 | Workspace | `/root/.openclaw/workspace-pulsebot/` |
 | Primary Model | `google/gemini-2.5-flash` |
-| Fallback 1 | `groq/llama-3.3-70b-versatile` |
-| Fallback 2 | `openrouter/qwen/qwen3-235b-a22b-2507` |
+| Fallback | `groq/llama-3.3-70b-versatile` |
 | Deployed | 2026-03-30 |
 
 ## What It Does
@@ -32,12 +31,12 @@ The autonomous data engine behind HobbyPulse. Manages both TabletopWatch and Sim
 | YouTube ingest | Every 2 hours | Poll 25 channels across both verticals for new videos |
 | Content parsing | After ingest | AI-powered extraction of army lists (tabletop) and car setups (sim racing) |
 | Deals scraping | Every 6 hours | Scrape 8+ retailers, detect price drops >10% |
-| Live stream poll | Every 5 minutes | Twitch + YouTube live stream aggregation |
+| Live stream poll | Every 15 minutes | Twitch + YouTube live stream aggregation |
 | Price alerts | Twice daily | Check user price targets, send Resend email notifications |
 | Daily digest | 9am | Telegram report to Mikey — videos, deals, price drops, errors |
 | Weekly SEO content | Monday 7am | Generate blog posts from trending content |
 | Channel discovery | Sunday 8am | Find new YouTube channels to monitor |
-| Health check | Every 30 min | Heartbeat to both Vercel dashboards |
+| Health check | Every hour | Heartbeat to both Vercel dashboards |
 
 ## Intelligence (vs dumb crons)
 

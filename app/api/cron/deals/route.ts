@@ -197,7 +197,11 @@ export async function GET(request: Request) {
 
     // Search eBay if configured
     const hasEbay = verticalConfig.retailers.some((r) => r.name === "eBay");
-    if (hasEbay && process.env.EBAY_APP_ID) {
+    if (hasEbay && !process.env.EBAY_APP_ID) {
+      if (searchTerms.indexOf(term) === 0) {
+        errors.push("eBay: EBAY_APP_ID not configured — skipping eBay searches");
+      }
+    } else if (hasEbay && process.env.EBAY_APP_ID) {
       try {
         const ebayResults = await searchEbay({
           keyword: `${term} ${verticalConfig.name}`,

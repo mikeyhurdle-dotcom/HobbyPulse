@@ -34,10 +34,9 @@ Edit `/root/.openclaw/openclaw.json` and add PulseBot to the agents array:
   "name": "PulseBot",
   "telegram_bot_token": "<token from BotFather>",
   "workspace": "/root/.openclaw/workspace-pulsebot/",
-  "model": "google/gemini-2.0-flash-lite",
+  "model": "google/gemini-2.5-flash",
   "fallback_models": [
-    "groq/llama-3.3-70b-versatile",
-    "mistral/mistral-small-latest"
+    "groq/llama-3.3-70b-versatile"
   ]
 }
 ```
@@ -124,8 +123,8 @@ openclaw models status
 
 | Priority | Provider | Limit | Cost |
 |----------|----------|-------|------|
-| Primary | `google/gemini-2.0-flash-lite` | 15 RPM free | Free |
-| Fallback 1 | `groq/llama-3.3-70b-versatile` | 14,400 req/day | Free |
-| Fallback 2 | `mistral/mistral-small-latest` | No hard cap | ~$0.20/1M tokens |
+| Primary | `google/gemini-2.5-flash` | 500 req/day, 15 RPM | Free |
+| Fallback | `groq/llama-3.3-70b-versatile` | 14,400 req/day | Free |
 
+**No paid safety net** — if both free providers are down, PulseBot pauses and alerts Mikey.
 **No Anthropic on PulseBot** — Claude Haiku is used server-side via the Vercel API routes only.
