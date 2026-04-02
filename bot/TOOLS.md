@@ -141,8 +141,8 @@ Both sites have the same API endpoints. Auth via `Authorization: Bearer {CRON_SE
 
 | Site | Base URL |
 |------|----------|
-| TabletopWatch | `https://hobbypulse.vercel.app` |
-| SimRaceWatch | `https://simracewatch.vercel.app` |
+| TabletopWatch | `https://tabletopwatch.com` |
+| SimRaceWatch | `https://simracewatch.com` |
 
 | Endpoint | Method | Purpose |
 |----------|--------|---------|

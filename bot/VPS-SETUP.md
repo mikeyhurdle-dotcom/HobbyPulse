@@ -68,8 +68,8 @@ Create `/root/.openclaw/agents/pulsebot/agent/auth-profiles.json`:
   },
   "vercel": {
     "cron_secret": "<CRON_SECRET>",
-    "tabletop_url": "https://hobbypulse.vercel.app",
-    "simracewatch_url": "https://simracewatch.vercel.app"
+    "tabletop_url": "https://tabletopwatch.com",
+    "simracewatch_url": "https://simracewatch.com"
   }
 }
 ```

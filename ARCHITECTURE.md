@@ -51,8 +51,8 @@ updated: 2026-03-31
 ## Components
 
 ### Vercel Projects (Frontend + API)
-- **TabletopWatch** (hobbypulse.vercel.app) — `NEXT_PUBLIC_SITE_VERTICAL=warhammer`
-- **SimRaceWatch** (simracewatch.vercel.app) — `NEXT_PUBLIC_SITE_VERTICAL=simracing`
+- **TabletopWatch** (tabletopwatch.com) — `NEXT_PUBLIC_SITE_VERTICAL=warhammer`
+- **SimRaceWatch** (simracewatch.com) — `NEXT_PUBLIC_SITE_VERTICAL=simracing`
 - Next.js 15, App Router, React 19, TypeScript, Tailwind v4
 
 ### Supabase (Backend)

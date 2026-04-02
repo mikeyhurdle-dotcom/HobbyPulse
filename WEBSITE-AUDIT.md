@@ -8,7 +8,7 @@ created: 2026-03-31
 
 **Audited by:** Claude (as external agency review)
 **Date:** 2026-03-31
-**Sites:** TabletopWatch (hobbypulse.vercel.app) + SimRaceWatch (simracewatch.vercel.app)
+**Sites:** TabletopWatch (tabletopwatch.com) + SimRaceWatch (simracewatch.com)
 
 ---
 
@@ -41,9 +41,9 @@ The platform has strong technical foundations and a genuinely differentiated dat
 - Per-page metadata with generateMetadata() — titles, descriptions, OpenGraph
 
 ### Issues
-- **No custom domain** — currently on .vercel.app which has zero domain authority. Google treats subdomains of vercel.app as low-authority. **Critical blocker for SEO.**
-- **Sitemap references tabletopwatch.com** but that domain doesn't exist yet — Google will get 404s if it tries to crawl the sitemap URLs
-- **No canonical tags** — potential duplicate content issues between hobbypulse.vercel.app and the future custom domain
+- ~~**No custom domain**~~ — **RESOLVED**: tabletopwatch.com and simracewatch.com now live
+- ~~**Sitemap references tabletopwatch.com**~~ — **RESOLVED**: domains configured
+- **No canonical tags** — potential duplicate content issues if old Vercel URLs are still accessible
 - **No Google Search Console** verification — site isn't being actively indexed
 - **No internal linking strategy** — video pages don't link to related videos or deals effectively (components exist but data is sparse)
 - **Title tags could be richer** — "Battle Reports | TabletopWatch" is fine but adding faction names would help: "Death Guard vs Orks Battle Report | TabletopWatch"

@@ -2,7 +2,7 @@
 
 ## Overview
 
-End-to-end testing from the perspective of a new user discovering the site. Covers both TabletopWatch (hobbypulse.vercel.app) and SimRaceWatch (simracewatch.vercel.app).
+End-to-end testing from the perspective of a new user discovering the site. Covers both TabletopWatch (tabletopwatch.com) and SimRaceWatch (simracewatch.com).
 
 ---
 
@@ -12,7 +12,7 @@ End-to-end testing from the perspective of a new user discovering the site. Cove
 
 | Step | Action | Expected Result |
 |------|--------|-----------------|
-| 1.1 | Open hobbypulse.vercel.app | Hero section visible with "Browse Battle Reports" CTA, real stats (not "--"), 6 featured videos |
+| 1.1 | Open tabletopwatch.com | Hero section visible with "Browse Battle Reports" CTA, real stats (not "--"), 6 featured videos |
 | 1.2 | Click "Browse Battle Reports" | Watch page loads with filters — search bar, faction dropdown, game system pills, content type pills |
 | 1.3 | Click "40K" game system pill | URL updates to `?game=40k`, only 40K videos shown, pill is highlighted |
 | 1.4 | Click a video card | Video detail page loads with YouTube embed, title, game system + content type badges |
@@ -55,7 +55,7 @@ End-to-end testing from the perspective of a new user discovering the site. Cove
 
 | Step | Action | Expected Result |
 |------|--------|-----------------|
-| 3.1 | Open simracewatch.vercel.app | Hero section with "Browse Replays" CTA, real stats, featured videos |
+| 3.1 | Open simracewatch.com | Hero section with "Browse Replays" CTA, real stats, featured videos |
 | 3.2 | Click "Car Setups" in nav | Setups page loads with filter dropdowns (Sim, Car, Track) |
 | 3.3 | Filter by sim (e.g. "iRacing") | Grid filters to iRacing setups only |
 | 3.4 | Click a setup card | Navigates to video detail page |
