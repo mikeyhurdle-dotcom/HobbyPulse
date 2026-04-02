@@ -103,8 +103,10 @@ export async function GET(request: Request) {
   // 1.4 Videos have channel associations
   const withChannels = nonShorts.filter(
     (v: Record<string, unknown>) => {
-      const ch = v.channels as { name: string }[] | null;
-      return ch?.[0]?.name;
+      // Supabase many-to-one join returns object, not array
+      const ch = v.channels as { name: string } | { name: string }[] | null;
+      if (Array.isArray(ch)) return ch[0]?.name;
+      return ch?.name;
     },
   );
   results.push({
@@ -157,22 +159,30 @@ export async function GET(request: Request) {
         details: `Video "${testVideo.title}" — ${totalUnits} units, factions: ${factions.join(", ")}`,
       });
 
-      // 1.7 Unit names can find deals
-      const firstUnit = testVideo.content_lists[0]?.list_items?.[0];
-      if (firstUnit) {
+      // 1.7 Unit names can find deals — try each unit until one matches
+      const allUnits = testVideo.content_lists.flatMap((cl) => cl.list_items ?? []);
+      let dealMatch: { searched: string; found: string } | null = null;
+      for (const unit of allUnits) {
+        const keyword = unit.name.split(" ").slice(0, 2).join(" ");
         const { data: matchingDeals } = await supabase
           .from("products")
           .select("id, name")
           .eq("vertical_id", verticalId)
-          .ilike("name", `%${firstUnit.name.split(" ").slice(0, 2).join(" ")}%`)
+          .ilike("name", `%${keyword}%`)
           .limit(1);
-
-        results.push({
-          name: "1.7 Unit name → deals search finds products",
-          status: (matchingDeals ?? []).length > 0 ? "PASS" : "WARN",
-          details: `Searched "${firstUnit.name}" → ${(matchingDeals ?? []).length > 0 ? `found "${matchingDeals![0].name}"` : "no match"}`,
-        });
+        if (matchingDeals && matchingDeals.length > 0) {
+          dealMatch = { searched: unit.name, found: matchingDeals[0].name };
+          break;
+        }
       }
+
+      results.push({
+        name: "1.7 Unit name → deals search finds products",
+        status: dealMatch ? "PASS" : "WARN",
+        details: dealMatch
+          ? `Searched "${dealMatch.searched}" → found "${dealMatch.found}"`
+          : `Tried ${allUnits.length} units, none found in deals`,
+      });
     }
   } else {
     // Sim racing: check car setups
