@@ -15,7 +15,7 @@ import { RulesBadge } from "@/components/rules-badge";
 import { FactionMeta } from "@/components/faction-meta";
 import { wahapediaLink } from "@/lib/external-links";
 import { CopySetupButton } from "@/components/copy-setup-button";
-import { ArrowLeft, Trophy, ShoppingCart, BookOpen, DollarSign } from "lucide-react";
+import { ArrowLeft, ShoppingCart, BookOpen, DollarSign } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
@@ -221,7 +221,6 @@ export default async function VideoDetailPage({
   const gs = getGameSystem(gameSystemId);
   const ct = classifyVideo(battleReport.title, battleReport.duration_seconds);
   const ctCfg = VIDEO_TYPE_CONFIG[ct];
-  const winnerList = sortedLists.find((l) => l.winner);
   const hasArmyLists = sortedLists.length > 0 && sortedLists.some((l) => (l.list_items ?? []).length > 0);
 
   return (
@@ -263,14 +262,6 @@ export default async function VideoDetailPage({
 
             {/* Title + meta */}
             <div>
-              {/* Winner badge — prominent */}
-              {winnerList?.winner && (
-                <div className="inline-flex items-center gap-2 rounded-lg bg-success/15 border border-success/30 px-3 py-2 text-sm font-bold text-success mb-3">
-                  <Trophy className="w-4 h-4" />
-                  {winnerList.winner} wins!
-                </div>
-              )}
-
               <h1 className="text-xl sm:text-2xl font-bold tracking-tight leading-snug mb-3">
                 {battleReport.title}
               </h1>
@@ -463,11 +454,9 @@ export default async function VideoDetailPage({
                         )
                         .join("\n");
 
-                      const isWinner = list.winner != null;
-
                       return (
                         <div key={list.id} className="space-y-2">
-                          <Card className={`border-border bg-card overflow-hidden ${isWinner ? "ring-1 ring-success/30" : ""}`}>
+                          <Card className="border-border bg-card overflow-hidden">
                             {/* List header */}
                             <div className="px-4 py-3 border-b border-border bg-secondary">
                               <div className="flex items-center justify-between">
@@ -491,12 +480,6 @@ export default async function VideoDetailPage({
                                     <span className="text-sm font-medium">
                                       {list.player_name}
                                     </span>
-                                  )}
-                                  {isWinner && (
-                                    <Badge className="border-0 bg-success/15 text-success text-[10px]">
-                                      <Trophy className="w-3 h-3 mr-0.5" />
-                                      Winner
-                                    </Badge>
                                   )}
                                 </div>
                                 <span className="text-xs font-[family-name:var(--font-mono)] text-muted-foreground">
