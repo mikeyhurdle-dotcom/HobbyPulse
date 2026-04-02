@@ -1,11 +1,14 @@
 // ---------------------------------------------------------------------------
 // Supabase Server Client — for Server Components & Route Handlers
 // ---------------------------------------------------------------------------
+// Uses dynamic import of next/headers to avoid Turbopack build errors
+// when this module is transitively imported from non-server contexts.
+// ---------------------------------------------------------------------------
 
 import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
 
 export async function createClient() {
+  const { cookies } = await import("next/headers");
   const cookieStore = await cookies();
 
   return createServerClient(
