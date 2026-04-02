@@ -45,6 +45,15 @@ export default function RootLayout({
 
   return (
     <html lang="en" suppressHydrationWarning>
+      {process.env.NEXT_PUBLIC_ADSENSE_PUB_ID && (
+        <head>
+          <script
+            async
+            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${process.env.NEXT_PUBLIC_ADSENSE_PUB_ID}`}
+            crossOrigin="anonymous"
+          />
+        </head>
+      )}
       <body
         className={`${syne.variable} ${dmSans.variable} ${ibmPlexMono.variable} antialiased`}
         data-vertical={config.slug}

@@ -1,23 +1,10 @@
 // ---------------------------------------------------------------------------
-// Analytics — GA4 + PostHog + AdSense script tags
+// Analytics — GA4 + PostHog script tags (AdSense is in app/layout.tsx)
 // ---------------------------------------------------------------------------
 // Only renders when the corresponding env var is set.
 // ---------------------------------------------------------------------------
 
 import Script from "next/script";
-
-function AdSense() {
-  const pubId = process.env.NEXT_PUBLIC_ADSENSE_PUB_ID;
-  if (!pubId) return null;
-
-  return (
-    <Script
-      src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${pubId}`}
-      crossOrigin="anonymous"
-      strategy="beforeInteractive"
-    />
-  );
-}
 
 function GA4() {
   const id = process.env.NEXT_PUBLIC_GA4_ID;
@@ -60,7 +47,6 @@ export function Analytics() {
     <>
       <GA4 />
       <PostHog />
-      <AdSense />
     </>
   );
 }
