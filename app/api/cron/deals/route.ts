@@ -1,8 +1,8 @@
 // ---------------------------------------------------------------------------
 // Deals Cron — /api/cron/deals
 // ---------------------------------------------------------------------------
-// Runs daily at 2am. Scrapes the site vertical's retailers for popular
-// products, upserts into products + listings, and records price history.
+// Scrapes retailers, normalises product names (cache-first, Haiku fallback),
+// upserts products + listings, records price history, and detects price drops.
 // Protected by CRON_SECRET.
 // ---------------------------------------------------------------------------
 
@@ -16,7 +16,10 @@ import { getSiteVertical } from "@/lib/site";
 export const maxDuration = 300;
 export const dynamic = "force-dynamic";
 
-// Popular search terms per vertical for the crawler
+// ---------------------------------------------------------------------------
+// Search terms per vertical
+// ---------------------------------------------------------------------------
+
 const SEARCH_TERMS: Record<string, string[]> = {
   warhammer: [
     // Starter boxes
@@ -56,8 +59,24 @@ const SEARCH_TERMS: Record<string, string[]> = {
   ],
 };
 
+// ---------------------------------------------------------------------------
+// Price drop tracking
+// ---------------------------------------------------------------------------
+
+interface PriceDrop {
+  product: string;
+  source: string;
+  oldPrice: number;
+  newPrice: number;
+  dropPercent: number;
+  url: string;
+}
+
+// ---------------------------------------------------------------------------
+// Route handler
+// ---------------------------------------------------------------------------
+
 export async function GET(request: Request) {
-  // Verify CRON_SECRET
   const authHeader = request.headers.get("authorization");
   const cronSecret = process.env.CRON_SECRET;
 
@@ -69,10 +88,12 @@ export async function GET(request: Request) {
   const verticalSlug = verticalConfig.slug;
 
   const errors: string[] = [];
+  const priceDrops: PriceDrop[] = [];
   let productsUpserted = 0;
   let listingsUpserted = 0;
+  let cacheHits = 0;
+  let haikuCalls = 0;
 
-  // Get vertical ID from Supabase
   const { data: verticalRow } = await supabase
     .from("verticals")
     .select("id")
@@ -96,9 +117,17 @@ export async function GET(request: Request) {
       try {
         const products = await scraper.scrape(term);
         for (const product of products.slice(0, 10)) {
-          const result = await upsertProduct(product, verticalId, verticalSlug);
+          const result = await upsertProduct(
+            product,
+            verticalId,
+            verticalSlug,
+            scraper.name,
+            priceDrops,
+          );
           if (result.productUpserted) productsUpserted++;
           if (result.listingUpserted) listingsUpserted++;
+          if (result.resolvedBy === "cache" || result.resolvedBy === "fuzzy") cacheHits++;
+          if (result.resolvedBy === "haiku") haikuCalls++;
         }
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
@@ -110,11 +139,21 @@ export async function GET(request: Request) {
     const hasEbay = verticalConfig.retailers.some((r) => r.name === "eBay");
     if (hasEbay && process.env.EBAY_APP_ID) {
       try {
-        const ebayResults = await searchEbay({ keyword: `${term} ${verticalConfig.name}`, limit: 10 });
+        const ebayResults = await searchEbay({
+          keyword: `${term} ${verticalConfig.name}`,
+          limit: 10,
+        });
         for (const item of ebayResults) {
-          const result = await upsertEbayProduct(item, verticalId, verticalSlug);
+          const result = await upsertEbayProduct(
+            item,
+            verticalId,
+            verticalSlug,
+            priceDrops,
+          );
           if (result.productUpserted) productsUpserted++;
           if (result.listingUpserted) listingsUpserted++;
+          if (result.resolvedBy === "cache" || result.resolvedBy === "fuzzy") cacheHits++;
+          if (result.resolvedBy === "haiku") haikuCalls++;
         }
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
@@ -129,6 +168,8 @@ export async function GET(request: Request) {
     vertical: verticalSlug,
     productsUpserted,
     listingsUpserted,
+    normalisation: { cacheHits, haikuCalls },
+    priceDrops: priceDrops.length > 0 ? priceDrops : undefined,
     errors: errors.length > 0 ? errors : undefined,
   });
 }
@@ -137,13 +178,24 @@ export async function GET(request: Request) {
 // Upsert helpers
 // ---------------------------------------------------------------------------
 
+interface UpsertResult {
+  productUpserted: boolean;
+  listingUpserted: boolean;
+  resolvedBy: string;
+}
+
 async function upsertProduct(
   scraped: ScrapedProduct,
   verticalId: string,
   verticalSlug: string,
-): Promise<{ productUpserted: boolean; listingUpserted: boolean }> {
-  // Normalise the product name
-  const { canonicalName } = await normaliseProduct(scraped.name, verticalSlug);
+  source: string,
+  priceDrops: PriceDrop[],
+): Promise<UpsertResult> {
+  const { canonicalName, resolvedBy } = await normaliseProduct(
+    scraped.name,
+    verticalSlug,
+    source,
+  );
   const slug = slugify(canonicalName);
 
   // Upsert product
@@ -164,8 +216,19 @@ async function upsertProduct(
 
   if (productError || !product) {
     console.error("Product upsert error:", productError?.message);
-    return { productUpserted: false, listingUpserted: false };
+    return { productUpserted: false, listingUpserted: false, resolvedBy };
   }
+
+  // Check previous price BEFORE upsert (for price drop detection)
+  const { data: existingListing } = await supabase
+    .from("listings")
+    .select("price_pence")
+    .eq("product_id", product.id)
+    .eq("source", scraped.source)
+    .eq("source_url", scraped.source_url)
+    .single();
+
+  const oldPrice = existingListing?.price_pence ?? null;
 
   // Upsert listing
   const { data: listing, error: listingError } = await supabase
@@ -189,7 +252,7 @@ async function upsertProduct(
 
   if (listingError) {
     console.error("Listing upsert error:", listingError.message);
-    return { productUpserted: true, listingUpserted: false };
+    return { productUpserted: true, listingUpserted: false, resolvedBy };
   }
 
   // Record price history
@@ -202,15 +265,37 @@ async function upsertProduct(
     });
   }
 
-  return { productUpserted: true, listingUpserted: true };
+  // Detect price drop (>= 10%)
+  if (oldPrice !== null && scraped.price_pence < oldPrice) {
+    const dropPercent = Math.round(
+      ((oldPrice - scraped.price_pence) / oldPrice) * 100,
+    );
+    if (dropPercent >= 10) {
+      priceDrops.push({
+        product: canonicalName,
+        source: scraped.source,
+        oldPrice,
+        newPrice: scraped.price_pence,
+        dropPercent,
+        url: scraped.source_url,
+      });
+    }
+  }
+
+  return { productUpserted: true, listingUpserted: true, resolvedBy };
 }
 
 async function upsertEbayProduct(
   item: EbayProduct,
   verticalId: string,
   verticalSlug: string,
-): Promise<{ productUpserted: boolean; listingUpserted: boolean }> {
-  const { canonicalName } = await normaliseProduct(item.title, verticalSlug);
+  priceDrops: PriceDrop[],
+): Promise<UpsertResult> {
+  const { canonicalName, resolvedBy } = await normaliseProduct(
+    item.title,
+    verticalSlug,
+    "eBay",
+  );
   const slug = slugify(canonicalName);
 
   const { data: product, error: productError } = await supabase
@@ -230,8 +315,19 @@ async function upsertEbayProduct(
 
   if (productError || !product) {
     console.error("eBay product upsert error:", productError?.message);
-    return { productUpserted: false, listingUpserted: false };
+    return { productUpserted: false, listingUpserted: false, resolvedBy };
   }
+
+  // Check previous price
+  const { data: existingListing } = await supabase
+    .from("listings")
+    .select("price_pence")
+    .eq("product_id", product.id)
+    .eq("source", "eBay")
+    .eq("source_url", item.itemUrl)
+    .single();
+
+  const oldPrice = existingListing?.price_pence ?? null;
 
   const { data: listing, error: listingError } = await supabase
     .from("listings")
@@ -255,7 +351,7 @@ async function upsertEbayProduct(
 
   if (listingError) {
     console.error("eBay listing upsert error:", listingError.message);
-    return { productUpserted: true, listingUpserted: false };
+    return { productUpserted: true, listingUpserted: false, resolvedBy };
   }
 
   if (listing) {
@@ -267,7 +363,24 @@ async function upsertEbayProduct(
     });
   }
 
-  return { productUpserted: true, listingUpserted: true };
+  // Detect price drop
+  if (oldPrice !== null && item.pricePence < oldPrice) {
+    const dropPercent = Math.round(
+      ((oldPrice - item.pricePence) / oldPrice) * 100,
+    );
+    if (dropPercent >= 10) {
+      priceDrops.push({
+        product: canonicalName,
+        source: "eBay",
+        oldPrice,
+        newPrice: item.pricePence,
+        dropPercent,
+        url: item.affiliateUrl || item.itemUrl,
+      });
+    }
+  }
+
+  return { productUpserted: true, listingUpserted: true, resolvedBy };
 }
 
 // ---------------------------------------------------------------------------
