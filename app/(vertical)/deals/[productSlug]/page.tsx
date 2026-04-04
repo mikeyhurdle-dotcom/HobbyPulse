@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Nav } from "@/components/nav";
 import { ProductImage } from "@/components/product-image";
 import { PriceAlertForm } from "@/components/price-alert-form";
+import { PriceHistoryChart } from "@/components/price-history-chart";
 import { JsonLd } from "@/components/json-ld";
 import { supabase } from "@/lib/supabase";
 import { getSiteVertical, getSiteBrand } from "@/lib/site";
@@ -202,6 +203,37 @@ export default async function DealDetailPage({
   const bestPrice = sortedListings[0]?.price_pence ?? 0;
   const savings = getSavings(bestPrice, product.name);
   const rrp = product.rrp_pence ?? savings?.rrp ?? null;
+
+  // Fetch price history for this product's listings
+  const listingIds = sortedListings.map((l) => l.id);
+  const { data: rawHistory } = await supabase
+    .from("price_history")
+    .select("listing_id, price_pence, recorded_at")
+    .in("listing_id", listingIds)
+    .order("recorded_at", { ascending: true });
+
+  // Build a listing_id → source map
+  const listingSourceMap = new Map(
+    sortedListings.map((l) => [l.id, l.source]),
+  );
+
+  // Aggregate to daily best price per source
+  const dailyMap = new Map<string, { source: string; price_pence: number }>();
+  for (const row of rawHistory ?? []) {
+    const day = new Date(row.recorded_at).toISOString().slice(0, 10);
+    const source = listingSourceMap.get(row.listing_id) ?? "Unknown";
+    const key = `${day}|${source}`;
+    const existing = dailyMap.get(key);
+    if (!existing || row.price_pence < existing.price_pence) {
+      dailyMap.set(key, { source, price_pence: row.price_pence });
+    }
+  }
+
+  const priceHistory = [...dailyMap.entries()].map(([key, val]) => ({
+    date: key.split("|")[0],
+    source: val.source,
+    price_pence: val.price_pence,
+  }));
 
   // Fetch related products (same vertical, excluding current)
   const { data: rawRelated } = await supabase
@@ -414,18 +446,12 @@ export default async function DealDetailPage({
           />
         </section>
 
-        {/* Price history placeholder */}
+        {/* Price history */}
         <section className="mb-12">
           <h2 className="text-xl font-bold tracking-tight mb-4">
             Price History
           </h2>
-          <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-8 text-center">
-            <p className="text-[var(--muted)]">Price history coming soon</p>
-            <p className="text-xs text-[var(--muted)] mt-1">
-              We are tracking prices daily. Charts will appear once enough data
-              is collected.
-            </p>
-          </div>
+          <PriceHistoryChart data={priceHistory} />
         </section>
 
         {/* Related products */}

@@ -1,11 +1,15 @@
+"use client";
+
 import Image from "next/image";
+import { useState } from "react";
 
 /**
- * Product image that handles multiple CDN sources.
+ * Product image that handles multiple CDN sources with a shimmer placeholder.
  *
  * - Shopify / Element Games: routed through next/image for WebP conversion + resizing
  * - eBay (i.ebayimg.com): loaded directly — eBay already serves optimised JPEGs
  *   and blocks Vercel's image optimizer from fetching server-side
+ * - All images show a shimmer animation while loading
  */
 export function ProductImage({
   src,
@@ -22,7 +26,10 @@ export function ProductImage({
   priority?: boolean;
   className?: string;
 }) {
+  const [loaded, setLoaded] = useState(false);
   const isEbay = src.includes("ebayimg.com");
+
+  const shimmer = !loaded ? "animate-shimmer bg-gradient-to-r from-transparent via-white/5 to-transparent bg-[length:200%_100%]" : "";
 
   if (isEbay) {
     return (
@@ -30,9 +37,10 @@ export function ProductImage({
       <img
         src={src}
         alt={alt}
-        className={className}
+        className={`${className ?? ""} ${shimmer} transition-opacity duration-300 ${loaded ? "opacity-100" : "opacity-0"}`}
         loading={priority ? "eager" : "lazy"}
-        style={fill ? { position: "absolute", inset: 0, width: "100%", height: "100%"} : undefined}
+        onLoad={() => setLoaded(true)}
+        style={fill ? { position: "absolute", inset: 0, width: "100%", height: "100%" } : undefined}
       />
     );
   }
@@ -44,7 +52,8 @@ export function ProductImage({
       fill={fill}
       sizes={sizes}
       priority={priority}
-      className={className}
+      className={`${className ?? ""} ${shimmer} transition-opacity duration-300 ${loaded ? "opacity-100" : "opacity-0"}`}
+      onLoad={() => setLoaded(true)}
     />
   );
 }

@@ -137,6 +137,9 @@ export class ShopifyScraper implements Scraper {
     const metaMatch = html.match(/var\s+meta\s*=\s*(\{[\s\S]*?\});/);
     if (!metaMatch) return [];
 
+    // Build a map of product handle → image URL from HTML product cards
+    const imageMap = this.extractImageMapFromHtml(html);
+
     try {
       const meta = JSON.parse(metaMatch[1]);
       const metaProducts = meta?.products ?? [];
@@ -150,8 +153,9 @@ export class ShopifyScraper implements Scraper {
         const pricePence = typeof variant.price === "number"
           ? variant.price
           : parseInt(String(variant.price), 10);
-        const url = mp.handle
-          ? `${this.baseUrl}/products/${mp.handle}`
+        const handle = mp.handle ?? "";
+        const url = handle
+          ? `${this.baseUrl}/products/${handle}`
           : "";
         if (!url) continue;
 
@@ -161,7 +165,7 @@ export class ShopifyScraper implements Scraper {
           currency: this.currency,
           condition: this.detectCondition(name),
           source_url: url,
-          image_url: null,
+          image_url: imageMap.get(handle) ?? null,
           in_stock: true,
           source: this.name,
         });
@@ -171,6 +175,37 @@ export class ShopifyScraper implements Scraper {
     }
 
     return deduplicateByUrl(products);
+  }
+
+  /**
+   * Extract a map of product handle → image URL from HTML product cards.
+   * Used to enrich Strategy 2 (var meta) which lacks images.
+   */
+  private extractImageMapFromHtml(html: string): Map<string, string> {
+    const $ = cheerio.load(html);
+    const map = new Map<string, string>();
+
+    $("a[href*='/products/']").each((_i, el) => {
+      const href = $(el).attr("href") ?? "";
+      const handleMatch = href.match(/\/products\/([^?#/]+)/);
+      if (!handleMatch) return;
+
+      const handle = handleMatch[1];
+      if (map.has(handle)) return;
+
+      // Look for an image within or near this link
+      const img =
+        $(el).find("img").first().attr("src") ??
+        $(el).find("img").first().attr("data-src") ??
+        $(el).parent().find("img").first().attr("src") ??
+        null;
+
+      if (img) {
+        map.set(handle, normaliseImageUrl(img) ?? "");
+      }
+    });
+
+    return map;
   }
 
   // -------------------------------------------------------------------------

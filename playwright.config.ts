@@ -28,7 +28,7 @@ export default defineConfig({
     },
     {
       name: "tabletopwatch-mobile",
-      testMatch: "tabletopwatch.spec.ts",
+      testMatch: ["tabletopwatch.spec.ts", "mobile.spec.ts"],
       use: {
         ...devices["Pixel 7"],
         baseURL: "https://tabletopwatch.com",
@@ -36,7 +36,7 @@ export default defineConfig({
     },
     {
       name: "simracewatch-mobile",
-      testMatch: "simracewatch.spec.ts",
+      testMatch: ["simracewatch.spec.ts", "mobile.spec.ts"],
       use: {
         ...devices["Pixel 7"],
         baseURL: "https://simracewatch.com",

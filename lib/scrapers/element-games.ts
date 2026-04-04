@@ -155,11 +155,21 @@ function appendAffiliate(url: string): string {
   }
 }
 
+/**
+ * Normalise and upgrade Element Games image URLs.
+ * Search results serve `-small.jpg` thumbnails (~150px).
+ * Replace with `-large.jpg` for high-res product images.
+ */
 function normaliseImageUrl(src: string | null): string | null {
   if (!src) return null;
-  if (src.startsWith("//")) return `https:${src}`;
-  if (src.startsWith("/")) return `${BASE_URL}${src}`;
-  return src;
+  let url = src;
+  if (url.startsWith("//")) url = `https:${url}`;
+  else if (url.startsWith("/")) url = `${BASE_URL}${url}`;
+
+  // Upgrade -small to -large
+  url = url.replace(/-small\./, "-large.");
+
+  return url;
 }
 
 function deduplicateByUrl(products: ScrapedProduct[]): ScrapedProduct[] {
