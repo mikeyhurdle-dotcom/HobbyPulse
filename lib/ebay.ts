@@ -199,7 +199,7 @@ export async function searchEbay(options: EbaySearchOptions): Promise<EbayProduc
       pricePence,
       currency: item.price.currency,
       condition: normaliseEbayCondition(item.condition),
-      imageUrl: item.image?.imageUrl ?? null,
+      imageUrl: upgradeEbayImageUrl(item.image?.imageUrl ?? null),
       itemUrl: item.itemWebUrl,
       affiliateUrl: wrapAffiliateUrl(item.itemWebUrl),
       sellerUsername: item.seller.username,
@@ -218,4 +218,14 @@ function normaliseEbayCondition(condition: string): string {
   if (lower.includes("used")) return "used";
   if (lower.includes("not specified") || lower.includes("unspecified")) return "used";
   return "used";
+}
+
+/**
+ * Upgrade eBay image URLs from thumbnails to high-res.
+ * eBay Browse API returns s-l225 (225px) by default.
+ * Replace with s-l500 for crisp product images.
+ */
+function upgradeEbayImageUrl(url: string | null): string | null {
+  if (!url) return null;
+  return url.replace(/\/s-l\d+\./, "/s-l500.");
 }

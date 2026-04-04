@@ -2,6 +2,7 @@
 // Related Deals — shows products in the same category
 // ---------------------------------------------------------------------------
 
+import Image from "next/image";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
@@ -52,16 +53,19 @@ export async function RelatedDeals({
               href={`/deals/${product.slug}`}
               className="group rounded-xl border border-[var(--border)] bg-[var(--surface)] overflow-hidden hover:border-[var(--border-light)] hover:bg-[var(--surface-hover)] transition-all"
             >
-              <div className="aspect-square bg-[var(--surface-hover)] flex items-center justify-center">
+              <div className="relative aspect-square bg-[var(--surface-hover)]">
                 {product.image_url ? (
-                  <img
+                  <Image
                     src={product.image_url}
                     alt={product.name}
-                    className="w-full h-full object-contain p-2"
-                    loading="lazy"
+                    fill
+                    sizes="(max-width: 640px) 50vw, 25vw"
+                    className="object-contain p-2"
                   />
                 ) : (
-                  <span className="text-[var(--muted)] text-xs">No image</span>
+                  <div className="w-full h-full flex items-center justify-center">
+                    <span className="text-[var(--muted)] text-xs">No image</span>
+                  </div>
                 )}
               </div>
               <div className="p-3 space-y-1">

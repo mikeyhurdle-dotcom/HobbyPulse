@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { Nav } from "@/components/nav";
 import { PriceAlertForm } from "@/components/price-alert-form";
@@ -242,15 +243,20 @@ export default async function DealDetailPage({
         {/* Product header */}
         <div className="grid grid-cols-1 md:grid-cols-[360px_1fr] gap-8 mb-12">
           {/* Image */}
-          <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 aspect-square flex items-center justify-center">
+          <div className="relative rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 aspect-square">
             {product.image_url ? (
-              <img
+              <Image
                 src={product.image_url}
                 alt={product.name}
-                className="w-full h-full object-contain"
+                fill
+                sizes="360px"
+                className="object-contain p-4"
+                priority
               />
             ) : (
-              <span className="text-[var(--muted)]">No image available</span>
+              <div className="w-full h-full flex items-center justify-center">
+                <span className="text-[var(--muted)]">No image available</span>
+              </div>
             )}
           </div>
 
@@ -435,18 +441,21 @@ export default async function DealDetailPage({
                   href={`/deals/${related.slug}`}
                   className="group rounded-xl border border-[var(--border)] bg-[var(--surface)] overflow-hidden hover:border-[var(--border-light)] hover:bg-[var(--surface-hover)] transition-all"
                 >
-                  <div className="aspect-square bg-[var(--surface-hover)] flex items-center justify-center">
+                  <div className="relative aspect-square bg-[var(--surface-hover)]">
                     {related.image_url ? (
-                      <img
+                      <Image
                         src={related.image_url}
                         alt={related.name}
-                        className="w-full h-full object-contain p-2"
-                        loading="lazy"
+                        fill
+                        sizes="(max-width: 640px) 50vw, 25vw"
+                        className="object-contain p-2"
                       />
                     ) : (
-                      <span className="text-[var(--muted)] text-xs">
-                        No image
-                      </span>
+                      <div className="w-full h-full flex items-center justify-center">
+                        <span className="text-[var(--muted)] text-xs">
+                          No image
+                        </span>
+                      </div>
                     )}
                   </div>
                   <div className="p-3">

@@ -237,10 +237,29 @@ function parsePricePence(priceStr: string): number | null {
   return Math.round(value * 100);
 }
 
+/**
+ * Normalise and upgrade Shopify CDN image URLs to high-res versions.
+ * Shopify serves thumbnails by default (e.g. _100x100, _small, _compact).
+ * We strip the size suffix and request a 600px wide version via query param.
+ */
 function normaliseImageUrl(src: string | null): string | null {
   if (!src) return null;
-  if (src.startsWith("//")) return `https:${src}`;
-  return src;
+  let url = src.startsWith("//") ? `https:${src}` : src;
+
+  // Strip Shopify size suffixes like _100x100, _small, _medium, _large, _grande, _compact
+  // Pattern: _<digits>x<digits> or _<named_size> before the file extension
+  url = url.replace(
+    /(_(?:\d+x\d+|pico|icon|thumb|small|compact|medium|large|grande|original|master))(\.\w+)(\?.*)?$/,
+    "$2$3",
+  );
+
+  // Append width param for Shopify CDN (cdn.shopify.com) to get a crisp 600px image
+  if (url.includes("cdn.shopify.com")) {
+    const sep = url.includes("?") ? "&" : "?";
+    url = `${url}${sep}width=600`;
+  }
+
+  return url;
 }
 
 function deduplicateByUrl(products: ScrapedProduct[]): ScrapedProduct[] {
