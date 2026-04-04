@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { Nav } from "@/components/nav";
+import { ProductImage } from "@/components/product-image";
 import { AdBetweenContent } from "@/components/ad-slot";
 import { supabase } from "@/lib/supabase";
 import { getSiteVertical, getSiteBrand } from "@/lib/site";
@@ -240,7 +240,7 @@ export default async function DealsPage({
                 {/* Product image */}
                 <div className="relative aspect-square bg-[var(--surface-hover)]">
                   {product.image_url ? (
-                    <Image
+                    <ProductImage
                       src={product.image_url}
                       alt={product.name}
                       fill

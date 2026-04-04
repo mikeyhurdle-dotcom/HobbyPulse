@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { Nav } from "@/components/nav";
+import { ProductImage } from "@/components/product-image";
 import { PriceAlertForm } from "@/components/price-alert-form";
 import { JsonLd } from "@/components/json-ld";
 import { supabase } from "@/lib/supabase";
@@ -245,7 +245,7 @@ export default async function DealDetailPage({
           {/* Image */}
           <div className="relative rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 aspect-square">
             {product.image_url ? (
-              <Image
+              <ProductImage
                 src={product.image_url}
                 alt={product.name}
                 fill
@@ -443,7 +443,7 @@ export default async function DealDetailPage({
                 >
                   <div className="relative aspect-square bg-[var(--surface-hover)]">
                     {related.image_url ? (
-                      <Image
+                      <ProductImage
                         src={related.image_url}
                         alt={related.name}
                         fill
