@@ -326,22 +326,36 @@ test.describe("Image Quality Audit", () => {
   }) => {
     await page.goto("/deals");
 
+    // Scroll to product grid to trigger lazy-loaded images
     const dealImages = page.locator("a[href*='/deals/'] img");
     const count = await dealImages.count();
+    if (count > 0) {
+      await dealImages.first().scrollIntoViewIfNeeded();
+      await page.waitForTimeout(2_000);
+    }
 
     const brokenImages: string[] = [];
 
     for (let i = 0; i < Math.min(count, 8); i++) {
       const img = dealImages.nth(i);
-      const isVisible = await img.isVisible();
-      if (!isVisible) continue;
+      await img.scrollIntoViewIfNeeded();
+      // Wait for this specific image to load
+      await img
+        .evaluate(
+          (el: HTMLImageElement) =>
+            el.complete ||
+            new Promise((resolve) => {
+              el.addEventListener("load", resolve, { once: true });
+              el.addEventListener("error", resolve, { once: true });
+              setTimeout(resolve, 3_000);
+            }),
+        );
 
       const naturalWidth = await img.evaluate(
         (el: HTMLImageElement) => el.naturalWidth,
       );
       const alt = (await img.getAttribute("alt")) ?? `image-${i}`;
 
-      // Image with 0 naturalWidth means it failed to load
       if (naturalWidth === 0) {
         brokenImages.push(alt);
       }
@@ -352,7 +366,6 @@ test.describe("Image Quality Audit", () => {
       `Broken images found: ${brokenImages.join(", ")}`,
     ).toHaveLength(0);
 
-    // Verify images render at a usable size in the layout
     if (count > 0) {
       const firstImg = dealImages.first();
       const box = await firstImg.boundingBox();

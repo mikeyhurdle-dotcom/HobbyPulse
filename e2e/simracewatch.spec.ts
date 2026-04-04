@@ -77,9 +77,10 @@ test.describe("Journey 3: Watch Replay -> Setup -> Hardware Deals", () => {
     await videoLink.click();
     await expect(page).toHaveURL(/\/watch\//);
 
-    // Look for hardware links to deals
-    const hardwareLink = page.locator("a[href*='/deals']").first();
+    // Look for hardware links to deals (in main content, not nav)
+    const hardwareLink = page.locator("main a[href*='/deals']").first();
     if ((await hardwareLink.count()) > 0) {
+      await hardwareLink.scrollIntoViewIfNeeded();
       await hardwareLink.click();
       await expect(page).toHaveURL(/\/deals/);
     }
@@ -154,15 +155,31 @@ test.describe("Image Quality Audit", () => {
   }) => {
     await page.goto("/deals");
 
+    // Scroll to product grid to trigger lazy-loaded images
     const dealImages = page.locator("a[href*='/deals/'] img");
     const count = await dealImages.count();
+    if (count > 0) {
+      await dealImages.first().scrollIntoViewIfNeeded();
+      // Wait for lazy images to load after scroll
+      await page.waitForTimeout(2_000);
+    }
 
     const brokenImages: string[] = [];
 
     for (let i = 0; i < Math.min(count, 8); i++) {
       const img = dealImages.nth(i);
-      const isVisible = await img.isVisible();
-      if (!isVisible) continue;
+      await img.scrollIntoViewIfNeeded();
+      // Wait for this specific image to load
+      await img
+        .evaluate(
+          (el: HTMLImageElement) =>
+            el.complete ||
+            new Promise((resolve) => {
+              el.addEventListener("load", resolve, { once: true });
+              el.addEventListener("error", resolve, { once: true });
+              setTimeout(resolve, 3_000);
+            }),
+        );
 
       const naturalWidth = await img.evaluate(
         (el: HTMLImageElement) => el.naturalWidth,
