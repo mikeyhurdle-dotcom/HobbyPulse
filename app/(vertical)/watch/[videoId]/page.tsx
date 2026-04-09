@@ -15,11 +15,6 @@ import { RulesBadge } from "@/components/rules-badge";
 import { FactionMeta } from "@/components/faction-meta";
 import { wahapediaLink } from "@/lib/external-links";
 import { CopySetupButton } from "@/components/copy-setup-button";
-import { ShareButtons } from "@/components/share-buttons";
-import { channelSlug } from "@/lib/channels";
-import { ArmyCostBadge } from "@/components/army-cost-badge";
-import { computeArmyCost, serializeListForBuild, type ArmyCostResult } from "@/lib/army-cost";
-import { YouTubePlayer } from "@/components/youtube-player";
 import { ArrowLeft, ShoppingCart, BookOpen, DollarSign } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -181,16 +176,6 @@ export default async function VideoDetailPage({
 
   const battleReport = report as unknown as BattleReport;
 
-  // Fetch transcript for SEO. Renders server-side so Google indexes the
-  // full content of the video without users needing to watch it.
-  const { data: transcriptRow } = await supabase
-    .from("video_transcripts")
-    .select("text, segment_count, language")
-    .eq("battle_report_id", battleReport.id)
-    .neq("language", "none")
-    .maybeSingle();
-  const transcript = transcriptRow as { text: string; segment_count: number; language: string } | null;
-
   const sortedLists = [...(battleReport.content_lists ?? [])].sort(
     (a, b) => a.list_index - b.list_index,
   );
@@ -230,92 +215,6 @@ export default async function VideoDetailPage({
     }
   }
 
-  // Fetch the single next video for the autoplay-next overlay. Prefers
-  // category overlap; falls back to the next most-recent video in the
-  // vertical so autoplay works even without faction matches.
-  let nextVideo: {
-    youtubeVideoId: string;
-    title: string;
-    thumbnailUrl: string | null;
-    channelName: string | null;
-  } | null = null;
-
-  if (categoryIdsForRelated.length > 0) {
-    const { data: relatedLists } = await supabase
-      .from("content_lists")
-      .select("battle_report_id")
-      .in("category_id", categoryIdsForRelated)
-      .limit(30);
-    const candidateIds = [
-      ...new Set(
-        (relatedLists ?? [])
-          .map((r: { battle_report_id: string | null }) => r.battle_report_id)
-          .filter((id): id is string => Boolean(id)),
-      ),
-    ];
-    if (candidateIds.length > 0) {
-      const { data: nextRows } = await supabase
-        .from("battle_reports")
-        .select("youtube_video_id, title, thumbnail_url, channels ( name )")
-        .in("id", candidateIds)
-        .neq("youtube_video_id", videoId)
-        .order("view_count", { ascending: false })
-        .limit(1);
-      const row = (nextRows ?? [])[0] as unknown as
-        | {
-            youtube_video_id: string;
-            title: string;
-            thumbnail_url: string | null;
-            channels: { name: string | null } | { name: string | null }[] | null;
-          }
-        | undefined;
-      if (row) {
-        const ch = Array.isArray(row.channels) ? row.channels[0] : row.channels;
-        nextVideo = {
-          youtubeVideoId: row.youtube_video_id,
-          title: row.title,
-          thumbnailUrl: row.thumbnail_url,
-          channelName: ch?.name ?? null,
-        };
-      }
-    }
-  }
-
-  if (!nextVideo) {
-    // Fallback — next most-recent video in this vertical
-    const { data: verticalRow2 } = await supabase
-      .from("verticals")
-      .select("id")
-      .eq("slug", config.slug)
-      .single();
-    if (verticalRow2) {
-      const { data: fallbackRows } = await supabase
-        .from("battle_reports")
-        .select("youtube_video_id, title, thumbnail_url, channels ( name )")
-        .eq("vertical_id", verticalRow2.id)
-        .neq("youtube_video_id", videoId)
-        .order("published_at", { ascending: false })
-        .limit(1);
-      const row = (fallbackRows ?? [])[0] as unknown as
-        | {
-            youtube_video_id: string;
-            title: string;
-            thumbnail_url: string | null;
-            channels: { name: string | null } | { name: string | null }[] | null;
-          }
-        | undefined;
-      if (row) {
-        const ch = Array.isArray(row.channels) ? row.channels[0] : row.channels;
-        nextVideo = {
-          youtubeVideoId: row.youtube_video_id,
-          title: row.title,
-          thumbnailUrl: row.thumbnail_url,
-          channelName: ch?.name ?? null,
-        };
-      }
-    }
-  }
-
   const brand = getSiteBrand();
   const baseUrl = `https://${brand.domain}`;
   const gameSystemId = battleReport.game_system ?? classifyGameSystem(battleReport.title);
@@ -323,38 +222,6 @@ export default async function VideoDetailPage({
   const ct = classifyVideo(battleReport.title, battleReport.duration_seconds);
   const ctCfg = VIDEO_TYPE_CONFIG[ct];
   const hasArmyLists = sortedLists.length > 0 && sortedLists.some((l) => (l.list_items ?? []).length > 0);
-
-  // Compute build cost per army list in parallel (warhammer only — sim racing
-  // doesn't have a products-per-unit model). Non-blocking: each list's cost
-  // lookup runs independently and the UI degrades gracefully if any fail.
-  const costByListId = new Map<string, ArmyCostResult>();
-  if (hasArmyLists && !isSimRacing) {
-    const { data: verticalForCost } = await supabase
-      .from("verticals")
-      .select("id")
-      .eq("slug", config.slug)
-      .single();
-    const verticalCostId = verticalForCost?.id;
-
-    if (verticalCostId) {
-      const costResults = await Promise.all(
-        sortedLists
-          .filter((l) => (l.list_items ?? []).length > 0)
-          .map(async (list) => {
-            const units = (list.list_items ?? []).map((item) => ({
-              name: item.name,
-              qty: item.quantity,
-              points: item.points,
-            }));
-            const cost = await computeArmyCost(units, verticalCostId);
-            return { listId: list.id, cost };
-          }),
-      );
-      for (const { listId, cost } of costResults) {
-        costByListId.set(listId, cost);
-      }
-    }
-  }
 
   return (
     <>
@@ -382,12 +249,16 @@ export default async function VideoDetailPage({
           {/* Video column                                                   */}
           {/* ============================================================= */}
           <div className="lg:col-span-2 space-y-5">
-            {/* YouTube embed with autoplay-next overlay */}
-            <YouTubePlayer
-              videoId={battleReport.youtube_video_id}
-              title={battleReport.title}
-              nextVideo={nextVideo}
-            />
+            {/* YouTube embed */}
+            <div className="aspect-video rounded-xl overflow-hidden border border-border bg-black">
+              <iframe
+                src={`https://www.youtube.com/embed/${battleReport.youtube_video_id}`}
+                title={battleReport.title}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+                className="w-full h-full"
+              />
+            </div>
 
             {/* Title + meta */}
             <div>
@@ -429,28 +300,14 @@ export default async function VideoDetailPage({
                   </div>
                 )}
                 <div>
-                  {battleReport.channels?.name ? (
-                    <Link
-                      href={`/channels/${channelSlug(battleReport.channels.name)}`}
-                      className="text-sm font-medium hover:text-[var(--vertical-accent-light)] transition-colors"
-                    >
-                      {battleReport.channels.name}
-                    </Link>
-                  ) : (
-                    <p className="text-sm font-medium">Unknown channel</p>
-                  )}
+                  <p className="text-sm font-medium">
+                    {battleReport.channels?.name ?? "Unknown channel"}
+                  </p>
                   <p className="text-xs text-muted-foreground">
                     {formatViews(battleReport.view_count)} · {formatDate(battleReport.published_at)}
                   </p>
                 </div>
               </div>
-
-              <ShareButtons
-                url={`${baseUrl}/watch/${battleReport.youtube_video_id}`}
-                title={battleReport.title}
-                subtext={battleReport.channels?.name ?? undefined}
-                className="mt-4"
-              />
             </div>
 
             {/* Key moments */}
@@ -483,27 +340,6 @@ export default async function VideoDetailPage({
                     <pre className="text-xs text-muted-foreground font-[family-name:var(--font-body)] whitespace-pre-wrap break-words leading-relaxed">
                       {battleReport.description}
                     </pre>
-                  </CardContent>
-                </Card>
-              </details>
-            )}
-
-            {/* AI-written summary — unique indexable SEO text rendered inside
-                a <details> so Google can still index the contents (collapsed
-                content is fully crawled) while humans see a tidy label. */}
-            {transcript && transcript.text.length > 200 && (
-              <details className="group" open>
-                <summary className="flex items-center gap-2 text-sm font-medium text-muted-foreground cursor-pointer hover:text-foreground transition-colors">
-                  <span className="transition-transform group-open:rotate-90">&#9654;</span>
-                  About This {isSimRacing ? "Video" : "Battle Report"}
-                </summary>
-                <Card className="mt-2 border-border bg-card">
-                  <CardContent className="p-4">
-                    <div className="text-sm text-muted-foreground leading-relaxed space-y-3">
-                      {transcript.text.split(/\n\n+/).map((para, i) => (
-                        <p key={i}>{para}</p>
-                      ))}
-                    </div>
                   </CardContent>
                 </Card>
               </details>
@@ -618,27 +454,8 @@ export default async function VideoDetailPage({
                         )
                         .join("\n");
 
-                      const armyCost = costByListId.get(list.id);
-                      const factionName = list.categories?.name ?? null;
-                      const buildListText = serializeListForBuild(
-                        factionName,
-                        (list.list_items ?? []).map((i) => ({
-                          name: i.name,
-                          qty: i.quantity,
-                          points: i.points,
-                        })),
-                      );
-                      const buildUrl = `/build?list=${encodeURIComponent(buildListText)}`;
-
                       return (
                         <div key={list.id} className="space-y-2">
-                          {armyCost && armyCost.matchedUnitCount > 0 && (
-                            <ArmyCostBadge
-                              cost={armyCost}
-                              faction={factionName}
-                              buildUrl={buildUrl}
-                            />
-                          )}
                           <Card className="border-border bg-card overflow-hidden">
                             {/* List header */}
                             <div className="px-4 py-3 border-b border-border bg-secondary">
@@ -750,13 +567,9 @@ export default async function VideoDetailPage({
                             </div>
                           </Card>
 
-                          {/* Buy This Army CTA — uses buildUrl (from
-                              serializeListForBuild) so the prefilled list
-                              has the faction header and drops the "[0 pts]"
-                              suffix for lists where point data wasn't
-                              available in the source (e.g. Pastebin lists). */}
+                          {/* Buy This Army CTA */}
                           <Link
-                            href={buildUrl}
+                            href={`/build?list=${encodeURIComponent(armyListText)}`}
                             className="flex items-center justify-center gap-2 w-full rounded-lg bg-[var(--vertical-accent)] px-4 py-2.5 text-sm font-bold text-white hover:opacity-90 transition-opacity"
                           >
                             <ShoppingCart className="w-4 h-4" />
