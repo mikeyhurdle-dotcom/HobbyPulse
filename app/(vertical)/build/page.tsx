@@ -161,6 +161,26 @@ function BuildPageInner() {
         {/* Results */}
         {result && (
           <div className="space-y-6">
+            {/* Empty-state banner when nothing in our catalogue matches.
+                Prevents the table from rendering as a wall of "Not found"
+                and explains the common cause (game system not tracked yet,
+                e.g. Age of Sigmar, which the deals cron doesn't scrape). */}
+            {result.units.length > 0 &&
+              result.units.every((u) => u.bestPrice === null) && (
+                <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 text-sm">
+                  <p className="font-medium">
+                    No matches in our catalogue yet.
+                  </p>
+                  <p className="text-[var(--muted)] mt-1">
+                    We parsed your list ({result.units.length} units) but
+                    none of these products are in our deals database right
+                    now. This is usually because we don&apos;t track this
+                    game system in our deals pipeline yet (for example Age
+                    of Sigmar is still being added).
+                  </p>
+                </div>
+              )}
+
             {/* Header */}
             <div className="flex items-center justify-between flex-wrap gap-3">
               <div>
