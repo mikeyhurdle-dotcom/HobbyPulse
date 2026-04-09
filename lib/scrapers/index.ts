@@ -42,6 +42,13 @@ export function getScrapersForVertical(vertical: string): Scraper[] {
       new ElementGamesScraper(),
       new WaylandGamesScraper(),
       new TrollTraderScraper(),
+      // Goblin Gaming — Shopify, UK GW discounter. Added 2026-04-09 ahead of
+      // affiliate application so we can demonstrate existing traffic.
+      new ShopifyScraper({
+        name: "Goblin Gaming",
+        baseUrl: "https://www.goblingaming.co.uk",
+        currency: "GBP",
+      }),
     ];
   }
 

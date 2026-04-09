@@ -21,6 +21,7 @@ const AFFILIATE_CONFIGS: AffiliateConfig[] = [
   { domain: "ebay.com", envKey: "EBAY_CAMPAIGN_ID", param: "campid" },
   { domain: "elementgames.co.uk", envKey: "ELEMENT_GAMES_AFFILIATE_REF", param: "ref" },
   { domain: "waylandgames.co.uk", envKey: "WAYLAND_GAMES_AFFILIATE_REF", param: "ref" },
+  { domain: "goblingaming.co.uk", envKey: "GOBLIN_GAMING_AFFILIATE_REF", param: "ref" },
   { domain: "amazon.co.uk", envKey: "AMAZON_ASSOCIATES_TAG", param: "tag" },
   { domain: "amazon.com", envKey: "AMAZON_ASSOCIATES_TAG", param: "tag" },
 ];

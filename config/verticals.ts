@@ -18,6 +18,7 @@ export interface VerticalBrand {
   siteName: string;
   tagline: string;
   domain: string;
+  logo?: string; // path to SVG in /public, e.g. "/tabletopwatch-logo.svg"
 }
 
 export interface VerticalConfig {
@@ -46,6 +47,7 @@ export const verticals: Record<string, VerticalConfig> = {
       siteName: "TabletopWatch",
       tagline: "Battle reports, army lists, and the best miniature deals",
       domain: "tabletopwatch.com",
+      logo: "/tabletopwatch-logo.svg",
     },
     theme: {
       accent: "oklch(0.72 0.14 75)",       // amber/gold
@@ -70,6 +72,7 @@ export const verticals: Record<string, VerticalConfig> = {
       { name: "Element Games", url: "https://elementgames.co.uk", affiliateParam: "ref" },
       { name: "Wayland Games", url: "https://www.waylandgames.co.uk", affiliateParam: "ref" },
       { name: "Troll Trader", url: "https://thetrolltrader.com" },
+      { name: "Goblin Gaming", url: "https://www.goblingaming.co.uk" },
       { name: "eBay", url: "https://www.ebay.co.uk", affiliateParam: "campid" },
     ],
     categories: [
@@ -111,6 +114,7 @@ export const verticals: Record<string, VerticalConfig> = {
       siteName: "SimRaceWatch",
       tagline: "Race replays, setup guides, and the best hardware deals",
       domain: "simracewatch.com",
+      logo: "/simracewatch-logo.svg",
     },
     theme: {
       accent: "oklch(0.577 0.245 27.325)",   // racing red
