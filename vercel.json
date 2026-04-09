@@ -9,8 +9,40 @@
       "schedule": "0 7 * * *"
     },
     {
-      "path": "/api/cron/deals",
+      "path": "/api/cron/deals?batch=0",
       "schedule": "0 2 * * *"
+    },
+    {
+      "path": "/api/cron/deals?batch=1",
+      "schedule": "3 2 * * *"
+    },
+    {
+      "path": "/api/cron/deals?batch=2",
+      "schedule": "6 2 * * *"
+    },
+    {
+      "path": "/api/cron/deals?batch=3",
+      "schedule": "9 2 * * *"
+    },
+    {
+      "path": "/api/cron/deals?batch=4",
+      "schedule": "12 2 * * *"
+    },
+    {
+      "path": "/api/cron/deals?batch=5",
+      "schedule": "15 2 * * *"
+    },
+    {
+      "path": "/api/cron/deals?batch=6",
+      "schedule": "18 2 * * *"
+    },
+    {
+      "path": "/api/cron/deals?batch=7",
+      "schedule": "21 2 * * *"
+    },
+    {
+      "path": "/api/cron/deals?batch=8",
+      "schedule": "24 2 * * *"
     },
     {
       "path": "/api/cron/live",

@@ -28,10 +28,11 @@ export const dynamic = "force-dynamic";
 
 const SEARCH_TERMS: Record<string, string[]> = {
   warhammer: [
+    // ---- 40K ----
     // Starter boxes
     "Combat Patrol",
     "Starter Set",
-    // Popular factions
+    // 40K factions
     "Space Marines",
     "Tyranids",
     "Necrons",
@@ -46,14 +47,38 @@ const SEARCH_TERMS: Record<string, string[]> = {
     "World Eaters",
     "Custodes",
     "Grey Knights",
-    // Popular units
+    // 40K units
     "Intercessors",
     "Terminators",
     "Redemptor Dreadnought",
     "Wraithknight",
     "Hive Tyrant",
     "Carnifex",
-    // Paints & tools
+    // ---- Age of Sigmar ----
+    "Stormcast Eternals",
+    "Gloomspite Gitz",
+    "Skaven",
+    "Ossiarch Bonereapers",
+    "Seraphon",
+    "Soulblight Gravelords",
+    "Lumineth Realm-lords",
+    "Orruk Warclans",
+    "Cities of Sigmar",
+    "Slaves to Darkness",
+    "Kharadron Overlords",
+    "Sylvaneth",
+    // ---- Kill Team ----
+    "Kill Team",
+    "Kill Team Starter Set",
+    "Kasrkin",
+    "Hunter Clade",
+    // ---- Warhammer: The Old World ----
+    "Warhammer The Old World",
+    "Kingdom of Bretonnia",
+    "Tomb Kings of Khemri",
+    "Empire of Man",
+    "Beastmen Brayherd",
+    // ---- Paints & tools ----
     "Citadel Paint",
     "Contrast Paint",
   ],
@@ -160,11 +185,23 @@ export async function GET(request: Request) {
     batchInfo = `all (${allTerms.length} terms)`;
   } else {
     const batchIdx = parseInt(batchParam, 10);
-    if (isNaN(batchIdx) || batchIdx < 0 || batchIdx >= totalBatches) {
+    if (isNaN(batchIdx) || batchIdx < 0) {
       return NextResponse.json(
         { error: `Invalid batch index. Use 0-${totalBatches - 1} or "all".` },
         { status: 400 },
       );
+    }
+    // Out-of-range is a no-op (200), not an error. The vercel.json cron
+    // schedules the max batches across both verticals, so smaller verticals
+    // will hit batches that don't exist — that's fine.
+    if (batchIdx >= totalBatches) {
+      return NextResponse.json({
+        ok: true,
+        skipped: true,
+        reason: `Batch ${batchIdx} out of range for ${verticalSlug} (${totalBatches} batches)`,
+        vertical: verticalSlug,
+        totalBatches,
+      });
     }
     const start = batchIdx * BATCH_SIZE;
     searchTerms = allTerms.slice(start, start + BATCH_SIZE);
