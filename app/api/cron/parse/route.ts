@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { parseArmyList, parseWithTranscript } from "@/lib/parser";
 import { parseSimRacingContent, parseSimRacingWithTranscript } from "@/lib/setup-parser";
+import { enrichDescriptionWithExternalLists } from "@/lib/external-lists";
 import { getSiteVertical } from "@/lib/site";
 
 export const runtime = "nodejs";
@@ -132,9 +133,21 @@ export async function GET(request: NextRequest) {
         }
       } else {
         // ---- Warhammer / tabletop: army list parsing ----
+        // Follow any Pastebin (etc.) links in the description and inline the
+        // fetched list text before parsing. Channels like Tabletop Titans
+        // publish lists externally rather than inline in the description.
+        const { enriched: enrichedDescription, fetchedCount } =
+          await enrichDescriptionWithExternalLists(report.description ?? "");
+
+        if (fetchedCount > 0) {
+          console.log(
+            `report ${report.id}: enriched with ${fetchedCount} external list(s)`,
+          );
+        }
+
         const lists = transcript
-          ? await parseWithTranscript(report.description ?? "", transcript, siteVertical.slug)
-          : await parseArmyList(report.description ?? "", siteVertical.slug);
+          ? await parseWithTranscript(enrichedDescription, transcript, siteVertical.slug)
+          : await parseArmyList(enrichedDescription, siteVertical.slug);
 
         const maxConfidence =
           lists.length > 0
