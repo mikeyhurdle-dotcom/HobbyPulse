@@ -9,6 +9,7 @@
 import { Suspense, useState, useEffect, type FormEvent } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { track } from "@vercel/analytics";
 import { Nav } from "@/components/nav";
 
 interface MatchedUnit {
@@ -103,8 +104,17 @@ function BuildPageInner() {
       const body = await res.json();
       if (!res.ok) throw new Error(body.error ?? "Something went wrong");
 
-      setResult(body as BuildResult);
+      const buildResult = body as BuildResult;
+      setResult(buildResult);
       setStatus("idle");
+
+      track("build_calculated", {
+        faction: buildResult.faction ?? "unknown",
+        unit_count: buildResult.units.length,
+        total_pence: buildResult.totalCost,
+        savings_percent: buildResult.savingsPercent,
+        matched_unit_count: buildResult.units.filter((u) => u.bestPrice !== null).length,
+      });
     } catch (err) {
       setStatus("error");
       setErrorMsg(err instanceof Error ? err.message : "Something went wrong");
@@ -161,6 +171,25 @@ function BuildPageInner() {
         {/* Results */}
         {result && (
           <div className="space-y-6">
+            {/* Empty-state banner when nothing in our catalogue matches.
+                Prevents the table from rendering as a wall of "Not found". */}
+            {result.units.length > 0 &&
+              result.units.every((u) => u.bestPrice === null) && (
+                <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 text-sm">
+                  <p className="font-medium">
+                    No matches in our catalogue yet.
+                  </p>
+                  <p className="text-[var(--muted)] mt-1">
+                    We parsed your list ({result.units.length} units) but
+                    none of these products are in our deals database right
+                    now. This is usually because we don{"\u2019"}t track this
+                    game system yet (e.g. Age of Sigmar is still being
+                    added). The list is still copied below so you can
+                    search manually.
+                  </p>
+                </div>
+              )}
+
             {/* Header */}
             <div className="flex items-center justify-between flex-wrap gap-3">
               <div>
@@ -169,7 +198,7 @@ function BuildPageInner() {
                   {result.detachment ? ` — ${result.detachment}` : ""}
                 </h2>
                 <p className="text-sm text-[var(--muted)]">
-                  {result.totalPoints} pts - {result.units.length} units
+                  {result.totalPoints} pts · {result.units.length} units
                 </p>
               </div>
               <button
