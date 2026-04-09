@@ -22,6 +22,7 @@ const AFFILIATE_CONFIGS: AffiliateConfig[] = [
   { domain: "elementgames.co.uk", envKey: "ELEMENT_GAMES_AFFILIATE_REF", param: "ref" },
   { domain: "waylandgames.co.uk", envKey: "WAYLAND_GAMES_AFFILIATE_REF", param: "ref" },
   { domain: "goblingaming.co.uk", envKey: "GOBLIN_GAMING_AFFILIATE_REF", param: "ref" },
+  { domain: "magicmadhouse.co.uk", envKey: "MAGIC_MADHOUSE_AFFILIATE_REF", param: "ref" },
   { domain: "amazon.co.uk", envKey: "AMAZON_ASSOCIATES_TAG", param: "tag" },
   { domain: "amazon.com", envKey: "AMAZON_ASSOCIATES_TAG", param: "tag" },
 ];

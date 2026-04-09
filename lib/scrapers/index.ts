@@ -29,8 +29,9 @@ import { ElementGamesScraper } from "./element-games";
 import { WaylandGamesScraper } from "./wayland-games";
 import { TrollTraderScraper } from "./troll-trader";
 import { ShopifyScraper } from "./shopify";
+import { MagicMadhouseScraper } from "./magic-madhouse";
 
-export { ElementGamesScraper, WaylandGamesScraper, TrollTraderScraper, ShopifyScraper };
+export { ElementGamesScraper, WaylandGamesScraper, TrollTraderScraper, ShopifyScraper, MagicMadhouseScraper };
 
 /**
  * Get all scrapers for a given vertical.
@@ -49,6 +50,12 @@ export function getScrapersForVertical(vertical: string): Scraper[] {
         baseUrl: "https://www.goblingaming.co.uk",
         currency: "GBP",
       }),
+      // Magic Madhouse — BigCommerce, scrapes /brands/games-workshop/.
+      // Added 2026-04-09 to expand retailer coverage before applying to
+      // their affiliate programme. Search is client-rendered so we can't
+      // use keyword-based search; instead we cache the full GW brand
+      // catalogue per invocation and filter in-memory.
+      new MagicMadhouseScraper(),
     ];
   }
 

@@ -73,6 +73,7 @@ export const verticals: Record<string, VerticalConfig> = {
       { name: "Wayland Games", url: "https://www.waylandgames.co.uk", affiliateParam: "ref" },
       { name: "Troll Trader", url: "https://thetrolltrader.com" },
       { name: "Goblin Gaming", url: "https://www.goblingaming.co.uk" },
+      { name: "Magic Madhouse", url: "https://www.magicmadhouse.co.uk" },
       { name: "eBay", url: "https://www.ebay.co.uk", affiliateParam: "campid" },
     ],
     categories: [
