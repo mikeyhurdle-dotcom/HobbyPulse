@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { getSiteBrand, getSiteVertical } from "@/lib/site";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { MobileNav } from "@/components/mobile-nav";
@@ -17,6 +18,7 @@ const allTabs: NavTab[] = [
   { name: "Setups", href: "/setups", key: "setups", icon: "⚙", verticalOnly: "simracing" },
   { name: "Deals", href: "/deals", key: "deals", icon: "£" },
   { name: "Build", href: "/build", key: "build", icon: "🔧", verticalOnly: "warhammer" },
+  { name: "Blog", href: "/blog", key: "blog", icon: "✎" },
   { name: "Live", href: "/live", key: "live", icon: "●" },
 ];
 
@@ -63,8 +65,17 @@ export async function Nav({ active }: { active: string }) {
           {/* Logo */}
           <Link
             href="/"
-            className="font-[family-name:var(--font-display)] font-bold text-lg tracking-tight hover:text-[var(--vertical-accent-light)] transition-colors"
+            className="flex items-center gap-2 font-[family-name:var(--font-display)] font-bold text-lg tracking-tight hover:text-[var(--vertical-accent-light)] transition-colors"
           >
+            {brand.logo && (
+              <Image
+                src={brand.logo}
+                alt={`${brand.siteName} logo`}
+                width={28}
+                height={28}
+                className="rounded-sm"
+              />
+            )}
             {brand.siteName}
           </Link>
 
