@@ -237,26 +237,29 @@ export async function GET(request: Request) {
     details: `${withListings.length}/${(productsWithListings ?? []).length} sampled products have listings`,
   });
 
-  // 2.3 No stale products with 0 listings
-  const { count: staleCount } = await supabase
-    .from("products")
-    .select("id", { count: "exact", head: true })
-    .eq("vertical_id", verticalId)
-    .not("id", "in", `(SELECT product_id FROM listings)`);
-
-  // Can't do subquery easily, do it differently
+  // ---- Aggregate listings for this vertical ----
+  // PostgREST has a URL length limit (~2000 chars) that breaks `.in(product_id, [700 ids])`
+  // at scale. We fetch all products, then fan out listings in chunks of 100 IDs.
   const { data: allProducts } = await supabase
     .from("products")
     .select("id")
     .eq("vertical_id", verticalId);
 
-  const { data: allListings } = await supabase
-    .from("listings")
-    .select("product_id")
-    .in("product_id", (allProducts ?? []).map((p) => p.id));
+  const productIds = (allProducts ?? []).map((p) => p.id);
+  const CHUNK = 100;
+  const allListings: { product_id: string; source: string; last_scraped_at: string | null }[] = [];
+  for (let i = 0; i < productIds.length; i += CHUNK) {
+    const chunk = productIds.slice(i, i + CHUNK);
+    const { data } = await supabase
+      .from("listings")
+      .select("product_id, source, last_scraped_at")
+      .in("product_id", chunk);
+    if (data) allListings.push(...(data as typeof allListings));
+  }
 
-  const productIdsWithListings = new Set((allListings ?? []).map((l) => l.product_id));
-  const staleProducts = (allProducts ?? []).filter((p) => !productIdsWithListings.has(p.id));
+  // 2.3 No stale products with 0 listings
+  const productIdsWithListings = new Set(allListings.map((l) => l.product_id));
+  const staleProducts = productIds.filter((id) => !productIdsWithListings.has(id));
 
   results.push({
     name: "2.3 No stale products with 0 listings",
@@ -265,12 +268,7 @@ export async function GET(request: Request) {
   });
 
   // 2.4 Multiple retailers represented
-  const { data: sourceCounts } = await supabase
-    .from("listings")
-    .select("source")
-    .in("product_id", (allProducts ?? []).map((p) => p.id));
-
-  const uniqueSources = new Set((sourceCounts ?? []).map((l) => l.source));
+  const uniqueSources = new Set(allListings.map((l) => l.source).filter(Boolean));
   results.push({
     name: "2.4 Multiple retailers in listings",
     status: uniqueSources.size >= 2 ? "PASS" : uniqueSources.size === 1 ? "WARN" : "FAIL",
@@ -278,22 +276,20 @@ export async function GET(request: Request) {
   });
 
   // 2.5 Listings have recent scrape dates
-  const { data: recentListings } = await supabase
-    .from("listings")
-    .select("last_scraped_at")
-    .in("product_id", (allProducts ?? []).map((p) => p.id))
-    .order("last_scraped_at", { ascending: false })
-    .limit(1);
+  const mostRecentScrape = allListings.reduce<string | null>((latest, l) => {
+    if (!l.last_scraped_at) return latest;
+    if (!latest || l.last_scraped_at > latest) return l.last_scraped_at;
+    return latest;
+  }, null);
 
-  const lastScraped = recentListings?.[0]?.last_scraped_at;
-  const scrapeAge = lastScraped
-    ? Math.round((Date.now() - new Date(lastScraped).getTime()) / (1000 * 60 * 60))
+  const scrapeAge = mostRecentScrape
+    ? Math.round((Date.now() - new Date(mostRecentScrape).getTime()) / (1000 * 60 * 60))
     : null;
 
   results.push({
     name: "2.5 Listings recently scraped",
     status: scrapeAge !== null && scrapeAge < 24 ? "PASS" : scrapeAge !== null && scrapeAge < 72 ? "WARN" : "FAIL",
-    details: lastScraped ? `Last scraped ${scrapeAge}h ago` : "No scrape timestamp found",
+    details: mostRecentScrape ? `Last scraped ${scrapeAge}h ago` : "No scrape timestamp found",
   });
 
   // =========================================================================
