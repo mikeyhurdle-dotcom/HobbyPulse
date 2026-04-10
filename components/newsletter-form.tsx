@@ -6,6 +6,7 @@
 
 import { useState, type FormEvent } from "react";
 import { Mail, CheckCircle2 } from "lucide-react";
+import { track } from "@vercel/analytics";
 
 interface NewsletterFormProps {
   vertical: string;
@@ -32,6 +33,7 @@ export function NewsletterForm({ vertical }: NewsletterFormProps) {
 
       if (res.status === 409) {
         setStatus("already-subscribed");
+        track("newsletter_signup", { vertical, result: "already_subscribed" });
         return;
       }
 
@@ -41,9 +43,11 @@ export function NewsletterForm({ vertical }: NewsletterFormProps) {
       }
 
       setStatus("success");
+      track("newsletter_signup", { vertical, result: "success" });
     } catch (err) {
       setStatus("error");
       setErrorMsg(err instanceof Error ? err.message : "Something went wrong");
+      track("newsletter_signup", { vertical, result: "error" });
     }
   }
 

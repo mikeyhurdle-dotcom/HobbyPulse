@@ -25,14 +25,25 @@ export function generateMetadata(): Metadata {
   const description = isSimRacing
     ? "Race replays, onboards, and setup guides from the sim racing community."
     : "Cross-channel battle reports with structured army lists. Filter by faction, search by creator.";
+  const url = `https://${brand.domain}/watch`;
   return {
     title,
     description,
+    alternates: { canonical: url },
     openGraph: {
       title: `${title} | ${brand.siteName}`,
       description,
+      url,
+      siteName: brand.siteName,
+      type: "website",
+      images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: title }],
     },
-    twitter: { card: "summary_large_image" },
+    twitter: {
+      card: "summary_large_image",
+      title: `${title} | ${brand.siteName}`,
+      description,
+      images: ["/opengraph-image"],
+    },
   };
 }
 

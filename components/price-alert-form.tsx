@@ -5,6 +5,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { track } from "@vercel/analytics";
 
 interface PriceAlertFormProps {
   productId: string;
@@ -46,6 +47,11 @@ export function PriceAlertForm({
       }
 
       setStatus("success");
+      track("price_alert_created", {
+        product_id: productId,
+        target_pence: Math.round(targetPrice * 100),
+        current_best_pence: currentBestPrice,
+      });
     } catch (err) {
       setStatus("error");
       setErrorMsg(err instanceof Error ? err.message : "Something went wrong");

@@ -1,0 +1,9 @@
+# ads.txt — Authorized Digital Sellers
+# https://iabtechlab.com/ads-txt/
+#
+# This file authorises ad networks to sell inventory on this domain.
+# Once Google AdSense approval is complete, add your publisher line below:
+#
+# google.com, pub-XXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0
+#
+# Additional networks should be added as separate lines, one per authorised seller.
