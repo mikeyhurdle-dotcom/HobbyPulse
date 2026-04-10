@@ -24,10 +24,7 @@ export function Footer() {
             <Link href="/trending" className="hover:text-foreground transition-colors">
               Trending
             </Link>
-            <Link href="/releases" className="hover:text-foreground transition-colors">
-              Releases
-            </Link>
-            <Link href="/armies" className="hover:text-foreground transition-colors">
+<Link href="/armies" className="hover:text-foreground transition-colors">
               Armies
             </Link>
             <Link href="/channels" className="hover:text-foreground transition-colors">

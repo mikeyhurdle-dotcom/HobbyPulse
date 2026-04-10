@@ -253,6 +253,7 @@ function basicNormalise(title: string): string {
     )
     .replace(/\s*-\s*$/, "")
     .replace(/^\s*-\s*/, "")
+    .replace(/\s*\(\s*\)\s*/g, "") // strip empty parentheses e.g. "Combat Patrol: Blood Angels ()"
     .replace(/\s+/g, " ")
     .trim();
 }

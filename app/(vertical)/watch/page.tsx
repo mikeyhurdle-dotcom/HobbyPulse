@@ -147,9 +147,12 @@ export default async function WatchPage({
     sort?: string;
     type?: string;
     game?: string;
+    page?: string;
   }>;
 }) {
-  const { q, faction, sort, type, game } = await searchParams;
+  const { q, faction, sort, type, game, page } = await searchParams;
+  const currentPage = Math.max(1, parseInt(page ?? "1", 10) || 1);
+  const PAGE_SIZE = 30;
   const config = getSiteVertical();
 
   const defaultType: VideoType | "all" = config.slug === "simracing" ? "all" : "battle-report";
@@ -230,7 +233,9 @@ export default async function WatchPage({
     return true;
   });
 
-  filtered = filtered.slice(0, 30);
+  const totalFiltered = filtered.length;
+  const totalPages = Math.ceil(totalFiltered / PAGE_SIZE);
+  filtered = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   // Count per type (after shorts filter)
   const typeCounts: Record<VideoType, number> = {
@@ -588,6 +593,46 @@ export default async function WatchPage({
                 </Link>
               );
             })}
+          </div>
+
+        )}
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-center gap-3 mt-8">
+            {currentPage > 1 && (
+              <Link
+                href={`/watch?${new URLSearchParams({
+                  ...(type ? { type } : {}),
+                  ...(game && game !== "all" ? { game } : {}),
+                  ...(faction ? { faction } : {}),
+                  ...(sort ? { sort } : {}),
+                  ...(q ? { q } : {}),
+                  page: String(currentPage - 1),
+                }).toString()}`}
+                className="inline-flex items-center gap-1 rounded-lg border border-border px-4 py-2 text-sm font-medium hover:bg-secondary transition-colors"
+              >
+                Previous
+              </Link>
+            )}
+            <span className="text-sm text-muted-foreground">
+              Page {currentPage} of {totalPages}
+            </span>
+            {currentPage < totalPages && (
+              <Link
+                href={`/watch?${new URLSearchParams({
+                  ...(type ? { type } : {}),
+                  ...(game && game !== "all" ? { game } : {}),
+                  ...(faction ? { faction } : {}),
+                  ...(sort ? { sort } : {}),
+                  ...(q ? { q } : {}),
+                  page: String(currentPage + 1),
+                }).toString()}`}
+                className="inline-flex items-center gap-1 rounded-lg border border-border px-4 py-2 text-sm font-medium hover:bg-secondary transition-colors"
+              >
+                Next
+              </Link>
+            )}
           </div>
         )}
       </main>

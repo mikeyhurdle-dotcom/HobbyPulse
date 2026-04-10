@@ -101,9 +101,12 @@ export default async function DealsPage({
     q?: string;
     condition?: string;
     sort?: string;
+    page?: string;
   }>;
 }) {
-  const { q, condition, sort } = await searchParams;
+  const { q, condition, sort, page } = await searchParams;
+  const currentPage = Math.max(1, parseInt(page ?? "1", 10) || 1);
+  const PAGE_SIZE = 48;
   const config = getSiteVertical();
 
   // Get vertical ID
@@ -128,7 +131,7 @@ export default async function DealsPage({
     query = query.ilike("name", `%${q}%`);
   }
 
-  query = query.limit(60);
+  query = query.limit(500);
 
   const { data: rawProducts } = await query;
   let products = (rawProducts ?? []) as unknown as Product[];
@@ -191,7 +194,7 @@ export default async function DealsPage({
   });
 
   // Sort
-  const sorted = [...enriched].sort((a, b) => {
+  const allSorted = [...enriched].sort((a, b) => {
     switch (sort) {
       case "price-asc":
         return a.bestPrice - b.bestPrice;
@@ -204,6 +207,10 @@ export default async function DealsPage({
         return 0;
     }
   });
+
+  const totalProducts = allSorted.length;
+  const totalPages = Math.ceil(totalProducts / PAGE_SIZE);
+  const sorted = allSorted.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   return (
     <>
@@ -400,6 +407,42 @@ export default async function DealsPage({
                 </div>
               </Link>
             ))}
+          </div>
+
+        )}
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-center gap-3 mt-8">
+            {currentPage > 1 && (
+              <Link
+                href={`/deals?${new URLSearchParams({
+                  ...(q ? { q } : {}),
+                  ...(condition ? { condition } : {}),
+                  ...(sort ? { sort } : {}),
+                  page: String(currentPage - 1),
+                }).toString()}`}
+                className="inline-flex items-center gap-1 rounded-lg border border-border px-4 py-2 text-sm font-medium hover:bg-secondary transition-colors"
+              >
+                Previous
+              </Link>
+            )}
+            <span className="text-sm text-muted-foreground">
+              Page {currentPage} of {totalPages} ({totalProducts} products)
+            </span>
+            {currentPage < totalPages && (
+              <Link
+                href={`/deals?${new URLSearchParams({
+                  ...(q ? { q } : {}),
+                  ...(condition ? { condition } : {}),
+                  ...(sort ? { sort } : {}),
+                  page: String(currentPage + 1),
+                }).toString()}`}
+                className="inline-flex items-center gap-1 rounded-lg border border-border px-4 py-2 text-sm font-medium hover:bg-secondary transition-colors"
+              >
+                Next
+              </Link>
+            )}
           </div>
         )}
       </main>
