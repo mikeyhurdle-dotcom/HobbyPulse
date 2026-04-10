@@ -5,6 +5,8 @@ import { ProductImage } from "@/components/product-image";
 import { PriceAlertForm } from "@/components/price-alert-form";
 import { PriceHistoryChart } from "@/components/price-history-chart";
 import { JsonLd } from "@/components/json-ld";
+import { ShareButtons } from "@/components/share-buttons";
+import { StickyBuyBar } from "@/components/sticky-buy-bar";
 import { supabase } from "@/lib/supabase";
 import { getSiteVertical, getSiteBrand } from "@/lib/site";
 import { getSavings } from "@/lib/gw-rrp";
@@ -324,11 +326,18 @@ export default async function DealDetailPage({
               {new Set(sortedListings.map((l) => l.source)).size} source
               {new Set(sortedListings.map((l) => l.source)).size !== 1 ? "s" : ""}
             </p>
+
+            <ShareButtons
+              url={`${baseUrl}/deals/${product.slug}`}
+              title={`${product.name} — best price ${formatPrice(bestPrice)}`}
+              subtext={savings && savings.percent > 0 ? `save ${savings.percent}%` : undefined}
+              className="pt-1"
+            />
           </div>
         </div>
 
         {/* Price comparison table */}
-        <section className="mb-12">
+        <section className="mb-12" id="price-comparison-table">
           <h2 className="text-xl font-bold tracking-tight mb-4">
             Price Comparison
           </h2>
@@ -495,6 +504,18 @@ export default async function DealDetailPage({
           </section>
         )}
       </main>
+      {sortedListings[0] && (
+        <StickyBuyBar
+          productName={product.name}
+          price={sortedListings[0].price_pence}
+          source={sortedListings[0].source}
+          buyUrl={wrapAffiliateUrl(
+            sortedListings[0].affiliate_url || sortedListings[0].source_url,
+            "sticky-buy",
+          )}
+          targetId="price-comparison-table"
+        />
+      )}
     </>
   );
 }
