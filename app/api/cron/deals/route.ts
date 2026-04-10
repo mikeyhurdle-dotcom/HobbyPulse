@@ -12,6 +12,7 @@ import { getScrapersForVertical, type ScrapedProduct } from "@/lib/scrapers";
 import { searchEbay, type EbayProduct } from "@/lib/ebay";
 import { normaliseProduct } from "@/lib/normalise";
 import { getSiteVertical } from "@/lib/site";
+import { getGwRrp } from "@/lib/gw-rrp";
 
 // Use service role key for writes (bypasses RLS)
 const supabase = createClient(
@@ -300,6 +301,7 @@ async function upsertProduct(
     source,
   );
   const slug = slugify(canonicalName);
+  const rrpPence = getGwRrp(canonicalName);
 
   // Upsert product
   const { data: product, error: productError } = await supabase
@@ -311,6 +313,7 @@ async function upsertProduct(
         slug,
         image_url: scraped.image_url,
         keywords: [scraped.name.toLowerCase()],
+        ...(rrpPence !== null && { rrp_pence: rrpPence }),
       },
       { onConflict: "vertical_id,slug" },
     )
@@ -400,6 +403,7 @@ async function upsertEbayProduct(
     "eBay",
   );
   const slug = slugify(canonicalName);
+  const rrpPence = getGwRrp(canonicalName);
 
   const { data: product, error: productError } = await supabase
     .from("products")
@@ -410,6 +414,7 @@ async function upsertEbayProduct(
         slug,
         image_url: item.imageUrl,
         keywords: [item.title.toLowerCase()],
+        ...(rrpPence !== null && { rrp_pence: rrpPence }),
       },
       { onConflict: "vertical_id,slug" },
     )
