@@ -65,18 +65,22 @@ export async function Nav({ active }: { active: string }) {
           {/* Logo */}
           <Link
             href="/"
-            className="flex items-center gap-2 font-[family-name:var(--font-display)] font-bold text-lg tracking-tight hover:text-[var(--vertical-accent-light)] transition-colors"
+            className="flex items-center hover:opacity-80 transition-opacity"
           >
-            {brand.logo && (
+            {brand.logo ? (
               <Image
                 src={brand.logo}
-                alt={`${brand.siteName} logo`}
-                width={28}
-                height={28}
-                className="rounded-sm"
+                alt={brand.siteName}
+                width={160}
+                height={40}
+                className="h-8 w-auto"
+                priority
               />
+            ) : (
+              <span className="font-[family-name:var(--font-display)] font-bold text-lg tracking-tight">
+                {brand.siteName}
+              </span>
             )}
-            {brand.siteName}
           </Link>
 
           {/* Desktop nav */}

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Nav } from "@/components/nav";
 import { JsonLd } from "@/components/json-ld";
 import { getSiteVertical, getSiteBrand } from "@/lib/site";
@@ -137,8 +138,21 @@ export default async function HomePage() {
           />
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 py-16 sm:py-24">
             <div className="max-w-2xl">
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight mb-4">
-                {brand.siteName}
+              <h1 className="mb-4">
+                {brand.logo ? (
+                  <Image
+                    src={brand.logo}
+                    alt={brand.siteName}
+                    width={480}
+                    height={120}
+                    className="h-12 sm:h-16 lg:h-20 w-auto"
+                    priority
+                  />
+                ) : (
+                  <span className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight">
+                    {brand.siteName}
+                  </span>
+                )}
               </h1>
               <p className="text-lg sm:text-xl text-muted-foreground mb-8 leading-relaxed">
                 {brand.tagline}
