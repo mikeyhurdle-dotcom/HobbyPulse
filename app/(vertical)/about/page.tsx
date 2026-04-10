@@ -100,9 +100,47 @@ export default function AboutPage() {
             We use the same tools we build — because we&apos;re hobbyists too.
           </p>
 
+          <h2 className="text-xl font-semibold text-foreground mt-8">
+            Operated by
+          </h2>
+
+          <p>
+            {brand.siteName} is operated by Mikey Hurdle as an independent
+            side project. We are not affiliated with, sponsored by, or endorsed
+            by any retailer, game publisher, or rights holder referenced on
+            this site. All trademarks and content belong to their respective
+            owners.
+          </p>
+
+          <h2 className="text-xl font-semibold text-foreground mt-8">
+            Data sources &amp; transparency
+          </h2>
+
+          <p>
+            All video data is fetched from official YouTube RSS feeds and the
+            YouTube Data API. Live streams are fetched from the Twitch Helix
+            API and the YouTube search API. Deal prices are scraped from
+            publicly accessible retailer pages and the eBay Browse API. We
+            record a snapshot of every listing&apos;s price on every scrape so
+            we can show you accurate price history charts.
+          </p>
+
+          <p>
+            We do not accept payment to promote specific products or
+            retailers. The sort order on our deals pages is always either
+            price, savings, or recency — never paid placement.
+          </p>
+
           <div className="mt-8 pt-8 border-t border-border">
             <p className="text-sm">
-              Questions? Suggestions? Reach out at hello@{brand.domain}
+              Questions? Suggestions? Visit our{" "}
+              <a
+                href="/contact"
+                className="text-[var(--vertical-accent-light)] hover:underline"
+              >
+                contact page
+              </a>{" "}
+              or email hello@{brand.domain}.
             </p>
           </div>
         </div>
