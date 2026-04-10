@@ -6,18 +6,33 @@ import { AdBetweenContent } from "@/components/ad-slot";
 import { supabase } from "@/lib/supabase";
 import { getSiteVertical, getSiteBrand } from "@/lib/site";
 import { getSavings } from "@/lib/gw-rrp";
+import { getPriceDropsForListings } from "@/lib/price-drops";
+import { PriceDropBadge } from "@/components/price-drop-badge";
+import { TrendingDown } from "lucide-react";
 
 export function generateMetadata(): Metadata {
   const brand = getSiteBrand();
   const config = getSiteVertical();
+  const title = "Deals & Price Comparison";
+  const url = `https://${brand.domain}/deals`;
   return {
-    title: "Deals & Price Comparison",
+    title,
     description: config.dealsDescription,
+    alternates: { canonical: url },
     openGraph: {
-      title: `Deals & Price Comparison | ${brand.siteName}`,
+      title: `${title} | ${brand.siteName}`,
       description: config.dealsDescription,
+      url,
+      siteName: brand.siteName,
+      type: "website",
+      images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: title }],
     },
-    twitter: { card: "summary_large_image" },
+    twitter: {
+      card: "summary_large_image",
+      title: `${title} | ${brand.siteName}`,
+      description: config.dealsDescription,
+      images: ["/opengraph-image"],
+    },
   };
 }
 
@@ -128,7 +143,26 @@ export default async function DealsPage({
       .filter((p) => p.listings.length > 0);
   }
 
-  // Calculate best price and savings for each product
+  // Fetch recent price drops for all listings currently visible on this page.
+  // One chunked query reused across every card.
+  const allListingIds = products.flatMap((p) => p.listings.map((l) => l.id));
+  const dropsByListing = await getPriceDropsForListings(allListingIds);
+
+  // Top categories for the chip row — only show ones that actually have listings.
+  const { data: catRows } = await supabase
+    .from("categories")
+    .select("slug, name, products!inner(id)")
+    .eq("vertical_id", verticalId ?? "")
+    .limit(200);
+
+  type CatRow = { slug: string; name: string; products: { id: string }[] };
+  const topCategories = ((catRows ?? []) as unknown as CatRow[])
+    .map((c) => ({ slug: c.slug, name: c.name, count: c.products?.length ?? 0 }))
+    .filter((c) => c.count > 0)
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 12);
+
+  // Calculate best price, savings, and best drop for each product
   const enriched = products.map((product) => {
     const bestListing = product.listings.reduce<Listing | null>((best, l) => {
       if (!best || l.price_pence < best.price_pence) return l;
@@ -139,12 +173,20 @@ export default async function DealsPage({
     const savings = getSavings(bestPrice, product.name);
     const rrp = product.rrp_pence ?? savings?.rrp ?? null;
 
+    // Biggest drop across any of this product's listings in the last 7 days
+    let bestDropPercent = 0;
+    for (const l of product.listings) {
+      const d = dropsByListing.get(l.id);
+      if (d && d.dropPercent > bestDropPercent) bestDropPercent = d.dropPercent;
+    }
+
     return {
       ...product,
       bestPrice,
       rrp,
       savingsPercent: savings?.percent ?? null,
       sourceCount: new Set(product.listings.map((l) => l.source)).size,
+      bestDropPercent,
     };
   });
 
@@ -167,10 +209,39 @@ export default async function DealsPage({
     <>
       <Nav active="deals" />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-        <h1 className="text-3xl font-bold tracking-tight mb-2">Deals</h1>
-        <p className="text-[var(--muted)] mb-6">
-          {config.dealsDescription}
-        </p>
+        <div className="flex items-start justify-between gap-4 mb-6">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight mb-2">Deals</h1>
+            <p className="text-[var(--muted)]">
+              {config.dealsDescription}
+            </p>
+          </div>
+          <Link
+            href="/trending"
+            className="hidden sm:inline-flex items-center gap-1.5 text-sm font-medium text-[var(--danger)] hover:underline whitespace-nowrap mt-1"
+          >
+            <TrendingDown className="w-4 h-4" />
+            Top drops this week
+          </Link>
+        </div>
+
+        {/* Category chip row — each chip is an SEO-indexable landing page */}
+        {topCategories.length > 0 && (
+          <nav className="mb-6" aria-label="Browse by category">
+            <div className="flex flex-wrap gap-2">
+              {topCategories.map((c) => (
+                <Link
+                  key={c.slug}
+                  href={`/deals/c/${c.slug}`}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium hover:border-[var(--vertical-accent)]/50 hover:text-[var(--vertical-accent-light)] transition-all"
+                >
+                  {c.name}
+                  <span className="text-muted-foreground">{c.count}</span>
+                </Link>
+              ))}
+            </div>
+          </nav>
+        )}
 
         {/* Filter bar */}
         <form className="flex flex-wrap gap-3 mb-8">
@@ -253,7 +324,14 @@ export default async function DealsPage({
                     </div>
                   )}
 
-                  {/* Savings badge */}
+                  {/* Price-drop badge — priority, surfaces real recent drops */}
+                  {product.bestDropPercent > 0 && (
+                    <span className="absolute top-2 left-2">
+                      <PriceDropBadge dropPercent={product.bestDropPercent} />
+                    </span>
+                  )}
+
+                  {/* RRP savings badge */}
                   {product.savingsPercent !== null &&
                     product.savingsPercent > 0 && (
                       <span className="absolute top-2 right-2 bg-[var(--success)] text-white text-xs font-bold px-2 py-0.5 rounded-full">

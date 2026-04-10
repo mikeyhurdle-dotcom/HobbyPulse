@@ -10,6 +10,11 @@ import { Play, TrendingUp, Radio, ArrowRight, Zap } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { NewsletterForm } from "@/components/newsletter-form";
+import { ProductImage } from "@/components/product-image";
+import { PriceDropBadge } from "@/components/price-drop-badge";
+import { getTopPriceDropsForVertical, type ProductDrop } from "@/lib/price-drops";
+import { wrapAffiliateUrl } from "@/lib/affiliate";
+import { TrendingDown } from "lucide-react";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -43,7 +48,7 @@ async function getHomeData() {
 
   const verticalId = verticalRow?.id;
 
-  const [videosRes, liveRes] = await Promise.all([
+  const [videosRes, liveRes, topDrops] = await Promise.all([
     supabase
       .from("battle_reports")
       .select("id, youtube_video_id, title, thumbnail_url, published_at, view_count, duration_seconds, game_system, channels(name, thumbnail_url)")
@@ -55,6 +60,7 @@ async function getHomeData() {
       .select("id", { count: "exact", head: true })
       .eq("vertical_id", verticalId ?? "")
       .eq("is_live", true),
+    verticalId ? getTopPriceDropsForVertical(verticalId, 6) : Promise.resolve([] as ProductDrop[]),
   ]);
 
   const allVideos = (videosRes.data ?? []).filter(
@@ -70,7 +76,15 @@ async function getHomeData() {
     liveNow: liveRes.count ?? 0,
     featured,
     channels: config.channels.length,
+    topDrops,
   };
+}
+
+// Revalidate the homepage hourly so drops stay fresh without per-request DB load
+export const revalidate = 3600;
+
+function formatPrice(pence: number): string {
+  return `\u00A3${(pence / 100).toFixed(2)}`;
 }
 
 // ---------------------------------------------------------------------------
@@ -177,6 +191,90 @@ export default async function HomePage() {
             </div>
           </div>
         </section>
+
+        {/* ============================================================= */}
+        {/* Top Drops Right Now                                            */}
+        {/* ============================================================= */}
+        {data.topDrops.length > 0 && (
+          <section className="max-w-7xl mx-auto px-4 sm:px-6 py-12 border-b border-border">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <div className="inline-flex items-center gap-1.5 rounded-full border border-[var(--danger)]/40 bg-[var(--danger)]/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[var(--danger)] mb-2">
+                  <TrendingDown className="w-3 h-3" />
+                  Price drops
+                </div>
+                <h2 className="text-xl sm:text-2xl font-bold tracking-tight">
+                  Dropping Right Now
+                </h2>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Biggest price drops tracked in the last 7 days.
+                </p>
+              </div>
+              <Link
+                href="/trending"
+                className="inline-flex items-center gap-1 text-sm font-medium text-[var(--danger)] hover:underline whitespace-nowrap"
+              >
+                View all <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+              {data.topDrops.map((d: ProductDrop) => {
+                const buyUrl = wrapAffiliateUrl(d.affiliateUrl || d.sourceUrl, "home-drops");
+                return (
+                  <div
+                    key={d.productId}
+                    className="group rounded-xl border border-border bg-card overflow-hidden hover:border-[var(--danger)]/40 transition-all"
+                  >
+                    <Link href={`/deals/${d.productSlug}`} className="block">
+                      <div className="relative aspect-square bg-[var(--surface-hover)]">
+                        {d.productImageUrl ? (
+                          <ProductImage
+                            src={d.productImageUrl}
+                            alt={d.productName}
+                            fill
+                            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 16vw"
+                            className="object-contain p-2"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-[var(--muted)] text-[10px]">
+                            No image
+                          </div>
+                        )}
+                        <span className="absolute top-1.5 left-1.5">
+                          <PriceDropBadge dropPercent={d.dropPercent} />
+                        </span>
+                      </div>
+                    </Link>
+                    <div className="p-2.5 space-y-1.5">
+                      <Link href={`/deals/${d.productSlug}`}>
+                        <h3 className="text-[11px] font-medium leading-snug line-clamp-2 group-hover:text-[var(--vertical-accent-light)] transition-colors min-h-[28px]">
+                          {d.productName}
+                        </h3>
+                      </Link>
+                      <div className="flex items-baseline gap-1.5">
+                        <span className="text-sm font-bold text-[var(--success)]">
+                          {formatPrice(d.newPrice)}
+                        </span>
+                        <span className="text-[10px] text-[var(--muted)] line-through">
+                          {formatPrice(d.oldPrice)}
+                        </span>
+                      </div>
+                      <a
+                        href={buyUrl}
+                        target="_blank"
+                        rel="noopener noreferrer sponsored"
+                        className="block text-center rounded-md bg-[var(--vertical-accent)] text-white text-[10px] font-semibold py-1.5 hover:opacity-90 transition-opacity"
+                      >
+                        Buy at {d.source}
+                      </a>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        )}
 
         {/* ============================================================= */}
         {/* Featured Content                                               */}
