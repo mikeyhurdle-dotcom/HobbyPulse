@@ -10,12 +10,26 @@ import type { Scraper, ScrapedProduct } from "./index";
 
 const BASE_URL = "https://www.elementgames.co.uk";
 const AFFILIATE_REF = process.env.ELEMENT_GAMES_AFFILIATE_REF ?? "";
+const MAX_PAGES = 3;
 
 export class ElementGamesScraper implements Scraper {
   readonly name = "Element Games";
 
   async scrape(keyword: string): Promise<ScrapedProduct[]> {
-    const searchUrl = `${BASE_URL}/search?q=${encodeURIComponent(keyword)}`;
+    const allProducts: ScrapedProduct[] = [];
+
+    for (let page = 1; page <= MAX_PAGES; page++) {
+      const pageProducts = await this.scrapePage(keyword, page);
+      allProducts.push(...pageProducts);
+      // Stop if this page returned fewer results than expected (last page)
+      if (pageProducts.length < 20) break;
+    }
+
+    return deduplicateByUrl(allProducts);
+  }
+
+  private async scrapePage(keyword: string, page: number): Promise<ScrapedProduct[]> {
+    const searchUrl = `${BASE_URL}/search?q=${encodeURIComponent(keyword)}&page=${page}`;
 
     const res = await fetch(searchUrl, {
       headers: {
@@ -133,7 +147,7 @@ export class ElementGamesScraper implements Scraper {
       }
     });
 
-    return deduplicateByUrl(products);
+    return products;
   }
 }
 

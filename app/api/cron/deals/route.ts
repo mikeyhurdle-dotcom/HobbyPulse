@@ -243,7 +243,7 @@ export async function GET(request: Request) {
       try {
         const ebayResults = await searchEbay({
           keyword: `${term} ${verticalConfig.name}`,
-          limit: 10,
+          limit: 25,
         });
         for (const item of ebayResults) {
           const result = await upsertEbayProduct(

@@ -13,6 +13,8 @@ import type { Scraper, ScrapedProduct } from "./index";
 
 type Condition = ScrapedProduct["condition"];
 
+const DEFAULT_MAX_PAGES = 3;
+
 interface ShopifyScraperConfig {
   /** Display name used as `source` in listings */
   name: string;
@@ -20,6 +22,8 @@ interface ShopifyScraperConfig {
   baseUrl: string;
   /** Currency code (default: GBP) */
   currency?: string;
+  /** Max search pages to fetch per keyword (default: 3) */
+  maxPages?: number;
   /** Function to detect condition from product title (default: always "new") */
   detectCondition?: (title: string) => Condition;
 }
@@ -28,17 +32,32 @@ export class ShopifyScraper implements Scraper {
   readonly name: string;
   private baseUrl: string;
   private currency: string;
+  private maxPages: number;
   private detectCondition: (title: string) => Condition;
 
   constructor(config: ShopifyScraperConfig) {
     this.name = config.name;
     this.baseUrl = config.baseUrl;
     this.currency = config.currency ?? "GBP";
+    this.maxPages = config.maxPages ?? DEFAULT_MAX_PAGES;
     this.detectCondition = config.detectCondition ?? (() => "new");
   }
 
   async scrape(keyword: string): Promise<ScrapedProduct[]> {
-    const searchUrl = `${this.baseUrl}/search?q=${encodeURIComponent(keyword)}`;
+    const allProducts: ScrapedProduct[] = [];
+
+    for (let page = 1; page <= this.maxPages; page++) {
+      const pageProducts = await this.scrapePage(keyword, page);
+      allProducts.push(...pageProducts);
+      // Stop if this page returned fewer results than expected (last page)
+      if (pageProducts.length < 20) break;
+    }
+
+    return deduplicateByUrl(allProducts);
+  }
+
+  private async scrapePage(keyword: string, page: number): Promise<ScrapedProduct[]> {
+    const searchUrl = `${this.baseUrl}/search?q=${encodeURIComponent(keyword)}&page=${page}`;
 
     const res = await fetch(searchUrl, {
       headers: {

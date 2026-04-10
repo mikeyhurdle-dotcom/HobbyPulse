@@ -17,7 +17,7 @@ import type { Scraper, ScrapedProduct } from "./index";
 
 const BASE_URL = "https://www.magicmadhouse.co.uk";
 const BRAND_PATH = "/brands/games-workshop/";
-const PAGES_TO_FETCH = 5; // ~120 products (24/page)
+const PAGES_TO_FETCH = 10; // ~240 products (24/page)
 const FETCH_TIMEOUT_MS = 10_000;
 
 const USER_AGENT =
