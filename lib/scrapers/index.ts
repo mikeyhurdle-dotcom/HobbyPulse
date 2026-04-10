@@ -11,6 +11,8 @@ export interface ScrapedProduct {
   image_url: string | null;
   in_stock: boolean;
   source: string;
+  /** Manufacturer RRP in pence, if the retailer shows it (e.g. Element Games oldprice). */
+  rrp_pence?: number;
 }
 
 export interface Scraper {

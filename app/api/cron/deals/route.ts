@@ -301,7 +301,8 @@ async function upsertProduct(
     source,
   );
   const slug = slugify(canonicalName);
-  const rrpPence = getGwRrp(canonicalName);
+  // Prefer scraped RRP (from retailer's "old price"), fall back to static table
+  const rrpPence = scraped.rrp_pence ?? getGwRrp(canonicalName);
 
   // Upsert product
   const { data: product, error: productError } = await supabase
@@ -313,7 +314,7 @@ async function upsertProduct(
         slug,
         image_url: scraped.image_url,
         keywords: [scraped.name.toLowerCase()],
-        ...(rrpPence !== null && { rrp_pence: rrpPence }),
+        ...(rrpPence !== null && rrpPence !== undefined && { rrp_pence: rrpPence }),
       },
       { onConflict: "vertical_id,slug" },
     )

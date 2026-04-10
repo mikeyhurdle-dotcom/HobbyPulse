@@ -114,6 +114,11 @@ export class ElementGamesScraper implements Scraper {
         if (prices.length === 0) return;
         const bestPrice = Math.min(...prices);
 
+        // RRP: Element Games shows the GW RRP as an "oldprice" element.
+        // Extract it so we can populate rrp_pence on the product record.
+        const oldPriceText = $el.find(".oldprice").first().text().trim();
+        const rrpPence = oldPriceText ? parsePricePence(oldPriceText) : null;
+
         // Image
         const imgSrc =
           $el.find("img").first().attr("src") ??
@@ -141,6 +146,7 @@ export class ElementGamesScraper implements Scraper {
           image_url: normaliseImageUrl(imgSrc),
           in_stock: inStock && !outOfStock,
           source: this.name,
+          ...(rrpPence !== null && rrpPence > bestPrice && { rrp_pence: rrpPence }),
         });
       } catch {
         // Skip malformed entries
