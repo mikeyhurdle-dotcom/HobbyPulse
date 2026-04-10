@@ -60,7 +60,8 @@ async function getHomeData() {
       .from("live_streams")
       .select("id", { count: "exact", head: true })
       .eq("vertical_id", verticalId ?? "")
-      .eq("is_live", true),
+      .eq("is_live", true)
+      .gte("last_seen_at", new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString()),
     verticalId ? getTopPriceDropsForVertical(verticalId, 6) : Promise.resolve([] as ProductDrop[]),
   ]);
 
