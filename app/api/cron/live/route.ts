@@ -1,9 +1,13 @@
 // ---------------------------------------------------------------------------
 // Live Streams Cron — /api/cron/live
 // ---------------------------------------------------------------------------
-// Polls every 5 minutes. For the site vertical: fetches live Twitch streams by
-// game category ID, searches YouTube for live streams by keyword, upserts
-// into the live_streams table, and marks stale streams as no longer live.
+// Supports split polling via ?source= param:
+//   ?source=twitch   — Twitch only (free, call every 5 min via PulseBot)
+//   ?source=youtube  — YouTube only (quota-limited, call every 60 min)
+//   ?source=all      — Both (default, used by Vercel daily cron as fallback)
+//
+// Each source poll marks unseen streams for THAT source as offline, so
+// Twitch and YouTube staleness tracking are independent.
 // ---------------------------------------------------------------------------
 
 import { NextRequest, NextResponse } from "next/server";
@@ -16,9 +20,6 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-// ---------------------------------------------------------------------------
-// Admin Supabase client (service role — bypasses RLS)
-// ---------------------------------------------------------------------------
 function getAdminClient() {
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -27,10 +28,9 @@ function getAdminClient() {
 }
 
 // ---------------------------------------------------------------------------
-// GET /api/cron/live
+// GET /api/cron/live?source=twitch|youtube|all
 // ---------------------------------------------------------------------------
 export async function GET(request: NextRequest) {
-  // Auth guard
   const authHeader = request.headers.get("authorization");
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -40,12 +40,16 @@ export async function GET(request: NextRequest) {
   const now = new Date().toISOString();
   const verticalConfig = getSiteVertical();
 
+  const url = new URL(request.url);
+  const source = url.searchParams.get("source") ?? "all";
+  const pollTwitch = source === "all" || source === "twitch";
+  const pollYoutube = source === "all" || source === "youtube";
+
   const errors: string[] = [];
   let twitchCount = 0;
   let youtubeCount = 0;
   let markedOffline = 0;
 
-  // Get vertical ID from Supabase
   const { data: verticalRow } = await supabase
     .from("verticals")
     .select("id")
@@ -60,12 +64,10 @@ export async function GET(request: NextRequest) {
   }
 
   const verticalId = verticalRow.id;
-
-  // Track all stream IDs we see this poll (to mark stale ones offline)
   const seenStreamKeys = new Set<string>();
 
   // ----- Twitch streams by game ID -----
-  if (verticalConfig.twitchGameIds.length > 0) {
+  if (pollTwitch && verticalConfig.twitchGameIds.length > 0) {
     try {
       const twitchStreams = await searchStreamsByGame(
         verticalConfig.twitchGameIds,
@@ -104,48 +106,60 @@ export async function GET(request: NextRequest) {
   }
 
   // ----- YouTube live search -----
-  for (const term of verticalConfig.liveSearchTerms) {
-    try {
-      const ytStreams = await searchLiveStreams(term, 15);
+  if (pollYoutube) {
+    for (const term of verticalConfig.liveSearchTerms) {
+      try {
+        const ytStreams = await searchLiveStreams(term, 15);
 
-      for (const stream of ytStreams) {
-        seenStreamKeys.add(`youtube:${stream.video_id}`);
+        for (const stream of ytStreams) {
+          seenStreamKeys.add(`youtube:${stream.video_id}`);
 
-        const { error } = await supabase.from("live_streams").upsert(
-          {
-            vertical_id: verticalId,
-            platform: "youtube",
-            stream_id: stream.video_id,
-            streamer_name: stream.channel_name,
-            title: stream.title,
-            thumbnail_url: stream.thumbnail_url,
-            viewer_count: stream.viewer_count,
-            game_category: term,
-            is_live: true,
-            started_at: stream.started_at,
-            last_seen_at: now,
-          },
-          { onConflict: "platform,stream_id" },
-        );
+          const { error } = await supabase.from("live_streams").upsert(
+            {
+              vertical_id: verticalId,
+              platform: "youtube",
+              stream_id: stream.video_id,
+              streamer_name: stream.channel_name,
+              title: stream.title,
+              thumbnail_url: stream.thumbnail_url,
+              viewer_count: stream.viewer_count,
+              game_category: term,
+              is_live: true,
+              started_at: stream.started_at,
+              last_seen_at: now,
+            },
+            { onConflict: "platform,stream_id" },
+          );
 
-        if (error) {
-          errors.push(`YouTube upsert ${stream.video_id}: ${error.message}`);
-        } else {
-          youtubeCount++;
+          if (error) {
+            errors.push(`YouTube upsert ${stream.video_id}: ${error.message}`);
+          } else {
+            youtubeCount++;
+          }
         }
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        errors.push(`YouTube "${term}": ${msg}`);
       }
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      errors.push(`YouTube "${term}": ${msg}`);
     }
   }
 
   // ----- Mark stale streams as offline -----
-  const { data: currentlyLive } = await supabase
+  // Only mark streams offline for the platform(s) we just polled.
+  // This prevents a Twitch-only poll from killing YouTube streams and vice versa.
+  let staleQuery = supabase
     .from("live_streams")
     .select("id, platform, stream_id")
     .eq("vertical_id", verticalId)
     .eq("is_live", true);
+
+  if (source === "twitch") {
+    staleQuery = staleQuery.eq("platform", "twitch");
+  } else if (source === "youtube") {
+    staleQuery = staleQuery.eq("platform", "youtube");
+  }
+
+  const { data: currentlyLive } = await staleQuery;
 
   if (currentlyLive) {
     const staleIds = currentlyLive
@@ -170,6 +184,7 @@ export async function GET(request: NextRequest) {
     success: true,
     timestamp: now,
     vertical: verticalConfig.slug,
+    source,
     twitchStreams: twitchCount,
     youtubeStreams: youtubeCount,
     markedOffline,
