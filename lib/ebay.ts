@@ -189,23 +189,62 @@ export async function searchEbay(options: EbaySearchOptions): Promise<EbayProduc
 
   if (!data.itemSummaries) return [];
 
-  return data.itemSummaries.map((item): EbayProduct => {
-    const priceGbp = parseFloat(item.price.value);
-    const pricePence = Math.round(priceGbp * 100);
+  return data.itemSummaries
+    .filter((item) => !isJunkListing(item.title))
+    .map((item): EbayProduct => {
+      const priceGbp = parseFloat(item.price.value);
+      const pricePence = Math.round(priceGbp * 100);
 
-    return {
-      itemId: item.itemId,
-      title: item.title,
-      pricePence,
-      currency: item.price.currency,
-      condition: normaliseEbayCondition(item.condition),
-      imageUrl: upgradeEbayImageUrl(item.image?.imageUrl ?? null),
-      itemUrl: item.itemWebUrl,
-      affiliateUrl: wrapAffiliateUrl(item.itemWebUrl),
-      sellerUsername: item.seller.username,
-      sellerFeedback: item.seller.feedbackScore,
-    };
-  });
+      return {
+        itemId: item.itemId,
+        title: item.title,
+        pricePence,
+        currency: item.price.currency,
+        condition: normaliseEbayCondition(item.condition),
+        imageUrl: upgradeEbayImageUrl(item.image?.imageUrl ?? null),
+        itemUrl: item.itemWebUrl,
+        affiliateUrl: wrapAffiliateUrl(item.itemWebUrl),
+        sellerUsername: item.seller.username,
+        sellerFeedback: item.seller.feedbackScore,
+      };
+    });
+}
+
+// ---------------------------------------------------------------------------
+// Junk listing filter
+// ---------------------------------------------------------------------------
+// eBay sellers are sneaky — titles like "Starter Set Complete Accessories
+// Bundle - No Models" or listings for individual sprues/bits that look like
+// full kits. Filter these out so we don't mislead users.
+// ---------------------------------------------------------------------------
+
+const JUNK_PATTERNS: RegExp[] = [
+  /\bno models?\b/i,
+  /\bno mini(ature)?s?\b/i,
+  /\bno figures?\b/i,
+  /\baccessories only\b/i,
+  /\bcards only\b/i,
+  /\brulebook only\b/i,
+  /\brules only\b/i,
+  /\bbook only\b/i,
+  /\bbits\b/i,
+  /\bspares?\b/i,
+  /\bsprue (leftover|spare|bit)/i,
+  /\bleftover/i,
+  /\bsingle model\b/i,
+  /\b(1|one)\s*x?\s*model\b/i,
+  /\bempty box\b/i,
+  /\bbox only\b/i,
+  /\btransfer sheet\b/i,
+  /\bdecal sheet\b/i,
+  /\binstruction(s)?\b/i,
+  /\bbase(s)? only\b/i,
+  /\btoken(s)?\b/i,
+  /\bdice only\b/i,
+];
+
+function isJunkListing(title: string): boolean {
+  return JUNK_PATTERNS.some((pattern) => pattern.test(title));
 }
 
 // ---------------------------------------------------------------------------
