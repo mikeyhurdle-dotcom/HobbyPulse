@@ -144,24 +144,31 @@ export function getGwRrp(productName: string): number | null {
     }
   }
 
-  // 2. Try keyword match — best match = most keywords matched
+  // 2. Try keyword match — best match = most keywords matched.
+  // To avoid false positives (e.g. "Death Guard Green" paint matching the
+  // Combat Patrol: Death Guard entry), we require ALL keywords of the winning
+  // entry to appear in the product name. Single-keyword entries must also
+  // appear as a distinct phrase (not a substring of an unrelated word).
   let bestMatch: RrpEntry | null = null;
   let bestScore = 0;
 
   for (const entry of RRP_TABLE) {
     let score = 0;
+    let allMatched = true;
     for (const kw of entry.keywords) {
       if (input.includes(kw)) {
-        score += kw.length; // longer keyword matches are worth more
+        score += kw.length;
+      } else {
+        allMatched = false;
       }
     }
-    if (score > bestScore) {
+    // Only consider entries where every keyword matched
+    if (allMatched && score > bestScore) {
       bestScore = score;
       bestMatch = entry;
     }
   }
 
-  // Require at least one keyword to match
   if (bestMatch && bestScore > 0) {
     return bestMatch.rrpPence;
   }
