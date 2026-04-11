@@ -8,6 +8,7 @@ import { getArticle, listSlugs } from "@/lib/boardgame-articles";
 import { getSiteVertical, getSiteBrand } from "@/lib/site";
 import { Badge } from "@/components/ui/badge";
 import { BuyLinks, type BuyLink } from "@/components/buy-links";
+import { JsonLd } from "@/components/json-ld";
 import { ArrowLeft } from "lucide-react";
 
 interface PageProps {
@@ -65,8 +66,34 @@ export default async function ReviewDetailPage({ params }: PageProps) {
     buyLinks.push({ retailer: "Zatu Games", url: article.zatuUrl });
   }
 
+  // Schema.org structured data for reviews
+  const gameName = article.title.replace(/\s*[-–—].*$/, "");
+  const brand = getSiteBrand();
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Review",
+    name: article.title,
+    description: article.excerpt,
+    datePublished: article.publishedAt,
+    author: { "@type": "Organization", name: brand.siteName },
+    publisher: { "@type": "Organization", name: brand.siteName },
+    itemReviewed: {
+      "@type": "Product",
+      name: gameName,
+      category: "Board Game",
+      ...(article.playerCount && {
+        additionalProperty: [
+          { "@type": "PropertyValue", name: "Player Count", value: article.playerCount },
+          ...(article.playTime ? [{ "@type": "PropertyValue", name: "Play Time", value: article.playTime }] : []),
+          ...(article.complexity ? [{ "@type": "PropertyValue", name: "Complexity", value: article.complexity }] : []),
+        ],
+      }),
+    },
+  };
+
   return (
     <div className="min-h-screen bg-background">
+      <JsonLd data={jsonLd} />
       <Nav active="boardgames" />
 
       <main className="mx-auto max-w-3xl px-4 py-12 md:py-16">

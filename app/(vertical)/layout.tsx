@@ -7,11 +7,15 @@ import { getSiteVertical, getSiteBrand } from "@/lib/site";
 
 export async function generateMetadata(): Promise<Metadata> {
   const brand = getSiteBrand();
+  const config = getSiteVertical();
+  const isTabletop = config.slug === "warhammer";
 
   return {
     title: {
       default: brand.siteName,
-      template: `%s | ${brand.siteName}`,
+      template: isTabletop
+        ? `%s | ${brand.siteName} — Board Games & Miniatures`
+        : `%s | ${brand.siteName}`,
     },
     description: brand.tagline,
   };
