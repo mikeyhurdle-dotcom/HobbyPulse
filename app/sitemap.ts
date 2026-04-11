@@ -2,28 +2,63 @@ import type { MetadataRoute } from "next";
 import { getSiteBrand, getSiteVertical } from "@/lib/site";
 import { supabase } from "@/lib/supabase";
 import { channelSlug } from "@/lib/channels";
+import {
+  listArticles,
+  articleTypeRoutes,
+  type ArticleType,
+} from "@/lib/boardgame-articles";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const brand = getSiteBrand();
   const config = getSiteVertical();
   const baseUrl = `https://${brand.domain}`;
 
+  const isTabletop = config.slug === "warhammer";
+  // For TabletopWatch, miniatures content lives under /miniatures/*
+  const mp = isTabletop ? "/miniatures" : "";
+
   // Static routes
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: baseUrl, lastModified: new Date(), changeFrequency: "weekly", priority: 1.0 },
-    { url: `${baseUrl}/watch`, lastModified: new Date(), changeFrequency: "daily", priority: 0.9 },
+    { url: `${baseUrl}${mp}/watch`, lastModified: new Date(), changeFrequency: "daily", priority: 0.9 },
     { url: `${baseUrl}/deals`, lastModified: new Date(), changeFrequency: "daily", priority: 0.9 },
-    { url: `${baseUrl}/trending`, lastModified: new Date(), changeFrequency: "hourly", priority: 0.85 },
-    { url: `${baseUrl}/channels`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
-    { url: `${baseUrl}/armies`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.85 },
+    { url: `${baseUrl}${mp}/trending`, lastModified: new Date(), changeFrequency: "hourly", priority: 0.85 },
+    { url: `${baseUrl}${mp}/channels`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
+    { url: `${baseUrl}${mp}/armies`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.85 },
     { url: `${baseUrl}/releases`, lastModified: new Date(), changeFrequency: "daily", priority: 0.8 },
     { url: `${baseUrl}/live`, lastModified: new Date(), changeFrequency: "always", priority: 0.8 },
-    { url: `${baseUrl}/build`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
+    { url: `${baseUrl}${mp}/build`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
     { url: `${baseUrl}/about`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.5 },
     { url: `${baseUrl}/faq`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.5 },
     { url: `${baseUrl}/contact`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.5 },
     { url: `${baseUrl}/privacy`, lastModified: new Date(), changeFrequency: "yearly", priority: 0.3 },
   ];
+
+  // Board game routes (TabletopWatch only)
+  const boardGameRoutes: MetadataRoute.Sitemap = [];
+  if (isTabletop) {
+    // Section landing pages
+    boardGameRoutes.push(
+      { url: `${baseUrl}/boardgames`, lastModified: new Date(), changeFrequency: "daily", priority: 0.95 },
+      { url: `${baseUrl}/boardgames/reviews`, lastModified: new Date(), changeFrequency: "daily", priority: 0.85 },
+      { url: `${baseUrl}/boardgames/best`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.85 },
+      { url: `${baseUrl}/boardgames/versus`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.85 },
+      { url: `${baseUrl}/boardgames/how-to-play`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.85 },
+    );
+
+    // Individual article pages from filesystem
+    const types: ArticleType[] = ["reviews", "best", "versus", "how-to-play"];
+    for (const type of types) {
+      for (const article of listArticles(type)) {
+        boardGameRoutes.push({
+          url: `${baseUrl}/boardgames/${articleTypeRoutes[type]}/${article.slug}`,
+          lastModified: new Date(article.publishedAt),
+          changeFrequency: "monthly",
+          priority: 0.8,
+        });
+      }
+    }
+  }
 
   // Dynamic channel pages
   const { data: verticalRow } = await supabase
@@ -41,7 +76,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const channelRoutes: MetadataRoute.Sitemap = ((channels ?? []) as { name: string }[]).map(
     (c) => ({
-      url: `${baseUrl}/channels/${channelSlug(c.name)}`,
+      url: `${baseUrl}${mp}/channels/${channelSlug(c.name)}`,
       lastModified: new Date(),
       changeFrequency: "weekly" as const,
       priority: 0.6,
@@ -76,7 +111,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .select("youtube_video_id, published_at");
 
   const watchRoutes: MetadataRoute.Sitemap = (videos ?? []).map((v) => ({
-    url: `${baseUrl}/watch/${v.youtube_video_id}`,
+    url: `${baseUrl}${mp}/watch/${v.youtube_video_id}`,
     lastModified: v.published_at ? new Date(v.published_at) : new Date(),
     changeFrequency: "weekly" as const,
     priority: 0.7,
@@ -112,7 +147,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }[])
     .filter((l) => l.winner && l.player_name && normalise(l.winner) === normalise(l.player_name))
     .map((l) => ({
-      url: `${baseUrl}/armies/${l.id}`,
+      url: `${baseUrl}${mp}/armies/${l.id}`,
       lastModified: new Date(),
       changeFrequency: "weekly" as const,
       priority: 0.7,
@@ -120,6 +155,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   return [
     ...staticRoutes,
+    ...boardGameRoutes,
     ...channelRoutes,
     ...categoryRoutes,
     ...armyRoutes,

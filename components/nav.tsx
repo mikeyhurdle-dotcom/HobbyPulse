@@ -14,10 +14,11 @@ interface NavTab {
 }
 
 const allTabs: NavTab[] = [
-  { name: "Watch", href: "/watch", key: "watch", icon: "▶" },
+  { name: "Board Games", href: "/boardgames", key: "boardgames", icon: "🎲", verticalOnly: "warhammer" },
+  { name: "Miniatures", href: "/miniatures/watch", key: "miniatures", icon: "⚔", verticalOnly: "warhammer" },
+  { name: "Watch", href: "/watch", key: "watch", icon: "▶", verticalOnly: "simracing" },
   { name: "Setups", href: "/setups", key: "setups", icon: "⚙", verticalOnly: "simracing" },
   { name: "Deals", href: "/deals", key: "deals", icon: "£" },
-  { name: "Build", href: "/build", key: "build", icon: "🔧", verticalOnly: "warhammer" },
   { name: "Blog", href: "/blog", key: "blog", icon: "✎" },
   { name: "Live", href: "/live", key: "live", icon: "●" },
 ];

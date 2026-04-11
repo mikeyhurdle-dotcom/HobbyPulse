@@ -7,7 +7,7 @@ import { websiteSchema } from "@/lib/structured-data";
 import { supabase } from "@/lib/supabase";
 import { classifyGameSystem, isShort } from "@/lib/classify";
 import { getGameSystem } from "@/config/game-systems";
-import { Play, TrendingUp, Radio, ArrowRight, Zap } from "lucide-react";
+import { Play, TrendingUp, Radio, ArrowRight, Zap, Dice5 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { NewsletterForm } from "@/components/newsletter-form";
@@ -16,6 +16,7 @@ import { PriceDropBadge } from "@/components/price-drop-badge";
 import { getTopPriceDropsForVertical, type ProductDrop } from "@/lib/price-drops";
 import { wrapAffiliateUrl } from "@/lib/affiliate";
 import { TrendingDown } from "lucide-react";
+import { listAllArticles, articleTypeLabels, articleTypeRoutes } from "@/lib/boardgame-articles";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -115,11 +116,14 @@ export default async function HomePage() {
   const data = await getHomeData();
 
   const isTabletop = config.slug === "warhammer";
-  const ctaLink = isTabletop ? "/build" : "/setups";
+  const ctaLink = isTabletop ? "/miniatures/build" : "/setups";
   const ctaLabel = isTabletop ? "Build My Army Cheap" : "Car Setups";
   const ctaDescription = isTabletop
     ? "Paste an army list, find every unit at the best price."
     : "Browse car setups extracted from the best sim racers.";
+
+  // Board game articles for TabletopWatch homepage
+  const boardGameArticles = isTabletop ? listAllArticles().slice(0, 3) : [];
 
   return (
     <>
@@ -156,23 +160,46 @@ export default async function HomePage() {
                 )}
               </h1>
               <p className="text-lg sm:text-xl text-muted-foreground mb-8 leading-relaxed">
-                {brand.tagline}
+                {isTabletop
+                  ? "Your guide to tabletop gaming \u2014 board games, miniatures, and everything in between"
+                  : brand.tagline}
               </p>
               <div className="flex flex-wrap gap-3">
-                <Link
-                  href="/watch"
-                  className="inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-semibold bg-[var(--vertical-accent)] text-white hover:opacity-90 transition-opacity"
-                >
-                  <Play className="w-4 h-4" />
-                  Browse {isTabletop ? "Battle Reports" : "Replays"}
-                </Link>
-                <Link
-                  href={ctaLink}
-                  className="inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-semibold border border-border bg-background hover:bg-secondary transition-colors"
-                >
-                  <Zap className="w-4 h-4" />
-                  {ctaLabel}
-                </Link>
+                {isTabletop ? (
+                  <>
+                    <Link
+                      href="/boardgames"
+                      className="inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-semibold bg-[var(--vertical-accent)] text-white hover:opacity-90 transition-opacity"
+                    >
+                      <Dice5 className="w-4 h-4" />
+                      Browse Board Games
+                    </Link>
+                    <Link
+                      href="/miniatures/watch"
+                      className="inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-semibold border border-border bg-background hover:bg-secondary transition-colors"
+                    >
+                      <Play className="w-4 h-4" />
+                      Miniatures
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      href="/watch"
+                      className="inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-semibold bg-[var(--vertical-accent)] text-white hover:opacity-90 transition-opacity"
+                    >
+                      <Play className="w-4 h-4" />
+                      Browse Replays
+                    </Link>
+                    <Link
+                      href={ctaLink}
+                      className="inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-semibold border border-border bg-background hover:bg-secondary transition-colors"
+                    >
+                      <Zap className="w-4 h-4" />
+                      {ctaLabel}
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
 
@@ -292,6 +319,52 @@ export default async function HomePage() {
         )}
 
         {/* ============================================================= */}
+        {/* Board Game Articles (TabletopWatch only)                       */}
+        {/* ============================================================= */}
+        {isTabletop && boardGameArticles.length > 0 && (
+          <section className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl sm:text-2xl font-bold tracking-tight">
+                Latest Board Game Articles
+              </h2>
+              <Link
+                href="/boardgames"
+                className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                View all <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {boardGameArticles.map((article) => (
+                <Link
+                  key={`${article.articleType}-${article.slug}`}
+                  href={`/boardgames/${articleTypeRoutes[article.articleType]}/${article.slug}`}
+                  className="group"
+                >
+                  <Card className="h-full overflow-hidden border-border bg-card hover:border-[var(--vertical-accent)]/40 transition-all">
+                    <CardContent className="p-5">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Badge variant="secondary" className="text-[10px]">
+                          {articleTypeLabels[article.articleType]}
+                        </Badge>
+                      </div>
+                      <h3 className="text-sm font-medium leading-snug line-clamp-2 group-hover:text-[var(--vertical-accent-light)] transition-colors">
+                        {article.title}
+                      </h3>
+                      {article.excerpt && (
+                        <p className="mt-2 text-xs text-muted-foreground line-clamp-2">
+                          {article.excerpt}
+                        </p>
+                      )}
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* ============================================================= */}
         {/* Featured Content                                               */}
         {/* ============================================================= */}
         {data.featured.length > 0 && (
@@ -301,7 +374,7 @@ export default async function HomePage() {
                 Latest {isTabletop ? "Reports" : "Replays"}
               </h2>
               <Link
-                href="/watch"
+                href={isTabletop ? "/miniatures/watch" : "/watch"}
                 className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
                 View all <ArrowRight className="w-3.5 h-3.5" />
@@ -314,7 +387,7 @@ export default async function HomePage() {
                 return (
                   <Link
                     key={video.id}
-                    href={`/watch/${video.youtube_video_id}`}
+                    href={`${isTabletop ? "/miniatures" : ""}/watch/${video.youtube_video_id}`}
                     className="group"
                   >
                     <Card className="overflow-hidden border-border bg-card hover:border-[var(--vertical-accent)]/40 transition-all">
@@ -403,26 +476,49 @@ export default async function HomePage() {
         {/* ============================================================= */}
         <section className="max-w-7xl mx-auto px-4 sm:px-6 pb-12">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {[
-              {
-                label: "Watch",
-                href: "/watch",
-                description: config.watchDescription,
-                icon: Play,
-              },
-              {
-                label: "Live",
-                href: "/live",
-                description: config.liveDescription,
-                icon: Radio,
-              },
-              {
-                label: "Deals",
-                href: "/deals",
-                description: config.dealsDescription,
-                icon: TrendingUp,
-              },
-            ].map((link) => (
+            {(isTabletop
+              ? [
+                  {
+                    label: "Board Games",
+                    href: "/boardgames",
+                    description:
+                      "Reviews, best-of lists, comparisons, and how-to-play guides for board games.",
+                    icon: Dice5,
+                  },
+                  {
+                    label: "Miniatures",
+                    href: "/miniatures/watch",
+                    description: config.watchDescription,
+                    icon: Play,
+                  },
+                  {
+                    label: "Deals",
+                    href: "/deals",
+                    description: config.dealsDescription,
+                    icon: TrendingUp,
+                  },
+                ]
+              : [
+                  {
+                    label: "Watch",
+                    href: "/watch",
+                    description: config.watchDescription,
+                    icon: Play,
+                  },
+                  {
+                    label: "Live",
+                    href: "/live",
+                    description: config.liveDescription,
+                    icon: Radio,
+                  },
+                  {
+                    label: "Deals",
+                    href: "/deals",
+                    description: config.dealsDescription,
+                    icon: TrendingUp,
+                  },
+                ]
+            ).map((link) => (
               <Link key={link.href} href={link.href} className="group">
                 <Card className="h-full border-border bg-card hover:border-[var(--vertical-accent)]/40 transition-all">
                   <CardContent className="p-5">

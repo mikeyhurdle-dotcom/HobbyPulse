@@ -28,6 +28,7 @@ export interface VerticalConfig {
   brand: VerticalBrand;
   theme: VerticalTheme;
   channels: string[];
+  boardGameChannels?: string[];
   retailers: VerticalRetailer[];
   categories: string[];
   watchDescription: string;
@@ -45,7 +46,7 @@ export const verticals: Record<string, VerticalConfig> = {
     description: "Battle reports, army lists, and second-hand deals",
     brand: {
       siteName: "TabletopWatch",
-      tagline: "Battle reports, army lists, and the best miniature deals",
+      tagline: "Board game reviews, miniature battle reports, and the best tabletop deals",
       domain: "tabletopwatch.com",
       logo: "/tabletopwatch-logo.svg",
     },
@@ -66,6 +67,18 @@ export const verticals: Record<string, VerticalConfig> = {
       "The Honest Wargamer",
       "Striking Scorpion 82",
       "Tabletop Tactics",
+    ],
+    boardGameChannels: [
+      "The Dice Tower",
+      "Shut Up & Sit Down",
+      "Watch It Played",
+      "No Pun Included",
+      "Rahdo Runs Through",
+      "BoardGameCo",
+      "3 Minute Board Games",
+      "Actualol",
+      "Quackalope",
+      "Before You Play",
     ],
     retailers: [
       { name: "Games Workshop", url: "https://www.games-workshop.com", affiliateParam: "ref" },
