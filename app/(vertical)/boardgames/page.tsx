@@ -52,6 +52,45 @@ const sections: { type: ArticleType; description: string; icon: string }[] = [
   },
 ];
 
+const tools = [
+  {
+    label: "Watch Videos",
+    href: "/boardgames/watch",
+    description: "Reviews, playthroughs, how-to-play guides, and top lists from 20+ channels.",
+    icon: "▶",
+  },
+  {
+    label: "Browse All Games",
+    href: "/boardgames/games",
+    description: "500+ board games with ratings, player counts, and where to buy.",
+    icon: "🎲",
+  },
+  {
+    label: "What Should I Play?",
+    href: "/boardgames/recommend",
+    description: "Answer 4 questions and get personalised game recommendations.",
+    icon: "🎯",
+  },
+  {
+    label: "Compare Games",
+    href: "/boardgames/compare",
+    description: "Side-by-side comparison of any two games.",
+    icon: "⚖",
+  },
+  {
+    label: "Upcoming Releases",
+    href: "/boardgames/releases",
+    description: "Board game release calendar with pre-order links.",
+    icon: "📅",
+  },
+  {
+    label: "News",
+    href: "/boardgames/news",
+    description: "Latest news and announcements from top board game channels.",
+    icon: "📰",
+  },
+];
+
 export default function BoardGamesLandingPage() {
   const config = getSiteVertical();
   if (config.slug !== "warhammer") redirect("/");
@@ -84,8 +123,31 @@ export default function BoardGamesLandingPage() {
           </div>
         </section>
 
+        {/* Tool cards — directory, recommender, compare */}
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 pt-12 pb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {tools.map((t) => (
+              <Link key={t.href} href={t.href} className="group">
+                <Card className="h-full border-border bg-card hover:border-[var(--vertical-accent)]/40 transition-all">
+                  <CardContent className="p-5">
+                    <div className="flex items-center gap-3 mb-2">
+                      <span className="text-xl">{t.icon}</span>
+                      <h2 className="text-base font-bold tracking-tight group-hover:text-[var(--vertical-accent-light)] transition-colors">
+                        {t.label}
+                      </h2>
+                    </div>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      {t.description}
+                    </p>
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        </section>
+
         {/* Section cards */}
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {sections.map((s) => {
               const count = listArticles(s.type).length;

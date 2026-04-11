@@ -54,7 +54,15 @@ export default function AboutPage() {
             What we do
           </h2>
 
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {config.slug === "warhammer" && (
+              <div className="p-4 rounded-xl border border-border bg-secondary/50">
+                <h3 className="font-semibold text-foreground mb-2">Board Games</h3>
+                <p className="text-sm">
+                  Browse 500+ games, watch reviews and playthroughs, get personalised recommendations, and compare games side by side.
+                </p>
+              </div>
+            )}
             <div className="p-4 rounded-xl border border-border bg-secondary/50">
               <h3 className="font-semibold text-foreground mb-2">Watch</h3>
               <p className="text-sm">

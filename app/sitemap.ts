@@ -7,6 +7,7 @@ import {
   articleTypeRoutes,
   type ArticleType,
 } from "@/lib/boardgame-articles";
+import { getTopGameSlugs } from "@/lib/board-game-db";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const brand = getSiteBrand();
@@ -57,6 +58,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           priority: 0.8,
         });
       }
+    }
+
+    // Board game directory + tool pages
+    boardGameRoutes.push(
+      { url: `${baseUrl}/boardgames/watch`, lastModified: new Date(), changeFrequency: "daily", priority: 0.9 },
+      { url: `${baseUrl}/boardgames/games`, lastModified: new Date(), changeFrequency: "daily", priority: 0.9 },
+      { url: `${baseUrl}/boardgames/recommend`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.8 },
+      { url: `${baseUrl}/boardgames/compare`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.8 },
+      { url: `${baseUrl}/boardgames/releases`, lastModified: new Date(), changeFrequency: "daily", priority: 0.8 },
+      { url: `${baseUrl}/boardgames/news`, lastModified: new Date(), changeFrequency: "daily", priority: 0.75 },
+    );
+    const gameSlugs = await getTopGameSlugs(500);
+    for (const gs of gameSlugs) {
+      boardGameRoutes.push({
+        url: `${baseUrl}/boardgames/games/${gs}`,
+        lastModified: new Date(),
+        changeFrequency: "weekly",
+        priority: 0.75,
+      });
     }
   }
 

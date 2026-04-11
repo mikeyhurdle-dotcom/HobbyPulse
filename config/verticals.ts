@@ -46,7 +46,7 @@ export const verticals: Record<string, VerticalConfig> = {
     description: "Battle reports, army lists, and second-hand deals",
     brand: {
       siteName: "TabletopWatch",
-      tagline: "Board game reviews, miniature battle reports, and the best tabletop deals",
+      tagline: "Board game reviews, video guides, and the best tabletop deals",
       domain: "tabletopwatch.com",
       logo: "/tabletopwatch-logo.svg",
     },
@@ -112,9 +112,9 @@ export const verticals: Record<string, VerticalConfig> = {
       "Imperial Knights",
     ],
     watchDescription:
-      "Battle reports and content — enriched with structured army lists.",
+      "Board game reviews, playthroughs, and how-to-play guides from 20+ channels.",
     dealsDescription:
-      "Compare prices across retailers and find the best deals on miniatures.",
+      "Compare prices across retailers and find the best deals on board games and miniatures.",
     liveDescription:
       "Live streams from Twitch and YouTube — updated every 5 minutes.",
     twitchGameIds: ["518030"],

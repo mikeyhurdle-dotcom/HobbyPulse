@@ -54,24 +54,29 @@ function getFaqs(slug: string, brandName: string): FaqItem[] {
 
   const warhammer: FaqItem[] = [
     {
-      question: "How does army list extraction work?",
+      question: "What board game content do you cover?",
       answer:
-        "When a new battle report is published, our AI parser reads the video description and extracts structured army lists — factions, units, and points values. This lets you browse what armies were used without watching the full video.",
+        "We track 20+ board game YouTube channels and automatically classify their videos into reviews, playthroughs, how-to-play guides, top lists, comparisons, and news. You can browse all of this at /boardgames/watch.",
     },
     {
-      question: "What is Build My Army Cheap?",
+      question: "How does the game directory work?",
       answer:
-        'Paste a Warhammer army list (from Wahapedia, BattleScribe, or the GW app) and we match each unit to products across retailers to find the cheapest combination. It\'s like a shopping cart that compares prices for you.',
+        "We import data from BoardGameGeek for the top 500 ranked board games — including ratings, player counts, play time, complexity, and more. Each game has its own page with buy links. Use the filters to find games by player count, complexity, or category.",
     },
     {
-      question: "Which game systems do you cover?",
+      question: "What is 'What Should I Play?'",
       answer:
-        "We cover Warhammer 40K, Age of Sigmar, The Old World, Kill Team, and Horus Heresy. Content is tagged by game system so you can filter to what interests you.",
+        "It's a quick 4-question quiz that recommends board games based on your group size, preferred complexity, play time, and vibe (competitive, cooperative, party, or strategy). Results link to full game pages with buy links.",
     },
     {
-      question: "Which retailers do you compare?",
+      question: "Which retailers do you compare for board games?",
       answer:
-        "We currently compare prices from Element Games, Troll Trader, and eBay. More retailers are being added. Games Workshop prices are included as a baseline reference.",
+        "We track board game prices on Amazon UK and Zatu Games, plus eBay for second-hand deals. More retailers are being added as affiliate partnerships are approved.",
+    },
+    {
+      question: "Do you also cover miniatures?",
+      answer:
+        "Yes! We cover Warhammer 40K, Age of Sigmar, The Old World, Kill Team, and more under our Miniatures section. This includes battle reports, army lists, and price comparison across Element Games, Troll Trader, and eBay.",
     },
   ];
 

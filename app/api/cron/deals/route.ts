@@ -82,6 +82,27 @@ const SEARCH_TERMS: Record<string, string[]> = {
     // ---- Paints & tools ----
     "Citadel Paint",
     "Contrast Paint",
+    // ---- Board Games ----
+    "Catan board game",
+    "Wingspan board game",
+    "Ticket to Ride",
+    "Pandemic board game",
+    "Azul board game",
+    "Spirit Island",
+    "Terraforming Mars",
+    "7 Wonders",
+    "Everdell",
+    "Scythe board game",
+    "Gloomhaven",
+    "Root board game",
+    "Ark Nova",
+    "Cascadia board game",
+    "Brass Birmingham",
+    "Dune Imperium",
+    "Marvel Champions",
+    "Cosmic Encounter",
+    "Betrayal at House on the Hill",
+    "Codenames board game",
   ],
   simracing: [
     // Wheelbases

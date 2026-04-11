@@ -14,7 +14,7 @@ export async function generateMetadata(): Promise<Metadata> {
     title: {
       default: brand.siteName,
       template: isTabletop
-        ? `%s | ${brand.siteName} — Board Games & Miniatures`
+        ? `%s | ${brand.siteName} — Board Games & Tabletop`
         : `%s | ${brand.siteName}`,
     },
     description: brand.tagline,

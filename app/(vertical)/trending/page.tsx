@@ -20,10 +20,10 @@ export function generateMetadata(): Metadata {
   const isSimRacing = config.slug === "simracing";
   const title = isSimRacing
     ? "Top Sim Racing Hardware Deals This Week"
-    : "Top Miniature Price Drops This Week";
+    : "Top Tabletop Price Drops This Week";
   const description = isSimRacing
     ? "The biggest price drops on sim racing wheels, pedals, rigs and monitors in the last 7 days — updated hourly."
-    : "The biggest price drops on Warhammer miniatures and paints in the last 7 days — tracked across every major UK retailer.";
+    : "The biggest price drops on board games and miniatures in the last 7 days — tracked across every major UK retailer.";
 
   const url = `https://${brand.domain}/trending`;
   const ogUrl = `${url}/opengraph-image`;
@@ -74,10 +74,10 @@ export default async function TrendingPage() {
   const isSimRacing = config.slug === "simracing";
   const title = isSimRacing
     ? "Top Sim Racing Hardware Deals This Week"
-    : "Top Miniature Price Drops This Week";
+    : "Top Tabletop Price Drops This Week";
   const shareTitle = isSimRacing
     ? `${drops.length} sim racing hardware deals dropped this week on ${brand.siteName}`
-    : `${drops.length} Warhammer miniatures dropped in price this week on ${brand.siteName}`;
+    : `${drops.length} tabletop deals dropped in price this week on ${brand.siteName}`;
 
   // Derive headline stats for the hero
   const biggestDrop = drops[0]?.dropPercent ?? 0;

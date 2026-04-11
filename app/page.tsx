@@ -7,7 +7,7 @@ import { websiteSchema } from "@/lib/structured-data";
 import { supabase } from "@/lib/supabase";
 import { classifyGameSystem, isShort } from "@/lib/classify";
 import { getGameSystem } from "@/config/game-systems";
-import { Play, TrendingUp, Radio, ArrowRight, Zap, Dice5 } from "lucide-react";
+import { Play, TrendingUp, Radio, ArrowRight, Zap, Dice5, Star, Users, Clock } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { NewsletterForm } from "@/components/newsletter-form";
@@ -17,6 +17,8 @@ import { getTopPriceDropsForVertical, type ProductDrop } from "@/lib/price-drops
 import { wrapAffiliateUrl } from "@/lib/affiliate";
 import { TrendingDown } from "lucide-react";
 import { listAllArticles, articleTypeLabels, articleTypeRoutes } from "@/lib/boardgame-articles";
+import { getFeaturedGame, getHomeTrendingGames } from "@/lib/featured-game";
+import type { BoardGame } from "@/lib/board-game-db";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -50,7 +52,9 @@ async function getHomeData() {
 
   const verticalId = verticalRow?.id;
 
-  const [videosRes, liveRes, topDrops] = await Promise.all([
+  const isTabletopFetch = config.slug === "warhammer";
+
+  const [videosRes, liveRes, topDrops, featuredGame, trendingGames, bgVideoCountRes, bgLatestRes, bgGameCountRes] = await Promise.all([
     supabase
       .from("battle_reports")
       .select("id, youtube_video_id, title, thumbnail_url, published_at, view_count, duration_seconds, game_system, channels(name, thumbnail_url)")
@@ -64,6 +68,22 @@ async function getHomeData() {
       .eq("is_live", true)
       .gte("last_seen_at", new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()),
     verticalId ? getTopPriceDropsForVertical(verticalId, 6) : Promise.resolve([] as ProductDrop[]),
+    isTabletopFetch ? getFeaturedGame() : Promise.resolve(null),
+    isTabletopFetch ? getHomeTrendingGames(6) : Promise.resolve([] as BoardGame[]),
+    // Board game video stats (TabletopWatch only)
+    isTabletopFetch
+      ? supabase.from("board_game_videos").select("id", { count: "exact", head: true })
+      : Promise.resolve({ count: 0 }),
+    isTabletopFetch
+      ? supabase
+          .from("board_game_videos")
+          .select("id, youtube_video_id, title, thumbnail_url, published_at, duration_seconds, view_count, content_type, board_game_channels(channel_name)")
+          .order("published_at", { ascending: false })
+          .limit(6)
+      : Promise.resolve({ data: [] }),
+    isTabletopFetch
+      ? supabase.from("board_games").select("id", { count: "exact", head: true })
+      : Promise.resolve({ count: 0 }),
   ]);
 
   const allVideos = (videosRes.data ?? []).filter(
@@ -80,6 +100,21 @@ async function getHomeData() {
     featured,
     channels: config.channels.length,
     topDrops,
+    featuredGame,
+    trendingGames,
+    bgVideoCount: bgVideoCountRes.count ?? 0,
+    bgLatestVideos: ((bgLatestRes.data ?? []) as unknown as {
+      id: string;
+      youtube_video_id: string;
+      title: string;
+      thumbnail_url: string | null;
+      published_at: string;
+      duration_seconds: number | null;
+      view_count: number | null;
+      content_type: string | null;
+      board_game_channels: { channel_name: string } | null;
+    }[]),
+    bgGameCount: bgGameCountRes.count ?? 0,
   };
 }
 
@@ -116,10 +151,10 @@ export default async function HomePage() {
   const data = await getHomeData();
 
   const isTabletop = config.slug === "warhammer";
-  const ctaLink = isTabletop ? "/miniatures/build" : "/setups";
-  const ctaLabel = isTabletop ? "Build My Army Cheap" : "Car Setups";
+  const ctaLink = isTabletop ? "/boardgames/recommend" : "/setups";
+  const ctaLabel = isTabletop ? "What Should I Play?" : "Car Setups";
   const ctaDescription = isTabletop
-    ? "Paste an army list, find every unit at the best price."
+    ? "Answer 4 quick questions and get personalised board game recommendations."
     : "Browse car setups extracted from the best sim racers.";
 
   // Board game articles for TabletopWatch homepage
@@ -148,9 +183,9 @@ export default async function HomePage() {
                   <Image
                     src={brand.logo}
                     alt={brand.siteName}
-                    width={480}
-                    height={120}
-                    className="h-12 sm:h-16 lg:h-20 w-auto"
+                    width={600}
+                    height={150}
+                    className="h-16 sm:h-24 lg:h-32 w-auto"
                     priority
                   />
                 ) : (
@@ -169,17 +204,17 @@ export default async function HomePage() {
                   <>
                     <Link
                       href="/boardgames"
-                      className="inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-semibold bg-[var(--vertical-accent)] text-white hover:opacity-90 transition-opacity"
+                      className="inline-flex items-center gap-2 rounded-lg px-6 py-3 text-sm font-semibold bg-[var(--vertical-accent)] text-white hover:opacity-90 transition-opacity"
                     >
                       <Dice5 className="w-4 h-4" />
                       Browse Board Games
                     </Link>
                     <Link
-                      href="/miniatures/watch"
+                      href="/boardgames/watch"
                       className="inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-semibold border border-border bg-background hover:bg-secondary transition-colors"
                     >
                       <Play className="w-4 h-4" />
-                      Miniatures
+                      Watch Videos
                     </Link>
                   </>
                 ) : (
@@ -205,17 +240,29 @@ export default async function HomePage() {
 
             {/* Stats row */}
             <div className="flex flex-wrap gap-8 mt-12 pt-8 border-t border-border/50">
+              {isTabletop && data.bgGameCount > 0 && (
+                <div>
+                  <p className="text-3xl font-bold tracking-tight font-[family-name:var(--font-mono)]">
+                    {data.bgGameCount.toLocaleString()}+
+                  </p>
+                  <p className="text-sm text-muted-foreground">Games Reviewed</p>
+                </div>
+              )}
               <div>
                 <p className="text-3xl font-bold tracking-tight font-[family-name:var(--font-mono)]">
-                  {data.totalVideos.toLocaleString()}
+                  {isTabletop && data.bgVideoCount > 0
+                    ? data.bgVideoCount.toLocaleString()
+                    : data.totalVideos.toLocaleString()}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  {isTabletop ? "Battle Reports" : "Race Replays"}
+                  {isTabletop ? "Board Game Videos" : "Race Replays"}
                 </p>
               </div>
               <div>
                 <p className="text-3xl font-bold tracking-tight font-[family-name:var(--font-mono)]">
-                  {data.channels}
+                  {isTabletop
+                    ? (config.boardGameChannels?.length ?? 20)
+                    : data.channels}
                 </p>
                 <p className="text-sm text-muted-foreground">Channels Tracked</p>
               </div>
@@ -319,6 +366,219 @@ export default async function HomePage() {
         )}
 
         {/* ============================================================= */}
+        {/* Featured Game of the Week (TabletopWatch only)                 */}
+        {/* ============================================================= */}
+        {isTabletop && data.featuredGame && (
+          <section className="max-w-7xl mx-auto px-4 sm:px-6 py-12 border-b border-border">
+            <div className="inline-flex items-center gap-1.5 rounded-full border border-[var(--vertical-accent)]/40 bg-[var(--vertical-accent)]/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[var(--vertical-accent-light)] mb-3">
+              <Star className="w-3 h-3" />
+              Game of the Week
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="md:col-span-1">
+                <Link href={`/boardgames/games/${data.featuredGame.slug}`}>
+                  <div className="rounded-xl border border-border bg-card overflow-hidden hover:border-[var(--vertical-accent)]/40 transition-all">
+                    {data.featuredGame.image_url ? (
+                      <img
+                        src={data.featuredGame.image_url}
+                        alt={data.featuredGame.title}
+                        className="w-full aspect-square object-contain p-4 bg-white"
+                      />
+                    ) : (
+                      <div className="w-full aspect-square flex items-center justify-center bg-muted text-muted-foreground">
+                        No image
+                      </div>
+                    )}
+                  </div>
+                </Link>
+              </div>
+              <div className="md:col-span-2 flex flex-col justify-center">
+                <Link href={`/boardgames/games/${data.featuredGame.slug}`}>
+                  <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-2 hover:text-[var(--vertical-accent-light)] transition-colors">
+                    {data.featuredGame.title}
+                  </h2>
+                </Link>
+                {data.featuredGame.year_published && (
+                  <span className="text-sm text-muted-foreground mb-3">
+                    ({data.featuredGame.year_published})
+                  </span>
+                )}
+                <div className="flex flex-wrap gap-4 mb-4">
+                  {data.featuredGame.bgg_rating != null && (
+                    <div className="flex items-center gap-1.5">
+                      <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
+                      <span className="text-sm font-semibold">{data.featuredGame.bgg_rating.toFixed(1)}/10</span>
+                    </div>
+                  )}
+                  {data.featuredGame.min_players != null && data.featuredGame.max_players != null && (
+                    <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                      <Users className="w-4 h-4" />
+                      {data.featuredGame.min_players}-{data.featuredGame.max_players} players
+                    </div>
+                  )}
+                  {data.featuredGame.play_time_min != null && (
+                    <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                      <Clock className="w-4 h-4" />
+                      {data.featuredGame.play_time_min}-{data.featuredGame.play_time_max} min
+                    </div>
+                  )}
+                </div>
+                {data.featuredGame.description && (
+                  <p className="text-sm text-muted-foreground leading-relaxed line-clamp-3 mb-4">
+                    {data.featuredGame.description}
+                  </p>
+                )}
+                <Link
+                  href={`/boardgames/games/${data.featuredGame.slug}`}
+                  className="inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-semibold bg-[var(--vertical-accent)] text-white hover:opacity-90 transition-opacity self-start"
+                >
+                  View Game <ArrowRight className="w-4 h-4" />
+                </Link>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* ============================================================= */}
+        {/* Trending Games (TabletopWatch only)                            */}
+        {/* ============================================================= */}
+        {isTabletop && data.trendingGames.length > 0 && (
+          <section className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl sm:text-2xl font-bold tracking-tight">
+                Top Ranked Games
+              </h2>
+              <Link
+                href="/boardgames/games"
+                className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Browse all <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+              {data.trendingGames.map((game: BoardGame) => (
+                <Link
+                  key={game.id}
+                  href={`/boardgames/games/${game.slug}`}
+                  className="group rounded-xl border border-border bg-card overflow-hidden hover:border-[var(--vertical-accent)]/40 transition-all"
+                >
+                  <div className="relative aspect-square bg-muted">
+                    {game.thumbnail_url ? (
+                      <img
+                        src={game.thumbnail_url}
+                        alt={game.title}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-muted-foreground text-[10px]">
+                        No image
+                      </div>
+                    )}
+                    {game.bgg_rank && (
+                      <span className="absolute top-1.5 left-1.5 bg-black/75 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">
+                        #{game.bgg_rank}
+                      </span>
+                    )}
+                  </div>
+                  <div className="p-2.5">
+                    <h3 className="text-[11px] font-medium leading-snug line-clamp-2 group-hover:text-[var(--vertical-accent-light)] transition-colors min-h-[28px]">
+                      {game.title}
+                    </h3>
+                    {game.bgg_rating != null && (
+                      <div className="flex items-center gap-1 mt-1">
+                        <Star className="w-2.5 h-2.5 text-amber-400 fill-amber-400" />
+                        <span className="text-[10px] font-semibold">{game.bgg_rating.toFixed(1)}</span>
+                      </div>
+                    )}
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* ============================================================= */}
+        {/* Latest Board Game Videos (TabletopWatch only)                  */}
+        {/* ============================================================= */}
+        {isTabletop && data.bgLatestVideos.length > 0 && (
+          <section className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl sm:text-2xl font-bold tracking-tight">
+                Latest Board Game Videos
+              </h2>
+              <Link
+                href="/boardgames/watch"
+                className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Watch all <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {data.bgLatestVideos.map((video) => {
+                const ctLabel: Record<string, { label: string; colour: string }> = {
+                  review: { label: "Review", colour: "#3b82f6" },
+                  "top-list": { label: "Top List", colour: "#8b5cf6" },
+                  "how-to-play": { label: "How to Play", colour: "#22c55e" },
+                  comparison: { label: "Comparison", colour: "#f59e0b" },
+                  playthrough: { label: "Playthrough", colour: "#ec4899" },
+                  news: { label: "News", colour: "#06b6d4" },
+                  other: { label: "Other", colour: "#6b7280" },
+                };
+                const ct = ctLabel[video.content_type ?? "other"] ?? ctLabel.other;
+                return (
+                  <a
+                    key={video.id}
+                    href={`https://www.youtube.com/watch?v=${video.youtube_video_id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group"
+                  >
+                    <Card className="overflow-hidden border-border bg-card hover:border-[var(--vertical-accent)]/40 transition-all">
+                      <div className="relative aspect-video bg-muted">
+                        {video.thumbnail_url && (
+                          <img
+                            src={video.thumbnail_url}
+                            alt={video.title}
+                            className="w-full h-full object-cover"
+                            loading="lazy"
+                          />
+                        )}
+                        <Badge
+                          className="absolute top-2 left-2 text-[10px] border-0"
+                          style={{ backgroundColor: `${ct.colour}dd`, color: "#fff" }}
+                        >
+                          {ct.label}
+                        </Badge>
+                        {video.duration_seconds != null && video.duration_seconds > 0 && (
+                          <span className="absolute bottom-2 right-2 px-1.5 py-0.5 rounded text-[10px] font-medium font-[family-name:var(--font-mono)] bg-black/75 text-white">
+                            {(() => {
+                              const m = Math.floor(video.duration_seconds! / 60);
+                              const s = video.duration_seconds! % 60;
+                              return `${m}:${s.toString().padStart(2, "0")}`;
+                            })()}
+                          </span>
+                        )}
+                      </div>
+                      <CardContent className="p-3.5">
+                        <h3 className="text-sm font-medium leading-snug line-clamp-2 group-hover:text-[var(--vertical-accent-light)] transition-colors">
+                          {video.title}
+                        </h3>
+                        <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
+                          {video.board_game_channels?.channel_name && (
+                            <span>{video.board_game_channels.channel_name}</span>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </a>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
+        {/* ============================================================= */}
         {/* Board Game Articles (TabletopWatch only)                       */}
         {/* ============================================================= */}
         {isTabletop && boardGameArticles.length > 0 && (
@@ -371,7 +631,7 @@ export default async function HomePage() {
           <section className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl sm:text-2xl font-bold tracking-tight">
-                Latest {isTabletop ? "Reports" : "Replays"}
+                {isTabletop ? "Miniatures Content" : "Latest Replays"}
               </h2>
               <Link
                 href={isTabletop ? "/miniatures/watch" : "/watch"}
@@ -475,27 +735,34 @@ export default async function HomePage() {
         {/* Quick Navigation                                               */}
         {/* ============================================================= */}
         <section className="max-w-7xl mx-auto px-4 sm:px-6 pb-12">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className={`grid grid-cols-1 gap-4 ${isTabletop ? "sm:grid-cols-2 lg:grid-cols-4" : "sm:grid-cols-3"}`}>
             {(isTabletop
               ? [
                   {
-                    label: "Board Games",
-                    href: "/boardgames",
+                    label: "Games",
+                    href: "/boardgames/games",
                     description:
-                      "Reviews, best-of lists, comparisons, and how-to-play guides for board games.",
+                      "Browse 500+ board games with ratings, complexity, and where to buy.",
                     icon: Dice5,
                   },
                   {
-                    label: "Miniatures",
-                    href: "/miniatures/watch",
-                    description: config.watchDescription,
-                    icon: Play,
+                    label: "Reviews",
+                    href: "/boardgames",
+                    description:
+                      "In-depth reviews, best-of lists, and how-to-play guides.",
+                    icon: Star,
                   },
                   {
                     label: "Deals",
                     href: "/deals",
                     description: config.dealsDescription,
                     icon: TrendingUp,
+                  },
+                  {
+                    label: "Miniatures",
+                    href: "/miniatures/watch",
+                    description: config.watchDescription,
+                    icon: Play,
                   },
                 ]
               : [
@@ -543,15 +810,31 @@ export default async function HomePage() {
         {/* ============================================================= */}
         <section className="border-t border-border">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
-            <h2 className="text-lg font-bold tracking-tight mb-4">
-              Tracked Channels
-            </h2>
-            <div className="flex flex-wrap gap-2">
-              {config.channels.map((channel) => (
-                <Badge key={channel} variant="secondary" className="text-xs">
-                  {channel}
-                </Badge>
-              ))}
+            {isTabletop && config.boardGameChannels && config.boardGameChannels.length > 0 && (
+              <div className="mb-8">
+                <h2 className="text-lg font-bold tracking-tight mb-4">
+                  Board Game Channels
+                </h2>
+                <div className="flex flex-wrap gap-2">
+                  {config.boardGameChannels.map((channel) => (
+                    <Badge key={channel} variant="secondary" className="text-xs">
+                      {channel}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+            <div>
+              <h2 className="text-lg font-bold tracking-tight mb-4">
+                {isTabletop ? "Miniatures Channels" : "Tracked Channels"}
+              </h2>
+              <div className="flex flex-wrap gap-2">
+                {config.channels.map((channel) => (
+                  <Badge key={channel} variant="secondary" className="text-xs">
+                    {channel}
+                  </Badge>
+                ))}
+              </div>
             </div>
           </div>
         </section>

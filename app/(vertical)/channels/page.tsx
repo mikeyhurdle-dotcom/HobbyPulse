@@ -21,10 +21,10 @@ export function generateMetadata(): Metadata {
   const isSimRacing = config.slug === "simracing";
   const title = isSimRacing
     ? "Sim Racing YouTube Channels"
-    : "Warhammer YouTube Channels";
+    : "Board Game & Tabletop YouTube Channels";
   const description = isSimRacing
     ? `Every sim racing YouTube creator we track on ${brand.siteName}. Browse race replays, setup guides, and hardware reviews by channel.`
-    : `Every Warhammer YouTube creator we track on ${brand.siteName}. Browse battle reports and army lists by channel.`;
+    : `Every board game and tabletop YouTube creator we track on ${brand.siteName}. Browse reviews, playthroughs, and how-to-play guides by channel.`;
   const url = `https://${brand.domain}/channels`;
   return {
     title,
