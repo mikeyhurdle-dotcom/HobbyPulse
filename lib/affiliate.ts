@@ -25,6 +25,8 @@ const AFFILIATE_CONFIGS: AffiliateConfig[] = [
   { domain: "magicmadhouse.co.uk", envKey: "MAGIC_MADHOUSE_AFFILIATE_REF", param: "ref" },
   { domain: "amazon.co.uk", envKey: "AMAZON_ASSOCIATES_TAG", param: "tag" },
   { domain: "amazon.com", envKey: "AMAZON_ASSOCIATES_TAG", param: "tag" },
+  { domain: "zatu.co.uk", envKey: "ZATU_AFFILIATE_REF", param: "ref" },
+  { domain: "board-game.co.uk", envKey: "ZATU_AFFILIATE_REF", param: "ref" },
 ];
 
 /**
@@ -34,6 +36,24 @@ const AFFILIATE_CONFIGS: AffiliateConfig[] = [
  * @param source - A human-readable source label, e.g. "deals-page", "build-army"
  * @returns The URL with affiliate + UTM params appended, or the raw URL if no config
  */
+/**
+ * Build an Amazon affiliate URL from an ASIN.
+ * Uses the UK Amazon store by default.
+ */
+export function amazonUrlFromAsin(
+  asin: string,
+  source: string = "buy-links",
+): string {
+  const tag = process.env.AMAZON_ASSOCIATES_TAG;
+  const brand = getSiteBrand();
+  const url = new URL(`https://www.amazon.co.uk/dp/${asin}`);
+  if (tag) url.searchParams.set("tag", tag);
+  url.searchParams.set("utm_source", brand.siteName.toLowerCase().replace(/\s+/g, "-"));
+  url.searchParams.set("utm_medium", "affiliate");
+  url.searchParams.set("utm_campaign", source);
+  return url.toString();
+}
+
 export function wrapAffiliateUrl(url: string, source: string): string {
   try {
     const parsed = new URL(url);

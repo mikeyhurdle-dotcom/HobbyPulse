@@ -7,6 +7,7 @@ import { Nav } from "@/components/nav";
 import { getArticle, listSlugs } from "@/lib/boardgame-articles";
 import { getSiteVertical, getSiteBrand } from "@/lib/site";
 import { Badge } from "@/components/ui/badge";
+import { BuyLinks, type BuyLink } from "@/components/buy-links";
 import { ArrowLeft } from "lucide-react";
 
 interface PageProps {
@@ -54,6 +55,15 @@ export default async function ReviewDetailPage({ params }: PageProps) {
   const hasAtAGlance =
     article.playerCount || article.playTime || article.ageRating ||
     article.complexity || article.priceRange;
+
+  // Build affiliate buy links from frontmatter
+  const buyLinks: BuyLink[] = [];
+  if (article.amazonAsin) {
+    buyLinks.push({ retailer: "Amazon", url: "", asin: article.amazonAsin });
+  }
+  if (article.zatuUrl) {
+    buyLinks.push({ retailer: "Zatu Games", url: article.zatuUrl });
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -155,6 +165,17 @@ export default async function ReviewDetailPage({ params }: PageProps) {
               {article.content}
             </ReactMarkdown>
           </div>
+
+          {/* Affiliate buy links */}
+          {buyLinks.length > 0 && (
+            <div className="mt-10">
+              <BuyLinks
+                gameName={article.title.replace(/\s*[-–—].*$/, "")}
+                links={buyLinks}
+                source="review"
+              />
+            </div>
+          )}
         </article>
       </main>
     </div>

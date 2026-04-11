@@ -13,6 +13,8 @@ playTime: "40-70 minutes"
 ageRating: "10+"
 complexity: "2.4/5"
 priceRange: "£35-£50"
+amazonAsin: "B07YQ1P4YJ"
+zatuUrl: "https://www.board-game.co.uk/wingspan-board-game/"
 ---
 
 ## Overview

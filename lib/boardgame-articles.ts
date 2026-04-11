@@ -26,6 +26,9 @@ export interface BoardGameArticleFrontmatter {
   ageRating?: string; // e.g. "10+"
   complexity?: string; // e.g. "2.4/5"
   priceRange?: string; // e.g. "£30-£45"
+  // Affiliate links
+  amazonAsin?: string; // e.g. "B07YQ1P4YJ"
+  zatuUrl?: string; // full Zatu product URL
   draft?: boolean;
 }
 
@@ -80,6 +83,8 @@ function readArticleFile(
     ageRating: fm.ageRating,
     complexity: fm.complexity,
     priceRange: fm.priceRange,
+    amazonAsin: fm.amazonAsin,
+    zatuUrl: fm.zatuUrl,
     content,
   };
 }
