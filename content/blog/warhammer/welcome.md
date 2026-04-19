@@ -20,6 +20,12 @@ A few things we're lining up for the first batch of posts:
 - **Buying guides for Combat Patrols** — which ones are worth the points, which ones are overpriced filler, and which ones to avoid entirely.
 - **Second-hand spotting guides** — how to tell a £30 bargain from a £30 headache on eBay.
 
+## Start here
+
+- [2025 Board Game Award Winners: 11 Games Actually Worth Buying](/boardgames/best/2025-board-game-award-winners-worth-buying)
+- [Browse today’s tabletop deals](/deals)
+- Join the newsletter from the homepage for weekly board game and miniatures deal drops.
+
 If there's a specific topic you want to see, drop us a line. The whole point of this site is to be useful to people who actually play the game.
 
 Happy hobbying.

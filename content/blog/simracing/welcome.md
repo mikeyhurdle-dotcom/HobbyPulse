@@ -20,6 +20,12 @@ A few things lined up for the first batch of posts:
 - **Triple screen vs ultrawide vs VR** — the trade-offs nobody talks about until after they've bought the wrong thing.
 - **Setup explainers** — what brake bias, camber, and ride height actually do to car behaviour, without the engineering jargon.
 
+## Start here
+
+- [Best Sim Racing Upgrades Under £200 (That Actually Make You Faster)](/blog/best-sim-racing-upgrades-under-200)
+- [Browse today’s sim racing deals](/deals)
+- Join the newsletter from the homepage for weekly hardware price drops.
+
 If there's a specific topic you want to see, let us know. The whole point of this site is to be useful to people who actually race.
 
 See you on track.
