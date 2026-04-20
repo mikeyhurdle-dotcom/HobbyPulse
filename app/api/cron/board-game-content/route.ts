@@ -2,7 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { fetchTranscript } from "@/lib/youtube-transcript";
 import { generateArticle } from "@/lib/board-game-parser";
-import type { BoardGameContentType } from "@/lib/board-game-classify";
+import {
+  buildInternalLinks,
+  enforceArticleTemplate,
+  injectInternalLinks,
+  lintEditorialVoice,
+  type InternalLinkCandidate,
+} from "@/lib/board-game-content-pipeline";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -132,6 +138,31 @@ export async function GET(request: NextRequest) {
       );
 
       if (article) {
+        // Add required template structure and internal links before persistence
+        const { data: existingArticles } = await supabase
+          .from("board_game_articles")
+          .select("slug, title, article_type")
+          .in("status", ["draft", "review", "published"])
+          .limit(200);
+
+        const internalLinks = buildInternalLinks(
+          article.title,
+          article.article_type,
+          (existingArticles ?? []) as InternalLinkCandidate[],
+        );
+
+        const structuredContent = enforceArticleTemplate(article.content);
+        const linkedContent = injectInternalLinks(structuredContent, internalLinks);
+
+        const voiceLint = lintEditorialVoice(linkedContent);
+        if (!voiceLint.ok) {
+          stats.errors.push(
+            `Voice lint failed for ${video.youtube_video_id}: missing ${voiceLint.missing.join(", ")}`,
+          );
+          stats.articlesFailed++;
+          continue;
+        }
+
         // Save article to board_game_articles table
         const { data: inserted, error: insertError } = await supabase
           .from("board_game_articles")
@@ -140,7 +171,7 @@ export async function GET(request: NextRequest) {
               slug: article.slug,
               title: article.title,
               meta_description: article.meta_description,
-              content: article.content,
+              content: linkedContent,
               article_type: article.article_type,
               source_video_ids: [video.youtube_video_id],
               source_channels: [channelName],
