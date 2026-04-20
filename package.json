@@ -10,7 +10,9 @@
     "lint": "next lint",
     "test:e2e": "playwright test",
     "test:e2e:tabletop": "playwright test --project=tabletopwatch",
-    "test:e2e:simrace": "playwright test --project=simracewatch"
+    "test:e2e:simrace": "playwright test --project=simracewatch",
+    "pipeline:boardgames:check": "node scripts/boardgame-pipeline-check.mjs",
+    "pipeline:boardgames:generate-drafts": "node scripts/boardgame-generate-drafts.mjs"
   },
   "keywords": [],
   "author": "",

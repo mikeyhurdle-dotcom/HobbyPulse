@@ -2,15 +2,15 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Nav } from "@/components/nav";
-import { getSiteVertical, getSiteBrand } from "@/lib/site";
+import { getSiteVertical } from "@/lib/site";
 import { listArticles } from "@/lib/boardgame-articles";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft } from "lucide-react";
+import { withMetaTitle } from "@/lib/seo";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const brand = getSiteBrand();
   return {
-    title: `Board Game Comparisons | ${brand.siteName}`,
+    title: withMetaTitle("Board Game Comparisons"),
     description:
       "Head-to-head board game comparisons to help you decide which game to buy.",
   };

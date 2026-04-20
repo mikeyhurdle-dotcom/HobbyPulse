@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "generatedAt": "2026-04-20",
+  "vertical": "simracing",
+  "items": [
+    { "slug": "best-load-cell-pedals-under-300", "title": "Best Load Cell Pedals Under £300", "template": "best-list", "priority": "high" },
+    { "slug": "best-direct-drive-wheelbases-under-500", "title": "Best Direct Drive Wheelbases Under £500", "template": "best-list", "priority": "high" },
+    { "slug": "best-sim-racing-rigs-for-small-spaces", "title": "Best Sim Racing Rigs for Small Spaces", "template": "best-list", "priority": "high" },
+    { "slug": "best-sim-racing-monitors-vs-ultrawide", "title": "Best Sim Racing Display Setup: Triple Monitors vs Ultrawide", "template": "versus", "priority": "high" },
+    { "slug": "best-entry-level-wheel-and-pedal-bundles", "title": "Best Entry-Level Wheel and Pedal Bundles", "template": "best-list", "priority": "high" },
+
+    { "slug": "how-to-set-brake-force-load-cell", "title": "How to Set Brake Force on Load Cell Pedals", "template": "how-to", "priority": "high" },
+    { "slug": "how-to-fix-inconsistent-trail-braking", "title": "How to Fix Inconsistent Trail Braking", "template": "how-to", "priority": "high" },
+    { "slug": "how-to-set-correct-fov-in-iracing", "title": "How to Set Correct FOV in iRacing", "template": "how-to", "priority": "high" },
+    { "slug": "how-to-tune-ffb-for-consistency", "title": "How to Tune FFB for Consistency, Not Hype", "template": "how-to", "priority": "high" },
+    { "slug": "how-to-reduce-rig-flex-under-braking", "title": "How to Reduce Rig Flex Under Heavy Braking", "template": "how-to", "priority": "high" },
+
+    { "slug": "fanatec-csl-dd-vs-moza-r5", "title": "Fanatec CSL DD vs Moza R5", "template": "versus", "priority": "high" },
+    { "slug": "simjack-pro-vs-thrustmaster-t-lcm", "title": "Simjack Pro vs Thrustmaster T-LCM", "template": "versus", "priority": "high" },
+    { "slug": "sim-lab-gt1-evo-vs-next-level-racing-gttrack", "title": "Sim-Lab GT1 Evo vs Next Level Racing GTtrack", "template": "versus", "priority": "medium" },
+    { "slug": "triple-27-vs-triple-32-for-iracing", "title": "Triple 27 vs Triple 32 for iRacing", "template": "versus", "priority": "medium" },
+    { "slug": "open-wheel-vs-gt-seating-position", "title": "Open-Wheel vs GT Seating Position", "template": "versus", "priority": "medium" },
+
+    { "slug": "best-upgrades-under-100-for-consistency", "title": "Best Sim Racing Upgrades Under £100 for Consistency", "template": "best-list", "priority": "medium" },
+    { "slug": "best-upgrades-under-250-for-lap-time", "title": "Best Sim Racing Upgrades Under £250 for Lap-Time Stability", "template": "best-list", "priority": "medium" },
+    { "slug": "best-pedal-plates-and-mounting-solutions", "title": "Best Pedal Plates and Mounting Solutions", "template": "best-list", "priority": "medium" },
+    { "slug": "best-budget-buttkicker-alternatives", "title": "Best Budget Buttkicker Alternatives", "template": "best-list", "priority": "medium" },
+    { "slug": "best-quick-release-options-for-dd-wheels", "title": "Best Quick Release Options for DD Wheelbases", "template": "best-list", "priority": "medium" },
+
+    { "slug": "how-to-build-a-progressive-practice-plan", "title": "How to Build a Progressive Practice Plan", "template": "how-to", "priority": "medium" },
+    { "slug": "how-to-analyse-replays-for-braking-errors", "title": "How to Analyse Replays for Braking Errors", "template": "how-to", "priority": "medium" },
+    { "slug": "how-to-fix-mid-corner-understeer-on-default-setups", "title": "How to Fix Mid-Corner Understeer on Default Setups", "template": "how-to", "priority": "medium" },
+    { "slug": "how-to-calibrate-pedals-after-firmware-update", "title": "How to Calibrate Pedals After a Firmware Update", "template": "how-to", "priority": "medium" },
+    { "slug": "how-to-choose-first-endurance-race-stint-strategy", "title": "How to Choose a First Endurance Race Stint Strategy", "template": "how-to", "priority": "medium" },
+
+    { "slug": "vrs-vs-coach-dave-setup-subscription", "title": "VRS vs Coach Dave Setup Subscription", "template": "versus", "priority": "medium" },
+    { "slug": "iracing-vs-acc-for-skill-transfer", "title": "iRacing vs ACC for Skill Transfer", "template": "versus", "priority": "medium" },
+    { "slug": "load-cell-vs-hall-sensor-pedals", "title": "Load Cell vs Hall Sensor Pedals", "template": "versus", "priority": "medium" },
+    { "slug": "belt-drive-vs-direct-drive-for-beginners", "title": "Belt Drive vs Direct Drive for Beginners", "template": "versus", "priority": "medium" },
+    { "slug": "fixed-bucket-vs-recliner-seat-for-rigs", "title": "Fixed Bucket vs Recliner Seat for Sim Rigs", "template": "versus", "priority": "medium" }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "notes": "Blueprint only; apply in vercel.json after content pipeline endpoint is live.",
+  "crons": [
+    { "path": "/api/cron/simrace-discover", "schedule": "0 5 * * *" },
+    { "path": "/api/cron/simrace-transcripts", "schedule": "30 5 * * *" },
+    { "path": "/api/cron/simrace-content", "schedule": "0 6 * * *" },
+    { "path": "/api/cron/simrace-content?mode=qa", "schedule": "0 7 * * 1" },
+    { "path": "/api/cron/simrace-affiliate-audit", "schedule": "0 8 * * 1,4" }
+  ],
+  "alerts": {
+    "keep": [
+      "cron endpoint non-200 for 2 consecutive runs",
+      "build failure on default branch",
+      "voice lint failure rate > 20% for generated drafts"
+    ],
+    "suppress": [
+      "single draft confidence warnings",
+      "non-critical missing optional metadata"
+    ]
+  }
+}
