@@ -1,6 +1,6 @@
 ---
-title: iRacing Season 2 2026 Track List: Priority Purchases (What to Buy First)
-excerpt: A practical iRacing Season 2 2026 track buying guide covering priority purchases for rookies and regular racers, so you spend smarter and race more weeks.
+title: "iRacing Season 2 2026 Track List: Priority Purchases (What to Buy First)"
+excerpt: "A practical iRacing Season 2 2026 track buying guide covering priority purchases for rookies and regular racers, so you spend smarter and race more weeks."
 publishedAt: 2026-04-20
 author: SimRaceWatch
 tags:

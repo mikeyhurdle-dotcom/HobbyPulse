@@ -1,6 +1,6 @@
 ---
-title: Warhammer 40K 11th Edition Detachment Changes: What to Buy Now (Without Wasting Money)
-excerpt: A buy-first guide to 40K 11th Edition detachment changes, including what to buy now, what to hold, and how to build smart under real UK budgets.
+title: "Warhammer 40K 11th Edition Detachment Changes: What to Buy Now (Without Wasting Money)"
+excerpt: "A buy-first guide to 40K 11th Edition detachment changes, including what to buy now, what to hold, and how to build smart under real UK budgets."
 publishedAt: 2026-04-20
 author: TabletopWatch
 tags:

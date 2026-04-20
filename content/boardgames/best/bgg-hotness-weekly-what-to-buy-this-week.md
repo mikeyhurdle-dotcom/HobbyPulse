@@ -1,6 +1,6 @@
 ---
-title: BGG Hotness This Week: What’s Worth Buying (and What to Skip)
-excerpt: A buyer-focused breakdown of this week’s BGG Hotness movers, including who each game is for, what to buy now, and which hype titles to hold.
+title: "BGG Hotness This Week: What’s Worth Buying (and What to Skip)"
+excerpt: "A buyer-focused breakdown of this week’s BGG Hotness movers, including who each game is for, what to buy now, and which hype titles to hold."
 publishedAt: 2026-04-20
 author: TabletopWatch
 articleType: best
