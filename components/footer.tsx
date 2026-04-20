@@ -1,8 +1,10 @@
 import Link from "next/link";
-import { getSiteBrand } from "@/lib/site";
+import { getSiteBrand, getSiteVertical } from "@/lib/site";
 
 export function Footer() {
   const brand = getSiteBrand();
+  const vertical = getSiteVertical();
+  const mp = vertical.slug === "warhammer" ? "/miniatures" : "";
 
   return (
     <footer className="border-t border-border bg-secondary/50 mt-16">
@@ -21,13 +23,15 @@ export function Footer() {
             <Link href="/contact" className="hover:text-foreground transition-colors">
               Contact
             </Link>
-            <Link href="/trending" className="hover:text-foreground transition-colors">
+            <Link href={`${mp}/trending`} className="hover:text-foreground transition-colors">
               Trending
             </Link>
-<Link href="/boardgames" className="hover:text-foreground transition-colors">
-              Board Games
-            </Link>
-            <Link href="/channels" className="hover:text-foreground transition-colors">
+            {vertical.slug === "warhammer" && (
+              <Link href="/boardgames" className="hover:text-foreground transition-colors">
+                Board Games
+              </Link>
+            )}
+            <Link href={`${mp}/channels`} className="hover:text-foreground transition-colors">
               Channels
             </Link>
             <Link href="/privacy" className="hover:text-foreground transition-colors">

@@ -31,6 +31,17 @@ export async function Nav({ active }: { active: string }) {
     (tab) => !tab.verticalOnly || tab.verticalOnly === vertical.slug,
   );
 
+  const isTabletop = vertical.slug === "warhammer";
+  const miniaturesSectionKeys = new Set([
+    "miniatures",
+    "watch",
+    "build",
+    "armies",
+    "channels",
+    "trending",
+  ]);
+  const activeKey = isTabletop && miniaturesSectionKeys.has(active) ? "miniatures" : active;
+
   // Auth — gracefully degrade if Supabase auth is not configured
   let authUser: {
     email: string;
@@ -91,13 +102,13 @@ export async function Nav({ active }: { active: string }) {
                 key={tab.key}
                 href={tab.href}
                 className={`relative px-3 lg:px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                  active === tab.key
+                  activeKey === tab.key
                     ? "bg-secondary text-foreground"
                     : "text-muted-foreground hover:text-foreground hover:bg-secondary"
                 }`}
               >
                 <span>{tab.name}</span>
-                {active === tab.key && (
+                {activeKey === tab.key && (
                   <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-6 h-0.5 rounded-full bg-[var(--vertical-accent)]" />
                 )}
                 {tab.key === "live" && (
@@ -111,7 +122,7 @@ export async function Nav({ active }: { active: string }) {
           <div className="flex items-center gap-2">
             <NavAuth user={authUser} />
             <ThemeToggle />
-            <MobileNav tabs={tabs} active={active} brand={brand} />
+            <MobileNav tabs={tabs} active={activeKey} brand={brand} />
           </div>
         </div>
       </div>
