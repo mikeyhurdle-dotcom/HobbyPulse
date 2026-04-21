@@ -21,7 +21,7 @@ draft: true
 ---
 
 ## SEO Title
-How to Pick and Learn Your First Heavy Eurogame (2026 Beginner Framework) | TabletopWatch
+How to Pick and Learn Your First Heavy Eurogame (2026 Beginner Framework) | Tabletop Watch — Board Games & Miniatures
 
 ## Meta Description
 Learn your first heavy eurogame without rules burnout: setup checklist, objective-first learning method, turn structure drills, scoring focus, and first-game tips.
