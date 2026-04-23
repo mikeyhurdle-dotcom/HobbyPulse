@@ -300,7 +300,7 @@ export default async function HomePage() {
                 </p>
               </div>
               <Link
-                href="/trending"
+                href={isTabletop ? "/miniatures/trending" : "/trending"}
                 className="inline-flex items-center gap-1 text-sm font-medium text-[var(--danger)] hover:underline whitespace-nowrap"
               >
                 View all <ArrowRight className="w-3.5 h-3.5" />

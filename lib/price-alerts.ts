@@ -7,10 +7,16 @@ import { sendPriceAlert } from "@/lib/email";
 import { wrapAffiliateUrl } from "@/lib/affiliate";
 
 // Admin client (service role) for writes — falls back to anon for dev
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-);
+function getSupabaseAdmin() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error("Missing Supabase env configuration");
+  }
+
+  return createClient(supabaseUrl, supabaseKey);
+}
 
 // ---------------------------------------------------------------------------
 // Create
@@ -28,6 +34,8 @@ export async function createPriceAlert(
   productId: string,
   targetPricePence: number,
 ): Promise<void> {
+  const supabaseAdmin = getSupabaseAdmin();
+
   const { error } = await supabaseAdmin.from("price_alerts").insert({
     email,
     product_id: productId,
@@ -66,6 +74,8 @@ interface AlertRow {
  * target price, send notification emails, and update last_notified_at.
  */
 export async function checkAndSendAlerts(): Promise<{ sent: number }> {
+  const supabaseAdmin = getSupabaseAdmin();
+
   // Fetch active alerts with product + listings
   const { data: alerts, error } = await supabaseAdmin
     .from("price_alerts")

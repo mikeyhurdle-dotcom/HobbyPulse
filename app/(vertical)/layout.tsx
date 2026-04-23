@@ -1,23 +1,20 @@
 import type { Metadata } from "next";
-import { getSiteVertical, getSiteBrand } from "@/lib/site";
+import { getSiteVertical } from "@/lib/site";
+import { getMetaTitleSuffix } from "@/lib/seo";
 
 // ---------------------------------------------------------------------------
 // Dynamic metadata
 // ---------------------------------------------------------------------------
 
 export async function generateMetadata(): Promise<Metadata> {
-  const brand = getSiteBrand();
   const config = getSiteVertical();
-  const isTabletop = config.slug === "warhammer";
 
   return {
     title: {
-      default: brand.siteName,
-      template: isTabletop
-        ? `%s | ${brand.siteName} — Board Games & Tabletop`
-        : `%s | ${brand.siteName}`,
+      default: getMetaTitleSuffix(),
+      template: `%s | ${getMetaTitleSuffix()}`,
     },
-    description: brand.tagline,
+    description: config.brand.tagline,
   };
 }
 

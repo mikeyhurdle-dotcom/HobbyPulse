@@ -5,9 +5,10 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Nav } from "@/components/nav";
 import { getArticle, listSlugs } from "@/lib/boardgame-articles";
-import { getSiteVertical, getSiteBrand } from "@/lib/site";
+import { getSiteVertical } from "@/lib/site";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft } from "lucide-react";
+import { withMetaTitle } from "@/lib/seo";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -19,16 +20,15 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const brand = getSiteBrand();
   const article = getArticle("versus", slug);
 
-  if (!article) return { title: `Not found | ${brand.siteName}` };
+  if (!article) return { title: "Not found" };
 
   return {
-    title: `${article.title} | ${brand.siteName}`,
+    title: withMetaTitle(article.title),
     description: article.excerpt,
     openGraph: {
-      title: article.title,
+      title: withMetaTitle(article.title),
       description: article.excerpt,
       type: "article",
       publishedTime: article.publishedAt,
@@ -36,7 +36,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     },
     twitter: {
       card: "summary",
-      title: article.title,
+      title: withMetaTitle(article.title),
       description: article.excerpt,
     },
   };
