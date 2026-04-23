@@ -15,7 +15,7 @@ draft: true
 ---
 
 ## SEO Title
-Best New Board Games of April 2026: What to Buy First | Tabletop Watch
+Best New Board Games of April 2026: What to Buy First | Tabletop Watch — Board Games & Miniatures
 
 ## Meta Description
 Our ranked April 2026 board game buyer guide: the best new releases from BGG Hotness + creator consensus, with who each game is for and why it made the cut.

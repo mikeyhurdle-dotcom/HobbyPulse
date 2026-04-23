@@ -15,7 +15,7 @@ draft: true
 ---
 
 ## SEO Title
-Best 2-Player Strategy Board Games in 2026 (Couples + Competitive) | Tabletop Watch
+Best 2-Player Strategy Board Games in 2026 (Couples + Competitive) | Tabletop Watch — Board Games & Miniatures
 
 ## Meta Description
 Looking for the best 2-player strategy board games in 2026? Here are the top ranked picks for couples and competitive duos, including who each game suits and why it made the list.

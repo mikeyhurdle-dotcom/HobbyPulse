@@ -35,6 +35,8 @@ Looking for board games with great miniatures? Our 2026 buyer-focused review cov
 - **Price range:** £60-£180
 
 ## Quick Verdict
+**Rating: 8.2/10**
+
 **Miniatures are worth paying for only when they improve table readability, emotional engagement, and long-term replay value—not just shelf presence.**
 
 If you play campaign games, skirmish-heavy dungeon crawlers, or host hobby nights where painted components matter, premium miniature games can be excellent value. If your table prioritizes quick setup, low storage footprint, and tight euro pacing, cardboard-first titles usually deliver better price-to-play return.
