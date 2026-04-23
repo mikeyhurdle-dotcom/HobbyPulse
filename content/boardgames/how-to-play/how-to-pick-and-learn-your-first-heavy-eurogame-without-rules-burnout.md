@@ -17,7 +17,7 @@ priceRange: "£40-£90"
 amazonAsin: "B0DUMMYHEURO"
 zatuUrl: "https://www.board-game.co.uk/search-results/?query=heavy+eurogame"
 waylandUrl: "https://www.waylandgames.co.uk/search?query=heavy+board+game"
-draft: true
+draft: false
 ---
 
 ## SEO Title

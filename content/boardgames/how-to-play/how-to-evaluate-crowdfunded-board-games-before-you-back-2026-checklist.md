@@ -18,7 +18,7 @@ priceRange: "£35-£220"
 amazonAsin: "B0DUMMYCROWD"
 zatuUrl: "https://www.board-game.co.uk/search-results/?query=crowdfunded+board+game"
 waylandUrl: "https://www.waylandgames.co.uk/search?query=board+game+preorder"
-draft: true
+draft: false
 ---
 
 ## SEO Title

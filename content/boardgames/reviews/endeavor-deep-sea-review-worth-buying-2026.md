@@ -18,7 +18,7 @@ priceRange: "£45-£70"
 amazonAsin: "B0DUMMYEDEEP"
 zatuUrl: "https://www.board-game.co.uk/search-results/?query=endeavor+deep+sea"
 waylandUrl: "https://www.waylandgames.co.uk/search?query=endeavor+deep+sea"
-draft: true
+draft: false
 ---
 
 ## SEO Title
