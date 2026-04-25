@@ -47,6 +47,7 @@ Skip campaign backing if you are budget-sensitive, dislike waiting 12-18 months,
 - **Best for:** Buyers who want practical table-fit guidance before spending.
 
 ## Where to Buy
+- Amazon UK (retail alternatives): https://www.amazon.co.uk/s?k=board+games+new+releases
 - Kickstarter tabletop: https://www.kickstarter.com/discover/categories/games/tabletop%20games
 - Gamefound: https://gamefound.com/en/projects
 - Zatu Games (retail follow-up): https://www.board-game.co.uk/product-category/board-games/

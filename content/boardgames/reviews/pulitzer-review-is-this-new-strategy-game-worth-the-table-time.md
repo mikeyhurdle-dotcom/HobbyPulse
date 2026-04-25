@@ -33,12 +33,12 @@ Our Pulitzer board game review covers what works, what doesn’t, player-count s
 ## Verdict
 **Conditional buy.** Pulitzer has smart decision pressure and good replay variety, but it is less forgiving than it first appears.
 
-## Pros
+## What Works
 - Strong strategic arc with meaningful tempo choices
 - Clean iconography after first game
 - Satisfying tension at 2-3 players
 
-## Cons
+## What Doesn’t
 - First teach is rougher than the box suggests
 - Downtime rises sharply at 4 with AP-prone groups
 - Price feels high if your group prefers lighter games
