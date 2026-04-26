@@ -179,7 +179,7 @@ export default async function CategoryDealsPage({
     <>
       <JsonLd data={itemListLd} />
       <Nav active="deals" />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+      <main className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-8 overflow-x-hidden">
         <Link
           href="/deals"
           className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4"
@@ -241,7 +241,7 @@ export default async function CategoryDealsPage({
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {enriched.map((product) => (
               <Link
                 key={product.id}
