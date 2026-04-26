@@ -21,12 +21,6 @@ waylandUrl: "https://www.waylandgames.co.uk/search?query=board+game+preorder"
 draft: false
 ---
 
-## SEO Title
-How to Evaluate Crowdfunded Board Games Before You Back (2026 Guide) | Tabletop Watch — Board Games & Miniatures
-
-## Meta Description
-Thinking about backing a crowdfunded board game? Use this 2026 checklist to evaluate risk, gameplay evidence, shipping costs, delivery timelines, and retail alternatives.
-
 ## At a Glance
 - **Players:** 1-5 (typical campaign range)
 - **Play time:** 45-180 minutes

@@ -20,12 +20,6 @@ waylandUrl: "https://www.waylandgames.co.uk/search?query=heavy+board+game"
 draft: false
 ---
 
-## SEO Title
-How to Pick and Learn Your First Heavy Eurogame (2026 Beginner Framework) | Tabletop Watch — Board Games & Miniatures
-
-## Meta Description
-Learn your first heavy eurogame without rules burnout: setup checklist, objective-first learning method, turn structure drills, scoring focus, and first-game tips.
-
 ## At a Glance
 - **Players:** 2-4 (best first-learning count: 2-3)
 - **Play time:** 90-180 minutes

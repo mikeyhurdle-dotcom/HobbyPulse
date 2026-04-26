@@ -7,8 +7,6 @@ interface TemplateContext {
 }
 
 const REQUIRED_HEADINGS = [
-  "## SEO Title",
-  "## Meta Description",
   "## At a Glance",
   "## Where to Buy",
   "## Related Articles",
@@ -23,12 +21,6 @@ export function buildTemplateMarkdown(template: PipelineTemplate, ctx: TemplateC
   const source = ctx.sourceChannelName ? `\n_Source: ${ctx.sourceChannelName}_\n` : "";
 
   const sharedTop = [
-    "## SEO Title",
-    `${game} ${template === "review" ? "Review" : "Guide"} (2026) | Tabletop Watch — Board Games & Miniatures`,
-    "",
-    "## Meta Description",
-    `Honest ${template.replace("-", " ")} coverage for ${game}: key strengths, caveats, and who should buy it.`,
-    "",
     "## At a Glance",
     "- **Players:** TBD",
     "- **Play time:** TBD",
@@ -119,13 +111,6 @@ export function enforceArticleTemplate(content: string): string {
   if (!hasHeading(out, "## At a Glance")) {
     out += "\n\n## At a Glance\n- **Players:** TBD\n- **Play time:** TBD\n- **Age:** TBD\n- **Complexity:** TBD\n- **Price range:** TBD";
   }
-
-  // Enforce site-wide meta title suffix in the SEO title block.
-  const brandSuffix = "| Tabletop Watch — Board Games & Miniatures";
-  out = out.replace(/(## SEO Title\n)([^\n]+)/i, (_m, p1, p2) => {
-    const line = String(p2).trim();
-    return `${p1}${line.includes(brandSuffix) ? line : `${line} ${brandSuffix}`}`;
-  });
 
   return out;
 }

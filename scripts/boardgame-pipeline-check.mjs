@@ -12,7 +12,7 @@ const queuedSlugs = new Set(
     ? Object.values(queue.groups || {}).flat().map((e) => e.slug)
     : [],
 );
-const requiredHeadings = ['## SEO Title', '## Meta Description', '## At a Glance', '## Where to Buy', '## Related Articles'];
+const requiredHeadings = ['## At a Glance', '## Where to Buy', '## Related Articles'];
 const forbiddenPatterns = [
   /in\s+today'?s\s+fast-?paced\s+world/i,
   /whether\s+you'?re\s+a\s+seasoned\s+veteran\s+or\s+a\s+newcomer/i,

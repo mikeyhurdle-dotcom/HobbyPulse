@@ -12,11 +12,6 @@ zatuUrl: "https://www.board-game.co.uk/"
 waylandUrl: "https://www.waylandgames.co.uk/"
 draft: true
 ---
-## SEO Title
-How to Play Catan (Beginner Guide) | Tabletop Watch — Board Games & Miniatures
-
-## Meta Description
-How to Play Catan (Beginner Guide) broken down with practical buying advice, trade-offs, and a clear recommendation for UK players.
 
 ## At a Glance
 - **Players:** 1-4 (varies by edition)
@@ -73,4 +68,3 @@ Skip if your group hates icon-heavy games or prefers pure luck-driven party game
 
 ## Related Articles
 - [Best Cooperative Board Games to Play Tonight](/boardgames/best/best-cooperative-board-games-to-play-tonight)
-
