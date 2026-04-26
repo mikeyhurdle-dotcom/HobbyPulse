@@ -12,11 +12,6 @@ zatuUrl: "https://www.board-game.co.uk/"
 waylandUrl: "https://www.waylandgames.co.uk/"
 draft: true
 ---
-## SEO Title
-How to Play Azul (Fast Rules Teach) | Tabletop Watch — Board Games & Miniatures
-
-## Meta Description
-How to Play Azul (Fast Rules Teach) broken down with practical buying advice, trade-offs, and a clear recommendation for UK players.
 
 ## At a Glance
 - **Players:** 1-4 (varies by edition)
@@ -76,4 +71,3 @@ Skip if your group hates icon-heavy games or prefers pure luck-driven party game
 - [Azul vs Sagrada: Best Abstract Game for New Players](/boardgames/versus/azul-vs-sagrada)
 - [How to Play Catan (Beginner Guide)](/boardgames/how-to-play/how-to-play-catan-beginner-guide)
 - [How to Play Wingspan (Step-by-Step)](/boardgames/how-to-play/how-to-play-wingspan-step-by-step)
-

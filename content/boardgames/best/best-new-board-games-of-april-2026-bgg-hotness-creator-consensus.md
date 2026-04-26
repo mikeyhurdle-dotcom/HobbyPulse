@@ -13,12 +13,6 @@ priceRange: "£20-£95"
 draft: true
 ---
 
-## SEO Title
-Best New Board Games of April 2026: What to Buy First | Tabletop Watch — Board Games & Miniatures
-
-## Meta Description
-Our practical April 2026 buyer guide to the best new board games from BGG Hotness and creator consensus, including who each pick suits and who should skip.
-
 ## At a Glance
 - **Players:** 1-6 (varies)
 - **Play time:** 30-150 minutes

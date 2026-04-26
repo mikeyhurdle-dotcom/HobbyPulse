@@ -21,12 +21,6 @@ waylandUrl: "https://www.waylandgames.co.uk/search?query=miniatures+board+game"
 draft: true
 ---
 
-## SEO Title
-Best Board Games with Miniatures (2026) — Which Ones Are Actually Worth It? | Tabletop Watch — Board Games & Miniatures
-
-## Meta Description
-Looking for board games with great miniatures? Our 2026 buyer-focused review covers sculpt quality, gameplay value, paintability, and which miniature-heavy games are worth your money.
-
 ## At a Glance
 - **Players:** 1-6 (varies by title)
 - **Play time:** 60-240 minutes

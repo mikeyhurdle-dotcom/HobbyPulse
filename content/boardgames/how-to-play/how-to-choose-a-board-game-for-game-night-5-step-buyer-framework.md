@@ -13,12 +13,6 @@ priceRange: "£15-£90"
 draft: true
 ---
 
-## SEO Title
-How to Choose a Board Game for Game Night (5-Step Buyer Framework) | Tabletop Watch — Board Games & Miniatures
-
-## Meta Description
-Use this 5-step buyer framework to choose the right board game for game night, avoid bad purchases, and match your group’s real table habits.
-
 ## At a Glance
 - **Players:** 2-8
 - **Play time:** 20-180 minutes

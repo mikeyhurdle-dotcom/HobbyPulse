@@ -17,12 +17,6 @@ priceRange: "£30-£55"
 draft: true
 ---
 
-## SEO Title
-Lairs vs Excursions — Better Mid-Weight Pick for Weekly Game Night? | Tabletop Watch — Board Games & Miniatures
-
-## Meta Description
-Choosing between Lairs and Excursions? Compare teachability, interaction, replay value, and player count fit to buy the right mid-weight game.
-
 ## At a Glance
 - **Players:** 2-5
 - **Play time:** 45-90 minutes

@@ -18,12 +18,6 @@ priceRange: "£20-£40"
 draft: true
 ---
 
-## SEO Title
-Lairs vs Tanglewoods: Which New Tactical Card Game Should You Buy? | Tabletop Watch — Board Games & Miniatures
-
-## Meta Description
-Trying to pick between Lairs and Tanglewoods? This practical side-by-side comparison breaks down complexity, replay value, and which game fits your player type.
-
 ## At a Glance
 - **Players:** 1-2
 - **Play time:** 20-45 minutes

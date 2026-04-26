@@ -13,12 +13,6 @@ priceRange: "£35-£90"
 draft: true
 ---
 
-## SEO Title
-How to Teach Heavy Eurogames Without Losing New Players | Tabletop Watch — Board Games & Miniatures
-
-## Meta Description
-Learn how to teach heavy eurogames without overwhelming new players, with a practical structure for setup, turn flow, pacing, and first-game success.
-
 ## At a Glance
 - **Players:** 2-5
 - **Play time:** 90-180 minutes

@@ -21,12 +21,6 @@ waylandUrl: "https://www.waylandgames.co.uk/search?query=endeavor+deep+sea"
 draft: false
 ---
 
-## SEO Title
-Endeavor: Deep Sea Review (2026) — Should You Buy It? | Tabletop Watch — Board Games & Miniatures
-
-## Meta Description
-Endeavor: Deep Sea review for 2026 buyers: verdict, pros and cons, complexity fit, best player counts, and where it offers the strongest value.
-
 ## At a Glance
 - **Players:** 1-4
 - **Play time:** 60-120 minutes

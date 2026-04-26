@@ -17,12 +17,6 @@ priceRange: "£40-£70"
 draft: true
 ---
 
-## SEO Title
-Pulitzer Review: Is This New Strategy Game Worth the Table Time? | Tabletop Watch — Board Games & Miniatures
-
-## Meta Description
-Our Pulitzer board game review covers what works, what doesn’t, player-count sweet spot, and whether this strategy title is worth buying in 2026.
-
 ## At a Glance
 - **Players:** 2-4
 - **Play time:** 60-110 minutes

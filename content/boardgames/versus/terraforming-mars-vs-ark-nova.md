@@ -12,11 +12,6 @@ zatuUrl: "https://www.board-game.co.uk/"
 waylandUrl: "https://www.waylandgames.co.uk/"
 draft: true
 ---
-## SEO Title
-Terraforming Mars vs Ark Nova: Better Engine Builder? | Tabletop Watch — Board Games & Miniatures
-
-## Meta Description
-Terraforming Mars vs Ark Nova: Better Engine Builder? broken down with practical buying advice, trade-offs, and a clear recommendation for UK players.
 
 ## At a Glance
 - **Players:** 1-4 (varies by edition)
@@ -53,4 +48,3 @@ The caveat: high review scores hide table-fit problems. One game can feel brilli
 
 ## Related Articles
 - [Best Board Games for Couples](/boardgames/best/best-board-games-for-couples)
-

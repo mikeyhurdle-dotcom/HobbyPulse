@@ -17,12 +17,6 @@ priceRange: "£45-£80"
 draft: true
 ---
 
-## SEO Title
-Brass: Birmingham vs Brass: Pittsburgh — Which Brass Game Should You Buy First? | Tabletop Watch — Board Games & Miniatures
-
-## Meta Description
-Choosing your first Brass game? Compare Birmingham vs Pittsburgh on teachability, interaction, replay value, and table fit before you buy.
-
 ## At a Glance
 - **Players:** 2-4
 - **Play time:** 90-150 minutes

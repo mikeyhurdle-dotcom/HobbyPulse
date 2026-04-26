@@ -13,12 +13,6 @@ priceRange: "£18-£85"
 draft: true
 ---
 
-## SEO Title
-Best 2-Player Board Games in 2026 (Couples + Competitive Picks) | Tabletop Watch — Board Games & Miniatures
-
-## Meta Description
-Looking for the best 2-player board games in 2026? Here are practical picks for couples and competitive duos, with who should buy each and who should skip.
-
 ## At a Glance
 - **Players:** 2
 - **Play time:** 20-120 minutes

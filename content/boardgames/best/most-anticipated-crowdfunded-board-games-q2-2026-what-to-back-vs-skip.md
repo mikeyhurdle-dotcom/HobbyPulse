@@ -13,12 +13,6 @@ priceRange: "£1-£180"
 draft: true
 ---
 
-## SEO Title
-Most Anticipated Crowdfunded Board Games (Q2 2026): What to Back vs Skip | Tabletop Watch — Board Games & Miniatures
-
-## Meta Description
-Our Q2 2026 crowdfunded board game guide highlights the most anticipated projects with practical back-or-skip advice, risk caveats, and buyer fit.
-
 ## At a Glance
 - **Players:** 1-6 (varies)
 - **Play time:** 45-180 minutes

@@ -13,12 +13,6 @@ priceRange: "£15-£60"
 draft: true
 ---
 
-## SEO Title
-Best Gateway Board Games for New Players in 2026 | Tabletop Watch — Board Games & Miniatures
-
-## Meta Description
-Our 2026 gateway board game buyer guide: beginner-friendly picks that are easy to teach, good value, and still worth replaying after the first month.
-
 ## At a Glance
 - **Players:** 2-6
 - **Play time:** 20-90 minutes

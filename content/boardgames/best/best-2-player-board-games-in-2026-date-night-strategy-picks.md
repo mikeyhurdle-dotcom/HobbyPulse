@@ -18,12 +18,6 @@ priceRange: "£20-£85"
 draft: true
 ---
 
-## SEO Title
-Best 2-Player Board Games in 2026 (Date Night + Strategy Picks) | Tabletop Watch — Board Games & Miniatures
-
-## Meta Description
-Looking for the best 2-player board games in 2026? Here are the top date-night and strategy picks, ranked with clear fit advice and who each game suits.
-
 ## At a Glance
 - **Players:** 2
 - **Play time:** 20-120 minutes

@@ -12,11 +12,6 @@ zatuUrl: "https://www.board-game.co.uk/"
 waylandUrl: "https://www.waylandgames.co.uk/"
 draft: true
 ---
-## SEO Title
-Azul vs Sagrada: Best Abstract Game for New Players | Tabletop Watch — Board Games & Miniatures
-
-## Meta Description
-Azul vs Sagrada: Best Abstract Game for New Players broken down with practical buying advice, trade-offs, and a clear recommendation for UK players.
 
 ## At a Glance
 - **Players:** 1-4 (varies by edition)
@@ -56,4 +51,3 @@ The caveat: high review scores hide table-fit problems. One game can feel brilli
 - [2025 Board Game Award Winners Worth Buying.Md](/boardgames/best/2025-board-game-award-winners-worth-buying)
 - [Best Board Games Christmas 2026.Md](/boardgames/best/best-board-games-christmas-2026)
 - [Best Board Games For Couples.Md](/boardgames/best/best-board-games-for-couples)
-
