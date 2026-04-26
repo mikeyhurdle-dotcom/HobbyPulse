@@ -18,7 +18,8 @@ interface AdSlotProps {
 }
 
 const FORMAT_STYLES: Record<AdFormat, { width: string; height: string }> = {
-  horizontal: { width: "728px", height: "90px" },
+  // Mobile-first horizontal banner
+  horizontal: { width: "320px", height: "50px" },
   vertical: { width: "300px", height: "600px" },
   rectangle: { width: "300px", height: "250px" },
   leaderboard: { width: "728px", height: "90px" },
