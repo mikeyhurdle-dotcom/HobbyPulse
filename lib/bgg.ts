@@ -174,7 +174,10 @@ export async function fetchBggGames(bggIds: number[]): Promise<BggGame[]> {
   const ids = bggIds.join(",");
   const url = `${BGG_API}/thing?id=${ids}&stats=1&type=boardgame`;
 
-  const res = await fetch(url, { cache: "no-store" });
+  const res = await fetch(url, {
+    cache: "no-store",
+    headers: { "User-Agent": "TabletopWatch/1.0 (board game directory)" },
+  });
   if (!res.ok) {
     throw new Error(`BGG API error: ${res.status} ${res.statusText}`);
   }
