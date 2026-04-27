@@ -11,10 +11,12 @@ interface NavTab {
   key: string;
   icon: string;
   verticalOnly?: string;
+  badge?: string;
 }
 
 const allTabs: NavTab[] = [
   { name: "Board Games", href: "/boardgames", key: "boardgames", icon: "🎲", verticalOnly: "tabletop" },
+  { name: "Kickstarter", href: "/kickstarter", key: "kickstarter", icon: "🚀", verticalOnly: "tabletop", badge: "NEW" },
   { name: "Watch", href: "/watch", key: "watch", icon: "▶", verticalOnly: "simracing" },
   { name: "Setups", href: "/setups", key: "setups", icon: "⚙", verticalOnly: "simracing" },
   { name: "Deals", href: "/deals", key: "deals", icon: "£" },
@@ -98,6 +100,11 @@ export async function Nav({ active }: { active: string }) {
                 }`}
               >
                 <span>{tab.name}</span>
+                {tab.badge && (
+                  <span className="ml-1.5 inline-flex items-center rounded-full px-1.5 py-0.5 text-[9px] font-bold tracking-wider bg-[var(--vertical-accent)] text-white">
+                    {tab.badge}
+                  </span>
+                )}
                 {activeKey === tab.key && (
                   <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-6 h-0.5 rounded-full bg-[var(--vertical-accent)]" />
                 )}

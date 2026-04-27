@@ -27,6 +27,11 @@ const AFFILIATE_CONFIGS: AffiliateConfig[] = [
   { domain: "amazon.com", envKey: "AMAZON_ASSOCIATES_TAG", param: "tag" },
   { domain: "zatu.co.uk", envKey: "ZATU_AFFILIATE_REF", param: "ref" },
   { domain: "board-game.co.uk", envKey: "ZATU_AFFILIATE_REF", param: "ref" },
+  // Kickstarter has no public affiliate program — UTM-only tracking.
+  // BackerKit referral programs vary per project; many late-pledge campaigns
+  // honour a `ref=<code>` query param. Plug in BACKERKIT_REFERRAL_CODE when
+  // you have a confirmed program live.
+  { domain: "backerkit.com", envKey: "BACKERKIT_REFERRAL_CODE", param: "ref" },
 ];
 
 /**

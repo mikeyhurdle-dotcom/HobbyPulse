@@ -393,6 +393,19 @@ export async function GET(request: Request) {
     details: `${priceHistoryCount} price history records`,
   });
 
+  // Kickstarter tracker — TabletopWatch only
+  if (config.slug === "tabletop") {
+    const { count: kickstarterCount } = await supabase
+      .from("kickstarter_projects")
+      .select("id", { count: "exact", head: true });
+
+    results.push({
+      name: "Kickstarter: tracker has projects",
+      status: (kickstarterCount ?? 0) > 0 ? "PASS" : "WARN",
+      details: `${kickstarterCount ?? 0} Kickstarter projects in DB`,
+    });
+  }
+
   // =========================================================================
   // Summary
   // =========================================================================

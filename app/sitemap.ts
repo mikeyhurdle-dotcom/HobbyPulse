@@ -43,6 +43,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       { url: `${baseUrl}/boardgames/best`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.85 },
       { url: `${baseUrl}/boardgames/versus`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.85 },
       { url: `${baseUrl}/boardgames/how-to-play`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.85 },
+      { url: `${baseUrl}/kickstarter`, lastModified: new Date(), changeFrequency: "hourly", priority: 0.9 },
     );
 
     // Individual article pages from filesystem

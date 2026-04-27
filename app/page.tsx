@@ -7,7 +7,7 @@ import { websiteSchema } from "@/lib/structured-data";
 import { supabase } from "@/lib/supabase";
 import { classifyGameSystem, isShort } from "@/lib/classify";
 import { getGameSystem } from "@/config/game-systems";
-import { Play, TrendingUp, Radio, ArrowRight, Zap, Dice5, Star, Users, Clock } from "lucide-react";
+import { Play, TrendingUp, Radio, ArrowRight, Zap, Dice5, Star, Users, Clock, Rocket } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { NewsletterForm } from "@/components/newsletter-form";
@@ -19,6 +19,12 @@ import { TrendingDown } from "lucide-react";
 import { listAllArticles, articleTypeLabels, articleTypeRoutes } from "@/lib/boardgame-articles";
 import { getFeaturedGame, getHomeTrendingGames } from "@/lib/featured-game";
 import type { BoardGame } from "@/lib/board-game-db";
+import {
+  getEndingSoonHero,
+  formatPercent,
+  daysLeft,
+  type KickstarterRow,
+} from "@/lib/kickstarter";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -54,7 +60,17 @@ async function getHomeData() {
 
   const isTabletopFetch = config.slug === "tabletop";
 
-  const [videosRes, liveRes, topDrops, featuredGame, trendingGames, bgVideoCountRes, bgLatestRes, bgGameCountRes] = await Promise.all([
+  const [
+    videosRes,
+    liveRes,
+    topDrops,
+    featuredGame,
+    trendingGames,
+    bgVideoCountRes,
+    bgLatestRes,
+    bgGameCountRes,
+    kickstarterHero,
+  ] = await Promise.all([
     supabase
       .from("battle_reports")
       .select("id, youtube_video_id, title, thumbnail_url, published_at, view_count, duration_seconds, game_system, channels(name, thumbnail_url)")
@@ -84,6 +100,7 @@ async function getHomeData() {
     isTabletopFetch
       ? supabase.from("board_games").select("id", { count: "exact", head: true })
       : Promise.resolve({ count: 0 }),
+    isTabletopFetch ? getEndingSoonHero(3) : Promise.resolve([] as KickstarterRow[]),
   ]);
 
   const allVideos = (videosRes.data ?? []).filter(
@@ -115,6 +132,7 @@ async function getHomeData() {
       board_game_channels: { channel_name: string } | null;
     }[]),
     bgGameCount: bgGameCountRes.count ?? 0,
+    kickstarterHero,
   };
 }
 
@@ -215,6 +233,13 @@ export default async function HomePage() {
                     >
                       <Play className="w-4 h-4" />
                       Watch Reviews
+                    </Link>
+                    <Link
+                      href="/kickstarter"
+                      className="inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-semibold border border-[var(--vertical-accent)]/40 bg-[var(--vertical-accent-glow)] text-[var(--vertical-accent)] hover:bg-[var(--vertical-accent)] hover:text-white transition-colors"
+                    >
+                      <Rocket className="w-4 h-4" />
+                      Track live Kickstarters
                     </Link>
                   </>
                 ) : (
@@ -618,6 +643,84 @@ export default async function HomePage() {
                   </Card>
                 </Link>
               ))}
+            </div>
+          </section>
+        )}
+
+        {/* ============================================================= */}
+        {/* Kickstarter Featured (TabletopWatch only)                      */}
+        {/* ============================================================= */}
+        {isTabletop && data.kickstarterHero.length > 0 && (
+          <section className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-2">
+                <Rocket className="w-5 h-5 text-[var(--vertical-accent)]" />
+                <h2 className="text-xl sm:text-2xl font-bold tracking-tight">
+                  Ending soon on Kickstarter
+                </h2>
+                <span className="ml-1 inline-flex items-center rounded-full px-1.5 py-0.5 text-[9px] font-bold tracking-wider bg-[var(--vertical-accent)] text-white">
+                  NEW
+                </span>
+              </div>
+              <Link
+                href="/kickstarter"
+                className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Open tracker
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {data.kickstarterHero.map((p) => {
+                const days = daysLeft(p.ends_at);
+                return (
+                  <Link key={p.id} href={`/kickstarter/${p.slug}`} className="group">
+                    <Card className="overflow-hidden border-border bg-card hover:border-[var(--vertical-accent)]/40 transition-all">
+                      {p.image_url && (
+                        <div className="relative aspect-video bg-muted overflow-hidden">
+                          <img
+                            src={p.image_url}
+                            alt={p.title}
+                            className="w-full h-full object-cover"
+                            loading="lazy"
+                          />
+                          {p.funded_percent != null && (
+                            <Badge
+                              className="absolute top-2 left-2 text-[10px] border-0"
+                              style={{
+                                backgroundColor:
+                                  p.funded_percent >= 100
+                                    ? "var(--success)"
+                                    : "var(--vertical-accent)",
+                                color: "#fff",
+                              }}
+                            >
+                              {formatPercent(p.funded_percent)} funded
+                            </Badge>
+                          )}
+                          {days != null && (
+                            <Badge className="absolute top-2 right-2 text-[10px] border-0 bg-black/75 text-white">
+                              {days === 0
+                                ? "Final hours"
+                                : days === 1
+                                  ? "1 day left"
+                                  : `${days} days left`}
+                            </Badge>
+                          )}
+                        </div>
+                      )}
+                      <CardContent className="p-4 space-y-1">
+                        <h3 className="text-sm font-semibold leading-snug line-clamp-2 group-hover:text-[var(--vertical-accent-light)] transition-colors">
+                          {p.title}
+                        </h3>
+                        {p.creator && (
+                          <p className="text-xs text-muted-foreground truncate">by {p.creator}</p>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </Link>
+                );
+              })}
             </div>
           </section>
         )}

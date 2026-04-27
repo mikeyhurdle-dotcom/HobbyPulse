@@ -67,6 +67,10 @@
     {
       "path": "/api/cron/board-game-content",
       "schedule": "15 6 * * *"
+    },
+    {
+      "path": "/api/cron/kickstarter",
+      "schedule": "0 */3 * * *"
     }
   ]
 }
