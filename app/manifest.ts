@@ -16,7 +16,7 @@ export default function manifest(): MetadataRoute.Manifest {
 
   // Raw hex extracted from the OKLCH accent — the theme_color field requires
   // a concrete colour string that Android and iOS can parse.
-  const themeColor = config.slug === "tabletop" ? "#c89f56" : "#d13a2c";
+  const themeColor = config.slug === "tabletop" ? "#3a9a9a" : "#d13a2c";
 
   return {
     name: brand.siteName,
@@ -25,7 +25,7 @@ export default function manifest(): MetadataRoute.Manifest {
     start_url: "/",
     display: "standalone",
     orientation: "portrait",
-    background_color: "#0a0a0a",
+    background_color: config.slug === "tabletop" ? "#fafafa" : "#0a0a0a",
     theme_color: themeColor,
     categories: config.slug === "tabletop"
       ? ["games", "shopping", "entertainment"]

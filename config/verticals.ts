@@ -51,9 +51,9 @@ export const verticals: Record<string, VerticalConfig> = {
       logo: "/tabletopwatch-logo.svg",
     },
     theme: {
-      accent: "oklch(0.72 0.14 75)",       // amber/gold
-      accentLight: "oklch(0.80 0.12 75)",   // lighter gold
-      accentGlow: "oklch(0.72 0.14 75 / 0.15)",
+      accent: "oklch(0.62 0.10 200)",       // warm teal
+      accentLight: "oklch(0.72 0.09 200)",  // lighter teal
+      accentGlow: "oklch(0.62 0.10 200 / 0.15)",
     },
     channels: [
       "The Dice Tower",

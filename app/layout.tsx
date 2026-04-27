@@ -64,6 +64,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const config = getSiteVertical();
+  const defaultTheme = config.slug === "tabletop" ? "light" : "dark";
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -89,7 +90,7 @@ export default function RootLayout({
       >
         <ThemeProvider
           attribute="class"
-          defaultTheme="dark"
+          defaultTheme={defaultTheme}
           enableSystem
           disableTransitionOnChange
         >

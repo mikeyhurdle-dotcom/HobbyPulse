@@ -9,6 +9,11 @@ export const contentType = "image/png";
 export default function OgImage() {
   const brand = getSiteBrand();
   const config = getSiteVertical();
+  const isTabletop = config.slug === "tabletop";
+
+  const bg = isTabletop ? "#fafafa" : "#0a0a0a";
+  const headingColor = isTabletop ? "#171717" : "#ffffff";
+  const taglineColor = isTabletop ? "#525252" : "#a1a1aa";
 
   return new ImageResponse(
     (
@@ -20,7 +25,7 @@ export default function OgImage() {
           flexDirection: "column",
           justifyContent: "center",
           alignItems: "center",
-          backgroundColor: "#0a0a0a",
+          backgroundColor: bg,
           fontFamily: "sans-serif",
         }}
       >
@@ -36,7 +41,7 @@ export default function OgImage() {
             style={{
               fontSize: "72px",
               fontWeight: 800,
-              color: "#ffffff",
+              color: headingColor,
               letterSpacing: "-2px",
             }}
           >
@@ -45,7 +50,7 @@ export default function OgImage() {
           <div
             style={{
               fontSize: "28px",
-              color: "#a1a1aa",
+              color: taglineColor,
               maxWidth: "800px",
               textAlign: "center",
             }}
