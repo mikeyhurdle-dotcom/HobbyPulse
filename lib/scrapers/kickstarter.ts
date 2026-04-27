@@ -1,12 +1,14 @@
 // ---------------------------------------------------------------------------
 // Kickstarter scraper — board game crowdfunding feed via Kicktraq
 // ---------------------------------------------------------------------------
-// Kicktraq aggregates Kickstarter project data including funding %, days left,
-// backer counts, and pledge tier info. We scrape three pages: end-soon, hot,
-// and recently-funded — then normalise into the kickstarter_projects shape.
-//
-// If Kicktraq's HTML changes or starts blocking, swap the data source by
-// editing fetchProjectsFromSource(). The downstream cron + UI don't care.
+// Kicktraq's tabletop-games category page lists every active campaign with
+// funding %, backer count, raised vs goal, time left, image, and blurb.
+// We pull two views:
+//   - ?sort=end — ending soon (deadline ascending)
+//   - ?sort=new — newly launched (used to keep the "live" feed fresh)
+// Recently-funded is harder to source from the public site; the cron marks
+// stale rows as "ended" once their ends_at slips past 24h ago, which gives
+// us a "recently funded" slice without a separate fetch.
 // ---------------------------------------------------------------------------
 
 import * as cheerio from "cheerio";
@@ -19,22 +21,21 @@ export interface KickstarterProject {
   image_url: string | null;
   creator: string | null;
   blurb: string | null;
-  funded_amount: number | null;     // pence (or cent equivalent of currency)
+  funded_amount: number | null;
   goal_amount: number | null;
   currency: string;
   funded_percent: number | null;
   backers: number | null;
-  ends_at: string | null;            // ISO
+  ends_at: string | null;
   status: "live" | "ending_soon" | "recently_funded" | "late_pledge" | "ended";
 }
 
 const KICKTRAQ_BASE = "https://www.kicktraq.com";
+const TABLETOP_CATEGORY = "/categories/games/tabletop%20games/";
 
-// Map Kicktraq listing pages → status we'll store
 const SOURCE_PAGES: { path: string; status: KickstarterProject["status"] }[] = [
-  { path: "/categories/games/tabletop+games/end-soon/?sort=end&filter=trending", status: "ending_soon" },
-  { path: "/categories/games/tabletop+games/hottest/?filter=trending", status: "live" },
-  { path: "/categories/games/tabletop+games/most-funded/?days=7", status: "recently_funded" },
+  { path: `${TABLETOP_CATEGORY}?sort=end`, status: "ending_soon" },
+  { path: `${TABLETOP_CATEGORY}?sort=new`, status: "live" },
 ];
 
 const USER_AGENT =
@@ -49,15 +50,21 @@ function slugify(input: string): string {
 }
 
 function parseMoney(raw: string): { amount: number | null; currency: string } {
-  // Examples: "$123,456", "£12,345", "€9,876", "CA$50,000"
-  const m = raw.match(/([£$€¥])\s?([\d,]+)/);
+  const cleaned = raw.replace(/\s+/g, "");
+  const m = cleaned.match(/(CA\$|A\$|HK\$|NZ\$|US\$|[£$€¥])\s*([\d,]+)/);
   if (!m) return { amount: null, currency: "USD" };
   const sym = m[1];
   const num = Number.parseInt(m[2].replace(/,/g, ""), 10);
   if (Number.isNaN(num)) return { amount: null, currency: "USD" };
   const currency =
-    sym === "£" ? "GBP" : sym === "€" ? "EUR" : sym === "¥" ? "JPY" : "USD";
-  // Store as smallest currency unit (pence/cents) for parity with listings.price_pence
+    sym === "£" ? "GBP" :
+    sym === "€" ? "EUR" :
+    sym === "¥" ? "JPY" :
+    sym === "CA$" ? "CAD" :
+    sym === "A$" ? "AUD" :
+    sym === "HK$" ? "HKD" :
+    sym === "NZ$" ? "NZD" :
+    "USD";
   return { amount: num * 100, currency };
 }
 
@@ -69,23 +76,23 @@ function parsePercent(raw: string): number | null {
 }
 
 function parseInteger(raw: string): number | null {
-  const cleaned = raw.replace(/,/g, "").match(/-?\d+/);
-  if (!cleaned) return null;
-  const num = Number.parseInt(cleaned[0], 10);
+  const m = raw.replace(/,/g, "").match(/-?\d+/);
+  if (!m) return null;
+  const num = Number.parseInt(m[0], 10);
   return Number.isNaN(num) ? null : num;
 }
 
-/**
- * Best-effort end-date parser. Kicktraq prints things like
- * "Ends in 4 days, 12 hours" — we convert to absolute time using "now".
- */
-function parseEndsAt(raw: string, nowMs: number = Date.now()): string | null {
+function parseEndsIn(raw: string, nowMs: number = Date.now()): string | null {
+  // Kicktraq prints "time left: 4 days, 12 hours, 30 minutes"
+  // and "0 days, 0 hours, 0 minutes (closing/closed)" for ended.
+  if (/closing|closed/i.test(raw)) return null;
   const days = raw.match(/(\d+)\s*day/i);
   const hours = raw.match(/(\d+)\s*hour/i);
-  if (!days && !hours) return null;
+  const mins = raw.match(/(\d+)\s*minute/i);
   const ms =
     (days ? Number.parseInt(days[1], 10) : 0) * 86_400_000 +
-    (hours ? Number.parseInt(hours[1], 10) : 0) * 3_600_000;
+    (hours ? Number.parseInt(hours[1], 10) : 0) * 3_600_000 +
+    (mins ? Number.parseInt(mins[1], 10) : 0) * 60_000;
   if (ms <= 0) return null;
   return new Date(nowMs + ms).toISOString();
 }
@@ -93,6 +100,7 @@ function parseEndsAt(raw: string, nowMs: number = Date.now()): string | null {
 async function fetchPage(path: string): Promise<string> {
   const res = await fetch(`${KICKTRAQ_BASE}${path}`, {
     headers: { "User-Agent": USER_AGENT, Accept: "text/html" },
+    redirect: "follow",
   });
   if (!res.ok) {
     throw new Error(`Kicktraq ${path} returned ${res.status}`);
@@ -104,24 +112,44 @@ function parseListing(html: string, status: KickstarterProject["status"]): Kicks
   const $ = cheerio.load(html);
   const projects: KickstarterProject[] = [];
 
-  // Kicktraq's project list items use h2 titles linking to /projects/<creator>/<slug>
-  $("h2 > a[href*='/projects/']").each((_, el) => {
-    const $a = $(el);
-    const href = $a.attr("href") ?? "";
-    const title = $a.text().trim();
+  $("div.project").each((_, el) => {
+    const $project = $(el);
+
+    // Skip non-tabletop entries that occasionally bleed into the feed
+    const catText = $project.find(".project-cat").text().toLowerCase();
+    if (catText && !catText.includes("tabletop")) return;
+
+    const $titleLink = $project.find(".project-infobox h2 a").first();
+    const title = $titleLink.text().trim();
+    const href = $titleLink.attr("href") ?? "";
     if (!title || !href) return;
 
-    const externalIdMatch = href.match(/\/projects\/([^/]+\/[^/?#]+)/);
-    if (!externalIdMatch) return;
-    const externalId = externalIdMatch[1];
-    const slug = slugify(`${externalId.split("/").slice(-1)[0]}-${title}`);
+    // /projects/<creator>/<slug>/  → external_id = "<creator>/<slug>"
+    const m = href.match(/\/projects\/([^/]+\/[^/?#]+)/);
+    if (!m) return;
+    const externalId = m[1];
+    const slugBase = externalId.split("/").slice(-1)[0];
+    const slug = slugify(slugBase) || slugify(title);
 
-    // Walk up to the project block and collect siblings — Kicktraq's structure
-    // changes occasionally; defensively read what we can.
-    const $block = $a.closest("div");
-    const blockText = $block.text();
+    const url = `https://www.kickstarter.com/projects/${externalId}`;
 
-    const fundedMatch = blockText.match(/Funding:\s*([£$€¥]?\s?[\d,]+)\s*of\s*([£$€¥]?\s?[\d,]+)\s*\(([^)]+)\)/i);
+    const image_url = $project.find(".project-image img").first().attr("src") ?? null;
+
+    // "Race, strategize, and outplay your rivals..." sits in a <div> immediately
+    // after the h2 inside .project-infobox.
+    const blurbDivs = $project.find(".project-infobox > div");
+    let blurb: string | null = null;
+    blurbDivs.each((_, b) => {
+      const $b = $(b);
+      if (blurb) return;
+      const text = $b.text().trim();
+      if (text && !$b.hasClass("project-cat") && !$b.hasClass("project-infobits")) {
+        blurb = text.slice(0, 280);
+      }
+    });
+
+    const detailsText = $project.find(".project-details").text();
+    const fundedMatch = detailsText.match(/Funding:\s*([^\s]+)\s*of\s*([^\s(]+)\s*\(([^)]+)\)/i);
     let funded_amount: number | null = null;
     let goal_amount: number | null = null;
     let funded_percent: number | null = null;
@@ -135,21 +163,21 @@ function parseListing(html: string, status: KickstarterProject["status"]): Kicks
       funded_percent = parsePercent(fundedMatch[3]);
     }
 
-    const backersMatch = blockText.match(/(\d[\d,]*)\s*backers?/i);
+    if (funded_percent == null) {
+      // Fallback to the big % badge on the pledgilizer
+      funded_percent = parsePercent($project.find(".project-pledgilizer-mid h4").text());
+    }
+
+    const backersMatch = detailsText.match(/Backers:\s*(\d[\d,]*)/i);
     const backers = backersMatch ? parseInteger(backersMatch[1]) : null;
 
-    const endsRaw =
-      blockText.match(/Ends?\s+in\s+([^.\n]+)/i)?.[1] ??
-      blockText.match(/Ended\s+(\d+\s*\w+\s*ago)/i)?.[0] ??
-      "";
-    const ends_at = endsRaw ? parseEndsAt(endsRaw) : null;
+    const timeLeftMatch = detailsText.match(/time left:\s*([^\n]+)/i);
+    const timeLeft = timeLeftMatch ? timeLeftMatch[1] : "";
+    const ends_at = parseEndsIn(timeLeft);
 
-    const creator = $block.find("a[href*='/profile/']").first().text().trim() || null;
-    const image_url = $block.find("img").first().attr("src") ?? null;
-    const blurbEl = $block.find("p").first().text().trim();
-    const blurb = blurbEl.length > 0 ? blurbEl.slice(0, 280) : null;
-
-    const url = href.startsWith("http") ? href : `${KICKTRAQ_BASE}${href}`;
+    // Creator slug is the first part of the kicktraq path; not guaranteed to
+    // be a display name but better than nothing.
+    const creator = externalId.split("/")[0]?.replace(/-/g, " ") || null;
 
     projects.push({
       external_id: externalId,
@@ -173,8 +201,9 @@ function parseListing(html: string, status: KickstarterProject["status"]): Kicks
 }
 
 /**
- * Fetch and parse the three Kicktraq feeds, dedupe by external_id (newest
- * status wins by source order), and return a flat list ready for upsert.
+ * Fetch and parse Kicktraq's tabletop feeds, dedupe by external_id (first
+ * source wins so ending_soon stays labelled ending_soon even if the project
+ * also appears in the live/newest feed).
  */
 export async function fetchKickstarterProjects(): Promise<KickstarterProject[]> {
   const seen = new Map<string, KickstarterProject>();
@@ -184,9 +213,6 @@ export async function fetchKickstarterProjects(): Promise<KickstarterProject[]> 
       const html = await fetchPage(source.path);
       const parsed = parseListing(html, source.status);
       for (const p of parsed) {
-        // SOURCE_PAGES order matters: ending_soon first, live, recently_funded.
-        // First write wins so a project that's ending_soon stays labelled
-        // ending_soon even if it also appears in the hottest feed.
         if (!seen.has(p.external_id)) {
           seen.set(p.external_id, p);
         }
