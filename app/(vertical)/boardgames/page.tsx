@@ -93,7 +93,7 @@ const tools = [
 
 export default function BoardGamesLandingPage() {
   const config = getSiteVertical();
-  if (config.slug !== "warhammer") redirect("/");
+  if (config.slug !== "tabletop") redirect("/");
 
   const brand = getSiteBrand();
   const latestArticles = listAllArticles().slice(0, 6);

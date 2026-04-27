@@ -55,7 +55,7 @@ export default function AboutPage() {
           </h2>
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {config.slug === "warhammer" && (
+            {config.slug === "tabletop" && (
               <div className="p-4 rounded-xl border border-border bg-secondary/50">
                 <h3 className="font-semibold text-foreground mb-2">Board Games</h3>
                 <p className="text-sm">

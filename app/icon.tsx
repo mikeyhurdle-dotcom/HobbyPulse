@@ -10,7 +10,7 @@ export const size = { width: 512, height: 512 };
 export default function Icon() {
   const brand = getSiteBrand();
   const config = getSiteVertical();
-  const accent = config.slug === "warhammer" ? "#c89f56" : "#d13a2c";
+  const accent = config.slug === "tabletop" ? "#c89f56" : "#d13a2c";
   const initials = brand.siteName
     .replace(/[^A-Z]/g, "")
     .slice(0, 2) || brand.siteName.slice(0, 2).toUpperCase();

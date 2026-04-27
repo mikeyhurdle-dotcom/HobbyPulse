@@ -56,7 +56,7 @@ export default async function GamesDirectoryPage({
   }>;
 }) {
   const config = getSiteVertical();
-  if (config.slug !== "warhammer") redirect("/");
+  if (config.slug !== "tabletop") redirect("/");
 
   const params = await searchParams;
   const currentPage = Math.max(1, parseInt(params.page ?? "1", 10) || 1);

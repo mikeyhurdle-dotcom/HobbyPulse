@@ -152,7 +152,7 @@ export default async function DealsPage({
   let products = (rawProducts ?? []) as unknown as Product[];
 
   // Filter by tab (TabletopWatch only — Board Games vs Miniatures)
-  const isTabletop = config.slug === "warhammer";
+  const isTabletop = config.slug === "tabletop";
   const activeTab = isTabletop ? (tab ?? "all") : "all";
   if (activeTab === "boardgames") {
     products = products.filter((p) => isBoardGameProduct(p.name));

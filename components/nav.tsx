@@ -14,8 +14,7 @@ interface NavTab {
 }
 
 const allTabs: NavTab[] = [
-  { name: "Board Games", href: "/boardgames", key: "boardgames", icon: "🎲", verticalOnly: "warhammer" },
-  { name: "Miniatures", href: "/miniatures/watch", key: "miniatures", icon: "⚔", verticalOnly: "warhammer" },
+  { name: "Board Games", href: "/boardgames", key: "boardgames", icon: "🎲", verticalOnly: "tabletop" },
   { name: "Watch", href: "/watch", key: "watch", icon: "▶", verticalOnly: "simracing" },
   { name: "Setups", href: "/setups", key: "setups", icon: "⚙", verticalOnly: "simracing" },
   { name: "Deals", href: "/deals", key: "deals", icon: "£" },
@@ -31,16 +30,7 @@ export async function Nav({ active }: { active: string }) {
     (tab) => !tab.verticalOnly || tab.verticalOnly === vertical.slug,
   );
 
-  const isTabletop = vertical.slug === "warhammer";
-  const miniaturesSectionKeys = new Set([
-    "miniatures",
-    "watch",
-    "build",
-    "armies",
-    "channels",
-    "trending",
-  ]);
-  const activeKey = isTabletop && miniaturesSectionKeys.has(active) ? "miniatures" : active;
+  const activeKey = active;
 
   // Auth — gracefully degrade if Supabase auth is not configured
   let authUser: {

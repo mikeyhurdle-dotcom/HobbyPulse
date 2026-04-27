@@ -52,7 +52,7 @@ async function getHomeData() {
 
   const verticalId = verticalRow?.id;
 
-  const isTabletopFetch = config.slug === "warhammer";
+  const isTabletopFetch = config.slug === "tabletop";
 
   const [videosRes, liveRes, topDrops, featuredGame, trendingGames, bgVideoCountRes, bgLatestRes, bgGameCountRes] = await Promise.all([
     supabase
@@ -150,7 +150,7 @@ export default async function HomePage() {
   const brand = getSiteBrand();
   const data = await getHomeData();
 
-  const isTabletop = config.slug === "warhammer";
+  const isTabletop = config.slug === "tabletop";
   const ctaLink = isTabletop ? "/boardgames/recommend" : "/setups";
   const ctaLabel = isTabletop ? "What Should I Play?" : "Car Setups";
   const ctaDescription = isTabletop
@@ -196,7 +196,7 @@ export default async function HomePage() {
               </h1>
               <p className="text-lg sm:text-xl text-muted-foreground mb-8 leading-relaxed">
                 {isTabletop
-                  ? "Your guide to tabletop gaming \u2014 board games, miniatures, and everything in between"
+                  ? "Your guide to tabletop gaming \u2014 board games first. Reviews, video guides, deals, and the latest from Kickstarter."
                   : brand.tagline}
               </p>
               <div className="flex flex-wrap gap-3">
@@ -214,7 +214,7 @@ export default async function HomePage() {
                       className="inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-semibold border border-border bg-background hover:bg-secondary transition-colors"
                     >
                       <Play className="w-4 h-4" />
-                      Watch Videos
+                      Watch Reviews
                     </Link>
                   </>
                 ) : (
@@ -821,13 +821,18 @@ export default async function HomePage() {
               </div>
             </div>
             {isTabletop && config.miniatureChannels && config.miniatureChannels.length > 0 && (
-              <div>
-                <h2 className="text-lg font-bold tracking-tight mb-4">
-                  Miniatures Channels
-                </h2>
-                <div className="flex flex-wrap gap-2">
+              <div className="opacity-75">
+                <div className="flex items-baseline justify-between mb-3">
+                  <h3 className="text-sm font-semibold tracking-tight uppercase text-muted-foreground">
+                    Miniatures Corner
+                  </h3>
+                  <Link href="/miniatures/watch" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+                    Browse miniatures →
+                  </Link>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
                   {config.miniatureChannels.map((channel) => (
-                    <Badge key={channel} variant="secondary" className="text-xs">
+                    <Badge key={channel} variant="outline" className="text-[10px] font-normal">
                       {channel}
                     </Badge>
                   ))}

@@ -18,7 +18,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default function HowToPlayIndexPage() {
   const config = getSiteVertical();
-  if (config.slug !== "warhammer") redirect("/");
+  if (config.slug !== "tabletop") redirect("/");
 
   const articles = listArticles("how-to-play");
 

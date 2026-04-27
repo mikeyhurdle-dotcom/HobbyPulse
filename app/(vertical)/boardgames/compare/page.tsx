@@ -25,7 +25,7 @@ export default async function ComparePage({
   searchParams: Promise<{ a?: string; b?: string }>;
 }) {
   const config = getSiteVertical();
-  if (config.slug !== "warhammer") redirect("/");
+  if (config.slug !== "tabletop") redirect("/");
 
   const params = await searchParams;
 

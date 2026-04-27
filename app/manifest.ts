@@ -16,7 +16,7 @@ export default function manifest(): MetadataRoute.Manifest {
 
   // Raw hex extracted from the OKLCH accent — the theme_color field requires
   // a concrete colour string that Android and iOS can parse.
-  const themeColor = config.slug === "warhammer" ? "#c89f56" : "#d13a2c";
+  const themeColor = config.slug === "tabletop" ? "#c89f56" : "#d13a2c";
 
   return {
     name: brand.siteName,
@@ -27,7 +27,7 @@ export default function manifest(): MetadataRoute.Manifest {
     orientation: "portrait",
     background_color: "#0a0a0a",
     theme_color: themeColor,
-    categories: config.slug === "warhammer"
+    categories: config.slug === "tabletop"
       ? ["games", "shopping", "entertainment"]
       : ["games", "sports", "shopping"],
     icons: [

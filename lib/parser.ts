@@ -29,7 +29,7 @@ export interface ParsedList {
 // ---------------------------------------------------------------------------
 
 const SYSTEM_PROMPTS: Record<string, string> = {
-  warhammer: `You are an expert Warhammer 40,000 army list parser. Your job is to extract structured army list data from YouTube video descriptions.
+  tabletop: `You are an expert Warhammer 40,000 army list parser. Your job is to extract structured army list data from YouTube video descriptions.
 
 Army lists can appear in several formats:
 - **BattleScribe** format: structured with headers like "++ Battalion Detachment ++", unit entries with point costs in brackets
@@ -87,7 +87,7 @@ IMPORTANT:
 - Return ONLY valid JSON, no markdown code fences, no explanation.`,
 };
 
-const DEFAULT_PROMPT = SYSTEM_PROMPTS.warhammer;
+const DEFAULT_PROMPT = SYSTEM_PROMPTS.tabletop;
 
 // ---------------------------------------------------------------------------
 // Parser
@@ -97,7 +97,7 @@ const client = new Anthropic();
 
 export async function parseArmyList(
   description: string,
-  vertical: string = "warhammer",
+  vertical: string = "tabletop",
 ): Promise<ParsedList[]> {
   if (!description || description.trim().length < 20) {
     return [];
@@ -160,7 +160,7 @@ export async function parseArmyList(
 // ---------------------------------------------------------------------------
 
 const TRANSCRIPT_SYSTEM_PROMPTS: Record<string, string> = {
-  warhammer: `You are an expert Warhammer 40,000 battle report analyser. You have access to both the YouTube video description AND the auto-generated transcript.
+  tabletop: `You are an expert Warhammer 40,000 battle report analyser. You have access to both the YouTube video description AND the auto-generated transcript.
 
 Your job is to extract:
 1. **Army lists** — from the description (same as before: faction, detachment, units with points, enhancements, wargear)
@@ -188,7 +188,7 @@ IMPORTANT:
 export async function parseWithTranscript(
   description: string,
   transcript: string,
-  vertical: string = "warhammer",
+  vertical: string = "tabletop",
 ): Promise<ParsedList[]> {
   if (
     (!description || description.trim().length < 20) &&
@@ -198,7 +198,7 @@ export async function parseWithTranscript(
   }
 
   const systemPrompt =
-    TRANSCRIPT_SYSTEM_PROMPTS[vertical] ?? TRANSCRIPT_SYSTEM_PROMPTS.warhammer;
+    TRANSCRIPT_SYSTEM_PROMPTS[vertical] ?? TRANSCRIPT_SYSTEM_PROMPTS.tabletop;
 
   const message = await client.messages.create({
     model: "claude-haiku-4-5-20251001",

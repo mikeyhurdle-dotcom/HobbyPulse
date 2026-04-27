@@ -28,7 +28,7 @@ export const dynamic = "force-dynamic";
 // ---------------------------------------------------------------------------
 
 const SEARCH_TERMS: Record<string, string[]> = {
-  warhammer: [
+  tabletop: [
     // ---- 40K ----
     // Starter boxes
     "Combat Patrol",

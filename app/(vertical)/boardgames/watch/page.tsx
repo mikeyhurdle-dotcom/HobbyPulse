@@ -129,7 +129,7 @@ export default async function BoardGameWatchPage({
   }>;
 }) {
   const config = getSiteVertical();
-  if (config.slug !== "warhammer") redirect("/");
+  if (config.slug !== "tabletop") redirect("/");
 
   const { q, type, sort, page } = await searchParams;
   const currentPage = Math.max(1, parseInt(page ?? "1", 10) || 1);

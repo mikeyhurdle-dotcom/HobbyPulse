@@ -13,7 +13,7 @@ export function GET() {
   const config = getSiteVertical();
   const brand = getSiteBrand();
 
-  const content = config.slug === "warhammer"
+  const content = config.slug === "tabletop"
     ? `# ${brand.siteName}
 
 > ${brand.tagline}

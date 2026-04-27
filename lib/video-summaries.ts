@@ -31,7 +31,7 @@ export interface SummaryInput {
   gameSystem: string | null;
   factions: string[];
   armyLists: { playerName: string | null; factionName: string | null; units: string[] }[];
-  vertical: "warhammer" | "simracing";
+  vertical: "tabletop" | "simracing";
 }
 
 function buildPrompt(input: SummaryInput): string {

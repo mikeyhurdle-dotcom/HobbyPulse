@@ -119,7 +119,7 @@ export async function GET(request: Request) {
   // Journey 1 continued: Video detail with army lists / setups
   // =========================================================================
 
-  if (config.slug === "warhammer") {
+  if (config.slug === "tabletop") {
     // Find a video with parsed army lists
     const { data: videosWithLists } = await supabase
       .from("battle_reports")

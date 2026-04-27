@@ -6,12 +6,12 @@
 import { verticals } from "@/config/verticals";
 import type { VerticalConfig, VerticalBrand } from "@/config/verticals";
 
-const DEFAULT_VERTICAL = "warhammer";
+const DEFAULT_VERTICAL = "tabletop";
 
 /**
  * Return the VerticalConfig for the current deployment.
  * Reads `NEXT_PUBLIC_SITE_VERTICAL` (available client + server) or
- * `SITE_VERTICAL` (server only). Falls back to "warhammer" for local dev.
+ * `SITE_VERTICAL` (server only). Falls back to "tabletop" for local dev.
  */
 export function getSiteVertical(): VerticalConfig {
   const slug =

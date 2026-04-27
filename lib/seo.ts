@@ -4,7 +4,7 @@ export const TABLETOP_TITLE_SUFFIX = "Tabletop Watch — Board Games & Miniature
 
 export function getMetaTitleSuffix(): string {
   const config = getSiteVertical();
-  if (config.slug === "warhammer") return TABLETOP_TITLE_SUFFIX;
+  if (config.slug === "tabletop") return TABLETOP_TITLE_SUFFIX;
   return config.brand.siteName;
 }
 

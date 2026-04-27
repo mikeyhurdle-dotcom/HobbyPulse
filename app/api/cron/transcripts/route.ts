@@ -96,7 +96,7 @@ export async function GET(request: Request) {
       gameSystem: r.game_system,
       factions,
       armyLists,
-      vertical: config.slug as "warhammer" | "simracing",
+      vertical: config.slug as "tabletop" | "simracing",
     });
 
     if (result) {

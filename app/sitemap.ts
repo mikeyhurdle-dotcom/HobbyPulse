@@ -14,7 +14,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const config = getSiteVertical();
   const baseUrl = `https://${brand.domain}`;
 
-  const isTabletop = config.slug === "warhammer";
+  const isTabletop = config.slug === "tabletop";
   // For TabletopWatch, miniatures content lives under /miniatures/*
   const mp = isTabletop ? "/miniatures" : "";
 

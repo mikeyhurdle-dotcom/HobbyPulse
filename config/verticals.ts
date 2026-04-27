@@ -40,13 +40,13 @@ export interface VerticalConfig {
 }
 
 export const verticals: Record<string, VerticalConfig> = {
-  warhammer: {
-    slug: "warhammer",
-    name: "Warhammer 40K",
-    description: "Battle reports, army lists, and second-hand deals",
+  tabletop: {
+    slug: "tabletop",
+    name: "Tabletop Gaming",
+    description: "Board games first — reviews, video guides, deals, and the latest from Kickstarter. Plus a niche corner for miniatures.",
     brand: {
       siteName: "TabletopWatch",
-      tagline: "Board game reviews, video guides, and the best tabletop deals",
+      tagline: "Your guide to tabletop gaming — board games first",
       domain: "tabletopwatch.com",
       logo: "/tabletopwatch-logo.svg",
     },

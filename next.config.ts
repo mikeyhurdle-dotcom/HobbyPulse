@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const isTabletop =
-  process.env.NEXT_PUBLIC_SITE_VERTICAL === "warhammer" ||
+  process.env.NEXT_PUBLIC_SITE_VERTICAL === "tabletop" ||
   (!process.env.NEXT_PUBLIC_SITE_VERTICAL && !process.env.SITE_VERTICAL);
 
 // Routes to nest under /miniatures for TabletopWatch (board game pivot)

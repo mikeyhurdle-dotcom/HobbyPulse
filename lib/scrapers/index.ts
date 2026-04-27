@@ -40,7 +40,7 @@ export { ElementGamesScraper, WaylandGamesScraper, TrollTraderScraper, ShopifySc
  * Returns only scrapers relevant to that vertical's retailer list.
  */
 export function getScrapersForVertical(vertical: string): Scraper[] {
-  if (vertical === "warhammer") {
+  if (vertical === "tabletop") {
     return [
       new ElementGamesScraper(),
       new WaylandGamesScraper(),

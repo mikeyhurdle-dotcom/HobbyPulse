@@ -52,7 +52,7 @@ function getFaqs(slug: string, brandName: string): FaqItem[] {
     },
   ];
 
-  const warhammer: FaqItem[] = [
+  const tabletop: FaqItem[] = [
     {
       question: "What board game content do you cover?",
       answer:
@@ -103,7 +103,7 @@ function getFaqs(slug: string, brandName: string): FaqItem[] {
     },
   ];
 
-  return [...shared, ...(slug === "warhammer" ? warhammer : simracing)];
+  return [...shared, ...(slug === "tabletop" ? tabletop : simracing)];
 }
 
 // ---------------------------------------------------------------------------

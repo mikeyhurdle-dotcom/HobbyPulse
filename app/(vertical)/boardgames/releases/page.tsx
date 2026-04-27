@@ -77,7 +77,7 @@ export default async function BoardGameReleasesPage({
   searchParams: Promise<{ type?: string }>;
 }) {
   const config = getSiteVertical();
-  if (config.slug !== "warhammer") redirect("/");
+  if (config.slug !== "tabletop") redirect("/");
 
   const params = await searchParams;
   const filterType = params.type;

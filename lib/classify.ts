@@ -40,7 +40,7 @@ export const VIDEO_TYPE_CONFIG: Record<
  * Duration of 0 means unknown (e.g. from RSS where we don't have duration yet)
  * — in that case we only check the title pattern.
  */
-export function isBattleReport(title: string, durationSeconds: number, vertical: string = "warhammer"): boolean {
+export function isBattleReport(title: string, durationSeconds: number, vertical: string = "tabletop"): boolean {
   const t = title.toLowerCase();
 
   let titleMatch = false;
@@ -98,7 +98,7 @@ export function isBattleReport(title: string, durationSeconds: number, vertical:
  * Rules are evaluated in priority order — the first match wins.
  * Battle report classification is now strict (delegates to isBattleReport).
  */
-export function classifyVideo(title: string, durationSeconds: number, vertical: string = "warhammer"): VideoType {
+export function classifyVideo(title: string, durationSeconds: number, vertical: string = "tabletop"): VideoType {
   const t = title.toLowerCase();
 
   // Battle report / race — strict check (vertical-aware)
@@ -212,7 +212,7 @@ export function isShort(durationSeconds: number): boolean {
  * Rules are evaluated in priority order — first match wins.
  * Default is "40k".
  */
-export function classifyGameSystem(title: string, vertical: string = "warhammer"): string {
+export function classifyGameSystem(title: string, vertical: string = "tabletop"): string {
   const t = ` ${title.toLowerCase()} `;
 
   if (vertical === "simracing") {
