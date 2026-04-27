@@ -28,7 +28,7 @@ export interface VerticalConfig {
   brand: VerticalBrand;
   theme: VerticalTheme;
   channels: string[];
-  boardGameChannels?: string[];
+  miniatureChannels?: string[];
   retailers: VerticalRetailer[];
   categories: string[];
   watchDescription: string;
@@ -56,19 +56,6 @@ export const verticals: Record<string, VerticalConfig> = {
       accentGlow: "oklch(0.72 0.14 75 / 0.15)",
     },
     channels: [
-      "Tabletop Titans",
-      "PlayOn Tabletop",
-      "MWG Studios",
-      "Winters SEO",
-      "Auspex Tactics",
-      "Art of War 40k",
-      "Mordian Glory",
-      "Guerrilla Miniature Games",
-      "The Honest Wargamer",
-      "Striking Scorpion 82",
-      "Tabletop Tactics",
-    ],
-    boardGameChannels: [
       "The Dice Tower",
       "Shut Up & Sit Down",
       "Watch It Played",
@@ -89,6 +76,19 @@ export const verticals: Record<string, VerticalConfig> = {
       "Tantrum House",
       "Meeple University",
       "So Very Wrong About Games",
+    ],
+    miniatureChannels: [
+      "Tabletop Titans",
+      "PlayOn Tabletop",
+      "MWG Studios",
+      "Winters SEO",
+      "Auspex Tactics",
+      "Art of War 40k",
+      "Mordian Glory",
+      "Guerrilla Miniature Games",
+      "The Honest Wargamer",
+      "Striking Scorpion 82",
+      "Tabletop Tactics",
     ],
     retailers: [
       { name: "Games Workshop", url: "https://www.games-workshop.com", affiliateParam: "ref" },

@@ -25,7 +25,6 @@ ${brand.siteName} is a content and deals aggregator for the Warhammer tabletop h
 - **Watch**: Battle reports and hobby content from ${config.channels.length} YouTube channels, enriched with AI-extracted army lists (factions, units, points values).
 - **Deals**: Price comparison across ${config.retailers.length} UK retailers (${config.retailers.map(r => r.name).join(", ")}). Updated daily with price drop detection.
 - **Live**: Aggregated live streams from Twitch and YouTube for Warhammer 40K, Age of Sigmar, and The Old World.
-- **Build My Army Cheap**: Paste a Warhammer army list and find the cheapest combination of retailers.
 
 ## Content types
 

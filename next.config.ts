@@ -5,7 +5,7 @@ const isTabletop =
   (!process.env.NEXT_PUBLIC_SITE_VERTICAL && !process.env.SITE_VERTICAL);
 
 // Routes to nest under /miniatures for TabletopWatch (board game pivot)
-const miniaturesPrefixes = ["watch", "build", "armies", "channels", "trending"];
+const miniaturesPrefixes = ["watch", "channels", "trending"];
 
 const nextConfig: NextConfig = {
   images: {

@@ -25,10 +25,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}/deals`, lastModified: new Date(), changeFrequency: "daily", priority: 0.9 },
     { url: `${baseUrl}${mp}/trending`, lastModified: new Date(), changeFrequency: "hourly", priority: 0.85 },
     { url: `${baseUrl}${mp}/channels`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
-    { url: `${baseUrl}${mp}/armies`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.85 },
     { url: `${baseUrl}/releases`, lastModified: new Date(), changeFrequency: "daily", priority: 0.8 },
     { url: `${baseUrl}/live`, lastModified: new Date(), changeFrequency: "always", priority: 0.8 },
-    { url: `${baseUrl}${mp}/build`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
     { url: `${baseUrl}/about`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.5 },
     { url: `${baseUrl}/faq`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.5 },
     { url: `${baseUrl}/contact`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.5 },
@@ -149,36 +147,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }));
 
-  // Dynamic army detail pages
-  const { data: armyLists } = verticalRow && config.slug === "warhammer"
-    ? await supabase
-        .from("content_lists")
-        .select("id, player_name, winner, battle_reports!inner(vertical_id)")
-        .eq("battle_reports.vertical_id", verticalRow.id)
-        .not("winner", "is", null)
-        .limit(200)
-    : { data: [] };
-
-  const normalise = (s: string | null) => (s ?? "").trim().toLowerCase();
-  const armyRoutes: MetadataRoute.Sitemap = ((armyLists ?? []) as {
-    id: string;
-    player_name: string | null;
-    winner: string | null;
-  }[])
-    .filter((l) => l.winner && l.player_name && normalise(l.winner) === normalise(l.player_name))
-    .map((l) => ({
-      url: `${baseUrl}${mp}/armies/${l.id}`,
-      lastModified: new Date(),
-      changeFrequency: "weekly" as const,
-      priority: 0.7,
-    }));
-
   return [
     ...staticRoutes,
     ...boardGameRoutes,
     ...channelRoutes,
     ...categoryRoutes,
-    ...armyRoutes,
     ...watchRoutes,
     ...dealsRoutes,
   ];

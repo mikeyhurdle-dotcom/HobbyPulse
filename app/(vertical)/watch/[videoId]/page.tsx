@@ -15,7 +15,7 @@ import { RulesBadge } from "@/components/rules-badge";
 import { FactionMeta } from "@/components/faction-meta";
 import { wahapediaLink } from "@/lib/external-links";
 import { CopySetupButton } from "@/components/copy-setup-button";
-import { ArrowLeft, ShoppingCart, BookOpen, DollarSign } from "lucide-react";
+import { ArrowLeft, BookOpen, DollarSign } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
@@ -448,12 +448,6 @@ export default async function VideoDetailPage({
                     {sortedLists.map((list) => {
                       if ((list.list_items ?? []).length === 0) return null;
 
-                      const armyListText = (list.list_items ?? [])
-                        .map((item) =>
-                          `${item.quantity > 1 ? `${item.quantity}x ` : ""}${item.name} [${item.points} pts]`,
-                        )
-                        .join("\n");
-
                       return (
                         <div key={list.id} className="space-y-2">
                           <Card className="border-border bg-card overflow-hidden">
@@ -566,15 +560,6 @@ export default async function VideoDetailPage({
                               ))}
                             </div>
                           </Card>
-
-                          {/* Buy This Army CTA */}
-                          <Link
-                            href={`/build?list=${encodeURIComponent(armyListText)}`}
-                            className="flex items-center justify-center gap-2 w-full rounded-lg bg-[var(--vertical-accent)] px-4 py-2.5 text-sm font-bold text-white hover:opacity-90 transition-opacity"
-                          >
-                            <ShoppingCart className="w-4 h-4" />
-                            Buy This Army
-                          </Link>
                         </div>
                       );
                     })}

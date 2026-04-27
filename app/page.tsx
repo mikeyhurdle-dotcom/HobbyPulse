@@ -260,9 +260,7 @@ export default async function HomePage() {
               </div>
               <div>
                 <p className="text-3xl font-bold tracking-tight font-[family-name:var(--font-mono)]">
-                  {isTabletop
-                    ? (config.boardGameChannels?.length ?? 20)
-                    : data.channels}
+                  {isTabletop ? config.channels.length : data.channels}
                 </p>
                 <p className="text-sm text-muted-foreground">Channels Tracked</p>
               </div>
@@ -810,23 +808,9 @@ export default async function HomePage() {
         {/* ============================================================= */}
         <section className="border-t border-border">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
-            {isTabletop && config.boardGameChannels && config.boardGameChannels.length > 0 && (
-              <div className="mb-8">
-                <h2 className="text-lg font-bold tracking-tight mb-4">
-                  Board Game Channels
-                </h2>
-                <div className="flex flex-wrap gap-2">
-                  {config.boardGameChannels.map((channel) => (
-                    <Badge key={channel} variant="secondary" className="text-xs">
-                      {channel}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            )}
-            <div>
+            <div className={isTabletop && config.miniatureChannels && config.miniatureChannels.length > 0 ? "mb-8" : ""}>
               <h2 className="text-lg font-bold tracking-tight mb-4">
-                {isTabletop ? "Miniatures Channels" : "Tracked Channels"}
+                {isTabletop ? "Board Game Channels" : "Tracked Channels"}
               </h2>
               <div className="flex flex-wrap gap-2">
                 {config.channels.map((channel) => (
@@ -836,6 +820,20 @@ export default async function HomePage() {
                 ))}
               </div>
             </div>
+            {isTabletop && config.miniatureChannels && config.miniatureChannels.length > 0 && (
+              <div>
+                <h2 className="text-lg font-bold tracking-tight mb-4">
+                  Miniatures Channels
+                </h2>
+                <div className="flex flex-wrap gap-2">
+                  {config.miniatureChannels.map((channel) => (
+                    <Badge key={channel} variant="secondary" className="text-xs">
+                      {channel}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </section>
 

@@ -4,7 +4,7 @@
 // Runs all automated tests against the live site. Protected by CRON_SECRET.
 // Tests every user journey from the testing plan that can be verified
 // server-side: home page data, watch page, video detail, deals, product
-// detail, build flow, price alerts, and cross-vertical checks.
+// detail, price alerts, and cross-vertical checks.
 //
 // Usage: GET /api/test
 // ---------------------------------------------------------------------------

@@ -21,10 +21,10 @@ export function generateMetadata(): Metadata {
   const brand = getSiteBrand();
   const config = getSiteVertical();
   const isSimRacing = config.slug === "simracing";
-  const title = isSimRacing ? "Races & Replays" : "Battle Reports";
+  const title = isSimRacing ? "Races & Replays" : "Videos";
   const description = isSimRacing
     ? "Race replays, onboards, and setup guides from the sim racing community."
-    : "Cross-channel battle reports with structured army lists. Filter by faction, search by creator.";
+    : "Board game reviews, how-to-play guides, miniatures battle reports, and tabletop video from across the hobby.";
   const url = `https://${brand.domain}/watch`;
   return {
     title,
@@ -115,11 +115,11 @@ function formatDuration(seconds: number): string {
 
 // Pill bar order
 const PILL_ORDER: (VideoType | "all")[] = [
-  "battle-report",
   "all",
+  "review",
+  "battle-report",
   "tactics",
   "news",
-  "review",
   "painting",
   "lore",
 ];
@@ -155,7 +155,7 @@ export default async function WatchPage({
   const PAGE_SIZE = 30;
   const config = getSiteVertical();
 
-  const defaultType: VideoType | "all" = config.slug === "simracing" ? "all" : "battle-report";
+  const defaultType: VideoType | "all" = "all";
   const activeType: VideoType | "all" =
     type === "all"
       ? "all"
@@ -291,7 +291,7 @@ export default async function WatchPage({
     }
     if (key === "type") {
       if (value) params.set("type", value);
-    } else if (activeType !== "battle-report") {
+    } else if (activeType !== "all") {
       params.set("type", activeType);
     }
     const qs = params.toString();
@@ -299,6 +299,8 @@ export default async function WatchPage({
   }
 
   const isSimRacing = config.slug === "simracing";
+  const isTabletop = !isSimRacing;
+  const showFactionFilter = !isTabletop || Boolean(faction);
 
   return (
     <>
@@ -307,12 +309,12 @@ export default async function WatchPage({
         {/* Header */}
         <div className="mb-6">
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-1">
-            {isSimRacing ? "Races & Replays" : "Battle Reports"}
+            {isSimRacing ? "Races & Replays" : "Videos"}
           </h1>
           <p className="text-sm text-muted-foreground">
             {isSimRacing
               ? "Race replays, onboards, and setup guides from the sim racing community."
-              : "Cross-channel battle reports with structured army lists."}
+              : "Board game reviews, how-to-play guides, miniatures content, and tabletop video from across the hobby."}
           </p>
         </div>
 
@@ -333,18 +335,20 @@ export default async function WatchPage({
               />
             </div>
 
-            <select
-              name="faction"
-              defaultValue={faction ?? ""}
-              className="rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-            >
-              <option value="">All Factions</option>
-              {(categories ?? []).map((cat) => (
-                <option key={cat.id} value={cat.slug}>
-                  {cat.name}
-                </option>
-              ))}
-            </select>
+            {showFactionFilter && (
+              <select
+                name="faction"
+                defaultValue={faction ?? ""}
+                className="rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              >
+                <option value="">All Factions</option>
+                {(categories ?? []).map((cat) => (
+                  <option key={cat.id} value={cat.slug}>
+                    {cat.name}
+                  </option>
+                ))}
+              </select>
+            )}
 
             <select
               name="sort"
@@ -427,7 +431,7 @@ export default async function WatchPage({
               return (
                 <Link
                   key={pill}
-                  href={buildUrl("type", pill === "battle-report" ? null : pill)}
+                  href={buildUrl("type", pill)}
                   className="shrink-0 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium border transition-colors"
                   style={{
                     borderColor: isActive ? cfg.colour : "var(--border)",

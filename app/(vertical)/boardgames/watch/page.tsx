@@ -220,7 +220,7 @@ export default async function BoardGameWatchPage({
             Board Game Videos
           </h1>
           <p className="text-sm text-muted-foreground">
-            Reviews, playthroughs, how-to-play guides, and top lists from {config.boardGameChannels?.length ?? 20}+ channels.
+            Reviews, playthroughs, how-to-play guides, and top lists from {config.channels.length}+ channels.
           </p>
         </div>
 
