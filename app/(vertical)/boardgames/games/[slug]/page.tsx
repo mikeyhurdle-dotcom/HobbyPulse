@@ -4,8 +4,11 @@ import { notFound, redirect } from "next/navigation";
 import { Nav } from "@/components/nav";
 import { JsonLd } from "@/components/json-ld";
 import { BuyLinks } from "@/components/buy-links";
+import { PriceComparisonStrip } from "@/components/price-comparison-strip";
 import { getSiteVertical, getSiteBrand } from "@/lib/site";
 import { getGameBySlug, getTopGameSlugs } from "@/lib/board-game-db";
+import { getRetailerPricesForTitle } from "@/lib/price-comparison";
+import { supabase } from "@/lib/supabase";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -93,6 +96,17 @@ export default async function GameDetailPage({
 
   if (!game) notFound();
 
+  // Resolve tabletop vertical_id (used for the price comparison join)
+  const { data: verticalRow } = await supabase
+    .from("verticals")
+    .select("id")
+    .eq("slug", "tabletop")
+    .single();
+
+  const retailerPrices = verticalRow
+    ? await getRetailerPricesForTitle(game.title, verticalRow.id)
+    : [];
+
   // Build buy links
   const buyLinks = [];
   if (game.amazon_asin) {
@@ -163,6 +177,16 @@ export default async function GameDetailPage({
                     gameName={game.title}
                     links={buyLinks}
                     source="game-page"
+                  />
+                </div>
+              )}
+
+              {/* Price comparison across active retailers */}
+              {retailerPrices.length >= 2 && (
+                <div className="mt-4">
+                  <PriceComparisonStrip
+                    prices={retailerPrices}
+                    source={`game-page:${game.slug}`}
                   />
                 </div>
               )}
