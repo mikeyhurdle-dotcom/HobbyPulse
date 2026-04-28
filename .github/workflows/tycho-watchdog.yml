@@ -1,0 +1,45 @@
+name: Tycho watchdog
+
+# Off-VPS health check for Tycho.
+#
+# Tycho's own missed-ping detector runs on the same VPS as Tycho — if the VPS
+# goes down, the detector goes down too, and we'd hear nothing. This workflow
+# is the redundant external check: GitHub-hosted runner curls Tycho's healthz
+# every 5 min via the Tailscale Funnel public URL, fails the workflow on any
+# non-2xx, and GitHub emails the repo owner on workflow failure (default
+# behaviour, no extra config needed).
+#
+# When this fails, it means either:
+#   - The VPS is down (hardware/network issue)
+#   - tycho.service crashed and didn't restart
+#   - Tailscale Funnel is misconfigured (less likely once stable)
+#
+# Cost: free. GitHub Actions for public repos has unlimited minutes; private
+# repos get 2000 free min/month — this workflow uses ~5 sec per run = ~1 hr/mo.
+
+on:
+  schedule:
+    # GitHub cron has a 5-min minimum. Stagger by 1 min from common :00/:05
+    # boundaries so we don't compete with the same dispatcher window every
+    # other VPS cron uses.
+    - cron: "1-59/5 * * * *"
+  workflow_dispatch: # Manual trigger for testing.
+
+permissions:
+  contents: read
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    steps:
+      - name: Curl Tycho /healthz
+        run: |
+          set -e
+          URL="https://tycho-vps.tail167c6b.ts.net/healthz"
+          echo "Hitting $URL"
+          # -f fails on non-2xx, -s silent, -S show errors, --max-time 10s.
+          # Body is small JSON; print it for the run log.
+          curl -fsS --max-time 10 "$URL"
+          echo
+          echo "Tycho healthz OK."

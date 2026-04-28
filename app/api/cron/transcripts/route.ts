@@ -9,6 +9,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { generateVideoSummary, saveVideoSummary } from "@/lib/video-summaries";
 import { getSiteVertical } from "@/lib/site";
+import { tychoHeartbeat } from "@/lib/tycho";
 
 export const maxDuration = 300;
 export const dynamic = "force-dynamic";
@@ -38,83 +39,86 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const config = getSiteVertical();
-  const { data: verticalRow } = await supabase
-    .from("verticals")
-    .select("id")
-    .eq("slug", config.slug)
-    .single();
-  if (!verticalRow) return NextResponse.json({ error: "Vertical not found" }, { status: 404 });
+  // === TYCHO_HEARTBEAT_WRAP === (added by Tycho instrumentation)
+  return tychoHeartbeat(process.env.TYCHO_UUID_TRANSCRIPTS, async () => {
+    const config = getSiteVertical();
+    const { data: verticalRow } = await supabase
+      .from("verticals")
+      .select("id")
+      .eq("slug", config.slug)
+      .single();
+    if (!verticalRow) return NextResponse.json({ error: "Vertical not found" }, { status: 404 });
 
-  const { data: transcribedRows } = await supabase
-    .from("video_transcripts")
-    .select("battle_report_id");
-  const transcribedIds = new Set(
-    (transcribedRows ?? []).map((r: { battle_report_id: string }) => r.battle_report_id),
-  );
+    const { data: transcribedRows } = await supabase
+      .from("video_transcripts")
+      .select("battle_report_id");
+    const transcribedIds = new Set(
+      (transcribedRows ?? []).map((r: { battle_report_id: string }) => r.battle_report_id),
+    );
 
-  const { data: rawReports } = await supabase
-    .from("battle_reports")
-    .select(
-      `id, youtube_video_id, title, description, game_system,
-       channels ( name ),
-       content_lists (
-         player_name,
-         categories ( name ),
-         list_items ( name )
-       )`,
-    )
-    .eq("vertical_id", verticalRow.id)
-    .order("published_at", { ascending: false })
-    .limit(60);
+    const { data: rawReports } = await supabase
+      .from("battle_reports")
+      .select(
+        `id, youtube_video_id, title, description, game_system,
+         channels ( name ),
+         content_lists (
+           player_name,
+           categories ( name ),
+           list_items ( name )
+         )`,
+      )
+      .eq("vertical_id", verticalRow.id)
+      .order("published_at", { ascending: false })
+      .limit(60);
 
-  const reports = (rawReports ?? []) as unknown as ReportRow[];
-  const todo = reports.filter((r) => !transcribedIds.has(r.id)).slice(0, 15);
+    const reports = (rawReports ?? []) as unknown as ReportRow[];
+    const todo = reports.filter((r) => !transcribedIds.has(r.id)).slice(0, 15);
 
-  let saved = 0;
-  let failed = 0;
+    let saved = 0;
+    let failed = 0;
 
-  for (const r of todo) {
-    const channel = Array.isArray(r.channels) ? r.channels[0] : r.channels;
-    const factions: string[] = [];
-    const armyLists = (r.content_lists ?? []).map((cl) => {
-      const cat = Array.isArray(cl.categories) ? cl.categories[0] : cl.categories;
-      const factionName = cat?.name ?? null;
-      if (factionName && !factions.includes(factionName)) factions.push(factionName);
-      return {
-        playerName: cl.player_name,
-        factionName,
-        units: (cl.list_items ?? []).map((i) => i.name).filter(Boolean),
-      };
-    });
+    for (const r of todo) {
+      const channel = Array.isArray(r.channels) ? r.channels[0] : r.channels;
+      const factions: string[] = [];
+      const armyLists = (r.content_lists ?? []).map((cl) => {
+        const cat = Array.isArray(cl.categories) ? cl.categories[0] : cl.categories;
+        const factionName = cat?.name ?? null;
+        if (factionName && !factions.includes(factionName)) factions.push(factionName);
+        return {
+          playerName: cl.player_name,
+          factionName,
+          units: (cl.list_items ?? []).map((i) => i.name).filter(Boolean),
+        };
+      });
 
-    const result = await generateVideoSummary({
-      battleReportId: r.id,
-      title: r.title,
-      description: r.description,
-      channelName: channel?.name ?? null,
-      gameSystem: r.game_system,
-      factions,
-      armyLists,
-      vertical: config.slug as "tabletop" | "simracing",
-    });
+      const result = await generateVideoSummary({
+        battleReportId: r.id,
+        title: r.title,
+        description: r.description,
+        channelName: channel?.name ?? null,
+        gameSystem: r.game_system,
+        factions,
+        armyLists,
+        vertical: config.slug as "tabletop" | "simracing",
+      });
 
-    if (result) {
-      const savedResult = await saveVideoSummary(r.id, result.text);
-      if (savedResult.saved) saved++;
-      else failed++;
-    } else {
-      failed++;
+      if (result) {
+        const savedResult = await saveVideoSummary(r.id, result.text);
+        if (savedResult.saved) saved++;
+        else failed++;
+      } else {
+        failed++;
+      }
+
+      await new Promise((res) => setTimeout(res, 250));
     }
 
-    await new Promise((res) => setTimeout(res, 250));
-  }
-
-  return NextResponse.json({
-    ok: true,
-    vertical: config.slug,
-    processed: todo.length,
-    saved,
-    failed,
+    return NextResponse.json({
+      ok: true,
+      vertical: config.slug,
+      processed: todo.length,
+      saved,
+      failed,
+    });
   });
 }

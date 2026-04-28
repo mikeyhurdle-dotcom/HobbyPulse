@@ -13,6 +13,7 @@ import { searchEbay, type EbayProduct } from "@/lib/ebay";
 import { normaliseProduct } from "@/lib/normalise";
 import { getSiteVertical } from "@/lib/site";
 import { getGwRrp } from "@/lib/gw-rrp";
+import { tychoHeartbeat } from "@/lib/tycho";
 
 // Use service role key for writes (bypasses RLS)
 const supabase = createClient(
@@ -165,137 +166,142 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const verticalConfig = getSiteVertical();
-  const verticalSlug = verticalConfig.slug;
+  // === TYCHO_HEARTBEAT_WRAP === (added by Tycho instrumentation)
+  const _tychoBatch = new URL(request.url).searchParams.get("batch") ?? "0";
+  const _tychoUuid = process.env[`TYCHO_UUID_DEALS_BATCH_${_tychoBatch}`];
+  return tychoHeartbeat(_tychoUuid, async () => {
+    const verticalConfig = getSiteVertical();
+    const verticalSlug = verticalConfig.slug;
 
-  const errors: string[] = [];
-  const priceDrops: PriceDrop[] = [];
-  let productsUpserted = 0;
-  let listingsUpserted = 0;
-  let cacheHits = 0;
-  let haikuCalls = 0;
+    const errors: string[] = [];
+    const priceDrops: PriceDrop[] = [];
+    let productsUpserted = 0;
+    let listingsUpserted = 0;
+    let cacheHits = 0;
+    let haikuCalls = 0;
 
-  const { data: verticalRow } = await supabase
-    .from("verticals")
-    .select("id")
-    .eq("slug", verticalSlug)
-    .single();
+    const { data: verticalRow } = await supabase
+      .from("verticals")
+      .select("id")
+      .eq("slug", verticalSlug)
+      .single();
 
-  if (!verticalRow) {
-    return NextResponse.json(
-      { error: `Vertical ${verticalSlug} not found in database` },
-      { status: 500 },
-    );
-  }
-
-  const verticalId = verticalRow.id;
-  const allTerms = SEARCH_TERMS[verticalSlug] ?? [];
-  const scrapers = getScrapersForVertical(verticalSlug);
-
-  // Batch support: ?batch=0 processes terms 0-4, ?batch=1 processes 5-9, etc.
-  // ?batch=all (or omitted) processes everything (may timeout on large term lists).
-  const BATCH_SIZE = 5;
-  const url = new URL(request.url);
-  const batchParam = url.searchParams.get("batch");
-  const totalBatches = Math.ceil(allTerms.length / BATCH_SIZE);
-
-  let searchTerms: string[];
-  let batchInfo: string;
-
-  if (batchParam === null || batchParam === "all") {
-    searchTerms = allTerms;
-    batchInfo = `all (${allTerms.length} terms)`;
-  } else {
-    const batchIdx = parseInt(batchParam, 10);
-    if (isNaN(batchIdx) || batchIdx < 0) {
+    if (!verticalRow) {
       return NextResponse.json(
-        { error: `Invalid batch index. Use 0-${totalBatches - 1} or "all".` },
-        { status: 400 },
+        { error: `Vertical ${verticalSlug} not found in database` },
+        { status: 500 },
       );
     }
-    // Out-of-range is a no-op (200), not an error. The vercel.json cron
-    // schedules the max batches across both verticals, so smaller verticals
-    // will hit batches that don't exist — that's fine.
-    if (batchIdx >= totalBatches) {
-      return NextResponse.json({
-        ok: true,
-        skipped: true,
-        reason: `Batch ${batchIdx} out of range for ${verticalSlug} (${totalBatches} batches)`,
-        vertical: verticalSlug,
-        totalBatches,
-      });
-    }
-    const start = batchIdx * BATCH_SIZE;
-    searchTerms = allTerms.slice(start, start + BATCH_SIZE);
-    batchInfo = `${batchIdx}/${totalBatches - 1} (terms ${start}-${start + searchTerms.length - 1})`;
-  }
 
-  for (const term of searchTerms) {
-    // Scrape retailers
-    for (const scraper of scrapers) {
-      try {
-        const products = await scraper.scrape(term);
-        for (const product of products.slice(0, 10)) {
-          const result = await upsertProduct(
-            product,
-            verticalId,
-            verticalSlug,
-            scraper.name,
-            priceDrops,
-          );
-          if (result.productUpserted) productsUpserted++;
-          if (result.listingUpserted) listingsUpserted++;
-          if (result.resolvedBy === "cache" || result.resolvedBy === "fuzzy") cacheHits++;
-          if (result.resolvedBy === "haiku") haikuCalls++;
-        }
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : String(err);
-        errors.push(`${scraper.name} / "${term}": ${msg}`);
-      }
-    }
+    const verticalId = verticalRow.id;
+    const allTerms = SEARCH_TERMS[verticalSlug] ?? [];
+    const scrapers = getScrapersForVertical(verticalSlug);
 
-    // Search eBay if configured
-    const hasEbay = verticalConfig.retailers.some((r) => r.name === "eBay");
-    if (hasEbay && !process.env.EBAY_APP_ID) {
-      if (searchTerms.indexOf(term) === 0) {
-        errors.push("eBay: EBAY_APP_ID not configured — skipping eBay searches");
+    // Batch support: ?batch=0 processes terms 0-4, ?batch=1 processes 5-9, etc.
+    // ?batch=all (or omitted) processes everything (may timeout on large term lists).
+    const BATCH_SIZE = 5;
+    const url = new URL(request.url);
+    const batchParam = url.searchParams.get("batch");
+    const totalBatches = Math.ceil(allTerms.length / BATCH_SIZE);
+
+    let searchTerms: string[];
+    let batchInfo: string;
+
+    if (batchParam === null || batchParam === "all") {
+      searchTerms = allTerms;
+      batchInfo = `all (${allTerms.length} terms)`;
+    } else {
+      const batchIdx = parseInt(batchParam, 10);
+      if (isNaN(batchIdx) || batchIdx < 0) {
+        return NextResponse.json(
+          { error: `Invalid batch index. Use 0-${totalBatches - 1} or "all".` },
+          { status: 400 },
+        );
       }
-    } else if (hasEbay && process.env.EBAY_APP_ID) {
-      try {
-        const ebayResults = await searchEbay({
-          keyword: `${term} ${verticalConfig.name}`,
-          limit: 25,
+      // Out-of-range is a no-op (200), not an error. The vercel.json cron
+      // schedules the max batches across both verticals, so smaller verticals
+      // will hit batches that don't exist — that's fine.
+      if (batchIdx >= totalBatches) {
+        return NextResponse.json({
+          ok: true,
+          skipped: true,
+          reason: `Batch ${batchIdx} out of range for ${verticalSlug} (${totalBatches} batches)`,
+          vertical: verticalSlug,
+          totalBatches,
         });
-        for (const item of ebayResults) {
-          const result = await upsertEbayProduct(
-            item,
-            verticalId,
-            verticalSlug,
-            priceDrops,
-          );
-          if (result.productUpserted) productsUpserted++;
-          if (result.listingUpserted) listingsUpserted++;
-          if (result.resolvedBy === "cache" || result.resolvedBy === "fuzzy") cacheHits++;
-          if (result.resolvedBy === "haiku") haikuCalls++;
+      }
+      const start = batchIdx * BATCH_SIZE;
+      searchTerms = allTerms.slice(start, start + BATCH_SIZE);
+      batchInfo = `${batchIdx}/${totalBatches - 1} (terms ${start}-${start + searchTerms.length - 1})`;
+    }
+
+    for (const term of searchTerms) {
+      // Scrape retailers
+      for (const scraper of scrapers) {
+        try {
+          const products = await scraper.scrape(term);
+          for (const product of products.slice(0, 10)) {
+            const result = await upsertProduct(
+              product,
+              verticalId,
+              verticalSlug,
+              scraper.name,
+              priceDrops,
+            );
+            if (result.productUpserted) productsUpserted++;
+            if (result.listingUpserted) listingsUpserted++;
+            if (result.resolvedBy === "cache" || result.resolvedBy === "fuzzy") cacheHits++;
+            if (result.resolvedBy === "haiku") haikuCalls++;
+          }
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err);
+          errors.push(`${scraper.name} / "${term}": ${msg}`);
         }
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : String(err);
-        errors.push(`eBay / "${term}": ${msg}`);
+      }
+
+      // Search eBay if configured
+      const hasEbay = verticalConfig.retailers.some((r) => r.name === "eBay");
+      if (hasEbay && !process.env.EBAY_APP_ID) {
+        if (searchTerms.indexOf(term) === 0) {
+          errors.push("eBay: EBAY_APP_ID not configured — skipping eBay searches");
+        }
+      } else if (hasEbay && process.env.EBAY_APP_ID) {
+        try {
+          const ebayResults = await searchEbay({
+            keyword: `${term} ${verticalConfig.name}`,
+            limit: 25,
+          });
+          for (const item of ebayResults) {
+            const result = await upsertEbayProduct(
+              item,
+              verticalId,
+              verticalSlug,
+              priceDrops,
+            );
+            if (result.productUpserted) productsUpserted++;
+            if (result.listingUpserted) listingsUpserted++;
+            if (result.resolvedBy === "cache" || result.resolvedBy === "fuzzy") cacheHits++;
+            if (result.resolvedBy === "haiku") haikuCalls++;
+          }
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err);
+          errors.push(`eBay / "${term}": ${msg}`);
+        }
       }
     }
-  }
 
-  return NextResponse.json({
-    ok: true,
-    timestamp: new Date().toISOString(),
-    vertical: verticalSlug,
-    batch: batchInfo,
-    totalBatches,
-    productsUpserted,
-    listingsUpserted,
-    normalisation: { cacheHits, haikuCalls },
-    priceDrops: priceDrops.length > 0 ? priceDrops : undefined,
-    errors: errors.length > 0 ? errors : undefined,
+    return NextResponse.json({
+      ok: true,
+      timestamp: new Date().toISOString(),
+      vertical: verticalSlug,
+      batch: batchInfo,
+      totalBatches,
+      productsUpserted,
+      listingsUpserted,
+      normalisation: { cacheHits, haikuCalls },
+      priceDrops: priceDrops.length > 0 ? priceDrops : undefined,
+      errors: errors.length > 0 ? errors : undefined,
+    });
   });
 }
 
