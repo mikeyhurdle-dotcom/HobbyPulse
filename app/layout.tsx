@@ -10,6 +10,7 @@ import { Analytics as VercelAnalytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { AnalyticsTracker } from "@/components/analytics-tracker";
 import { PWARegister } from "@/components/pwa-register";
+import { Tealium } from "@/components/tealium";
 import { Suspense } from "react";
 import "./globals.css";
 
@@ -64,6 +65,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const config = getSiteVertical();
+  const brand = getSiteBrand();
   const defaultTheme = config.slug === "tabletop" ? "light" : "dark";
 
   return (
@@ -106,6 +108,7 @@ export default function RootLayout({
         <Suspense fallback={null}>
           <AnalyticsTracker />
         </Suspense>
+        <Tealium vertical={config.slug} domain={brand.domain} />
         <PWARegister />
       </body>
     </html>
