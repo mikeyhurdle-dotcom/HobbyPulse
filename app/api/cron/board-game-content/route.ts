@@ -9,6 +9,7 @@ import {
   lintEditorialVoice,
   type InternalLinkCandidate,
 } from "@/lib/board-game-content-pipeline";
+import { tychoHeartbeat } from "@/lib/tycho";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -47,179 +48,182 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const supabase = getAdminClient();
-  const stats = {
-    transcriptsFetched: 0,
-    transcriptsFailed: 0,
-    articlesGenerated: 0,
-    articlesFailed: 0,
-    errors: [] as string[],
-  };
+  // === TYCHO_HEARTBEAT_WRAP === (added by Tycho instrumentation)
+  return tychoHeartbeat(process.env.TYCHO_UUID_BOARD_GAME_CONTENT, async () => {
+    const supabase = getAdminClient();
+    const stats = {
+      transcriptsFetched: 0,
+      transcriptsFailed: 0,
+      articlesGenerated: 0,
+      articlesFailed: 0,
+      errors: [] as string[],
+    };
 
-  // ========================================================================
-  // Phase 1: Fetch transcripts for videos missing them
-  // ========================================================================
-  const { data: noTranscriptVideos } = await supabase
-    .from("board_game_videos")
-    .select("id, youtube_video_id, title")
-    .eq("has_transcript", false)
-    .neq("content_type", "other") // Only fetch transcripts for classifiable videos
-    .neq("content_type", "playthrough") // Playthroughs are too long, skip
-    .neq("content_type", "news") // News doesn't generate good articles
-    .order("published_at", { ascending: false })
-    .limit(5);
+    // ========================================================================
+    // Phase 1: Fetch transcripts for videos missing them
+    // ========================================================================
+    const { data: noTranscriptVideos } = await supabase
+      .from("board_game_videos")
+      .select("id, youtube_video_id, title")
+      .eq("has_transcript", false)
+      .neq("content_type", "other") // Only fetch transcripts for classifiable videos
+      .neq("content_type", "playthrough") // Playthroughs are too long, skip
+      .neq("content_type", "news") // News doesn't generate good articles
+      .order("published_at", { ascending: false })
+      .limit(5);
 
-  for (const video of noTranscriptVideos ?? []) {
-    try {
-      const transcript = await fetchTranscript(video.youtube_video_id);
+    for (const video of noTranscriptVideos ?? []) {
+      try {
+        const transcript = await fetchTranscript(video.youtube_video_id);
 
-      if (transcript && transcript.length > 100) {
-        await supabase
-          .from("board_game_videos")
-          .update({
-            transcript,
-            has_transcript: true,
-          })
-          .eq("id", video.id);
+        if (transcript && transcript.length > 100) {
+          await supabase
+            .from("board_game_videos")
+            .update({
+              transcript,
+              has_transcript: true,
+            })
+            .eq("id", video.id);
 
-        stats.transcriptsFetched++;
-      } else {
-        // Mark as attempted so we don't retry forever
-        await supabase
-          .from("board_game_videos")
-          .update({ has_transcript: false })
-          .eq("id", video.id);
+          stats.transcriptsFetched++;
+        } else {
+          // Mark as attempted so we don't retry forever
+          await supabase
+            .from("board_game_videos")
+            .update({ has_transcript: false })
+            .eq("id", video.id);
 
+          stats.transcriptsFailed++;
+        }
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        stats.errors.push(`Transcript ${video.youtube_video_id}: ${message}`);
         stats.transcriptsFailed++;
       }
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      stats.errors.push(`Transcript ${video.youtube_video_id}: ${message}`);
-      stats.transcriptsFailed++;
     }
-  }
 
-  // ========================================================================
-  // Phase 2: Generate articles from videos with transcripts
-  // ========================================================================
-  const { data: readyVideos } = await supabase
-    .from("board_game_videos")
-    .select(
-      "id, youtube_video_id, title, description, transcript, content_type, board_game_channels(channel_name)",
-    )
-    .eq("has_transcript", true)
-    .eq("article_generated", false)
-    .in("content_type", Object.keys(GENERATABLE_TYPES))
-    .order("published_at", { ascending: false })
-    .limit(3);
+    // ========================================================================
+    // Phase 2: Generate articles from videos with transcripts
+    // ========================================================================
+    const { data: readyVideos } = await supabase
+      .from("board_game_videos")
+      .select(
+        "id, youtube_video_id, title, description, transcript, content_type, board_game_channels(channel_name)",
+      )
+      .eq("has_transcript", true)
+      .eq("article_generated", false)
+      .in("content_type", Object.keys(GENERATABLE_TYPES))
+      .order("published_at", { ascending: false })
+      .limit(3);
 
-  for (const video of readyVideos ?? []) {
-    const articleType = GENERATABLE_TYPES[video.content_type];
-    if (!articleType) continue;
+    for (const video of readyVideos ?? []) {
+      const articleType = GENERATABLE_TYPES[video.content_type];
+      if (!articleType) continue;
 
-    const channelRaw = video.board_game_channels as
-      | { channel_name: string }
-      | { channel_name: string }[]
-      | null;
-    const channelName = Array.isArray(channelRaw)
-      ? channelRaw[0]?.channel_name ?? "Unknown Channel"
-      : channelRaw?.channel_name ?? "Unknown Channel";
+      const channelRaw = video.board_game_channels as
+        | { channel_name: string }
+        | { channel_name: string }[]
+        | null;
+      const channelName = Array.isArray(channelRaw)
+        ? channelRaw[0]?.channel_name ?? "Unknown Channel"
+        : channelRaw?.channel_name ?? "Unknown Channel";
 
-    try {
-      const article = await generateArticle(
-        {
-          title: video.title,
-          description: video.description ?? "",
-          transcript: video.transcript ?? "",
-          channelName,
-          videoId: video.youtube_video_id,
-        },
-        articleType,
-      );
-
-      if (article) {
-        // Add required template structure and internal links before persistence
-        const { data: existingArticles } = await supabase
-          .from("board_game_articles")
-          .select("slug, title, article_type")
-          .in("status", ["draft", "review", "published"])
-          .limit(200);
-
-        const internalLinks = buildInternalLinks(
-          article.title,
-          article.article_type,
-          (existingArticles ?? []) as InternalLinkCandidate[],
+      try {
+        const article = await generateArticle(
+          {
+            title: video.title,
+            description: video.description ?? "",
+            transcript: video.transcript ?? "",
+            channelName,
+            videoId: video.youtube_video_id,
+          },
+          articleType,
         );
 
-        const structuredContent = enforceArticleTemplate(article.content);
-        const linkedContent = injectInternalLinks(structuredContent, internalLinks);
+        if (article) {
+          // Add required template structure and internal links before persistence
+          const { data: existingArticles } = await supabase
+            .from("board_game_articles")
+            .select("slug, title, article_type")
+            .in("status", ["draft", "review", "published"])
+            .limit(200);
 
-        const voiceLint = lintEditorialVoice(linkedContent);
-        if (!voiceLint.ok) {
-          stats.errors.push(
-            `Voice lint failed for ${video.youtube_video_id}: missing ${voiceLint.missing.join(", ")}`,
+          const internalLinks = buildInternalLinks(
+            article.title,
+            article.article_type,
+            (existingArticles ?? []) as InternalLinkCandidate[],
           );
+
+          const structuredContent = enforceArticleTemplate(article.content);
+          const linkedContent = injectInternalLinks(structuredContent, internalLinks);
+
+          const voiceLint = lintEditorialVoice(linkedContent);
+          if (!voiceLint.ok) {
+            stats.errors.push(
+              `Voice lint failed for ${video.youtube_video_id}: missing ${voiceLint.missing.join(", ")}`,
+            );
+            stats.articlesFailed++;
+            continue;
+          }
+
+          // Save article to board_game_articles table
+          const { data: inserted, error: insertError } = await supabase
+            .from("board_game_articles")
+            .upsert(
+              {
+                slug: article.slug,
+                title: article.title,
+                meta_description: article.meta_description,
+                content: linkedContent,
+                article_type: article.article_type,
+                source_video_ids: [video.youtube_video_id],
+                source_channels: [channelName],
+                status: "draft", // Always draft — needs human review
+                published_at: new Date().toISOString(),
+              },
+              { onConflict: "slug" },
+            )
+            .select("id")
+            .single();
+
+          if (insertError) {
+            stats.errors.push(
+              `Insert article for ${video.youtube_video_id}: ${insertError.message}`,
+            );
+            stats.articlesFailed++;
+            continue;
+          }
+
+          // Link video to article
+          await supabase
+            .from("board_game_videos")
+            .update({
+              article_generated: true,
+              article_id: inserted?.id ?? null,
+            })
+            .eq("id", video.id);
+
+          stats.articlesGenerated++;
+        } else {
+          // Haiku couldn't generate a useful article — mark as attempted
+          await supabase
+            .from("board_game_videos")
+            .update({ article_generated: true })
+            .eq("id", video.id);
+
           stats.articlesFailed++;
-          continue;
         }
-
-        // Save article to board_game_articles table
-        const { data: inserted, error: insertError } = await supabase
-          .from("board_game_articles")
-          .upsert(
-            {
-              slug: article.slug,
-              title: article.title,
-              meta_description: article.meta_description,
-              content: linkedContent,
-              article_type: article.article_type,
-              source_video_ids: [video.youtube_video_id],
-              source_channels: [channelName],
-              status: "draft", // Always draft — needs human review
-              published_at: new Date().toISOString(),
-            },
-            { onConflict: "slug" },
-          )
-          .select("id")
-          .single();
-
-        if (insertError) {
-          stats.errors.push(
-            `Insert article for ${video.youtube_video_id}: ${insertError.message}`,
-          );
-          stats.articlesFailed++;
-          continue;
-        }
-
-        // Link video to article
-        await supabase
-          .from("board_game_videos")
-          .update({
-            article_generated: true,
-            article_id: inserted?.id ?? null,
-          })
-          .eq("id", video.id);
-
-        stats.articlesGenerated++;
-      } else {
-        // Haiku couldn't generate a useful article — mark as attempted
-        await supabase
-          .from("board_game_videos")
-          .update({ article_generated: true })
-          .eq("id", video.id);
-
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        stats.errors.push(`Generate ${video.youtube_video_id}: ${message}`);
         stats.articlesFailed++;
       }
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      stats.errors.push(`Generate ${video.youtube_video_id}: ${message}`);
-      stats.articlesFailed++;
     }
-  }
 
-  return NextResponse.json({
-    success: true,
-    ...stats,
-    errors: stats.errors.length > 0 ? stats.errors : undefined,
+    return NextResponse.json({
+      success: true,
+      ...stats,
+      errors: stats.errors.length > 0 ? stats.errors : undefined,
+    });
   });
 }

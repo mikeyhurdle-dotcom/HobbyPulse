@@ -7,6 +7,7 @@
 
 import { NextResponse } from "next/server";
 import { checkAndSendAlerts } from "@/lib/price-alerts";
+import { tychoHeartbeat } from "@/lib/tycho";
 
 export const dynamic = "force-dynamic";
 
@@ -19,11 +20,18 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const result = await checkAndSendAlerts();
+  // === TYCHO_HEARTBEAT_WRAP === (added by Tycho instrumentation)
+  const _tychoHour = new Date().getUTCHours();
+  const _tychoUuid = _tychoHour < 12
+    ? process.env.TYCHO_UUID_PRICE_ALERTS_AM
+    : process.env.TYCHO_UUID_PRICE_ALERTS_PM;
+  return tychoHeartbeat(_tychoUuid, async () => {
+    const result = await checkAndSendAlerts();
 
-  return NextResponse.json({
-    ok: true,
-    timestamp: new Date().toISOString(),
-    alertsSent: result.sent,
+    return NextResponse.json({
+      ok: true,
+      timestamp: new Date().toISOString(),
+      alertsSent: result.sent,
+    });
   });
 }
