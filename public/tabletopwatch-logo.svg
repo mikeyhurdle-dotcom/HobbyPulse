@@ -1,9 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 150" width="600" height="150" role="img" aria-label="TabletopWatch">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 200" width="1080" height="200" role="img" aria-label="TabletopWatch">
   <style>
     .word {
       font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
       font-weight: 800;
-      letter-spacing: -2px;
+      letter-spacing: -3px;
     }
     .base { fill: #1a1815; }
     .accent { fill: #3a9a9a; }
@@ -11,7 +11,7 @@
       .base { fill: #fafafa; }
     }
   </style>
-  <text x="0" y="108" class="word" font-size="110">
+  <text x="0" y="150" class="word" font-size="150" textLength="1070" lengthAdjust="spacingAndGlyphs">
     <tspan class="base">Tabletop</tspan><tspan class="accent">Watch</tspan>
   </text>
 </svg>

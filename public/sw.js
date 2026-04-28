@@ -9,7 +9,7 @@
 // goal is installability + a decent offline page, not a full offline app.
 // ---------------------------------------------------------------------------
 
-const CACHE_VERSION = "hobbypulse-v2-rebrand-2026-04";
+const CACHE_VERSION = "hobbypulse-v3-logo-fix-2026-04-28";
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
 self.addEventListener("install", (event) => {
