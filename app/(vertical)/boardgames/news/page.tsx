@@ -11,14 +11,17 @@ export const revalidate = 1800; // 30 min — news is more time-sensitive
 
 export async function generateMetadata(): Promise<Metadata> {
   const brand = getSiteBrand();
+  const url = `https://${brand.domain}/boardgames/news`;
   return {
     title: `Board Game News | ${brand.siteName}`,
     description:
       "Latest board game news from the top YouTube channels — reviews, announcements, and industry updates.",
+    alternates: { canonical: url },
     openGraph: {
       title: `Board Game News | ${brand.siteName}`,
       description:
         "Latest board game news from the top YouTube channels.",
+      url,
       type: "website",
     },
   };
