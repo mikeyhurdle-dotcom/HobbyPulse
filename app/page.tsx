@@ -323,7 +323,7 @@ export default async function HomePage() {
                 </p>
               </div>
               <Link
-                href={isTabletop ? "/miniatures/trending" : "/trending"}
+                href="/trending"
                 className="inline-flex items-center gap-1 text-sm font-medium text-[var(--danger)] hover:underline whitespace-nowrap"
               >
                 View all <ArrowRight className="w-3.5 h-3.5" />
@@ -726,16 +726,17 @@ export default async function HomePage() {
         )}
 
         {/* ============================================================= */}
-        {/* Featured Content                                               */}
+        {/* Featured Content (SimRaceWatch only — TTW uses Latest Board    */}
+        {/* Game Videos above)                                              */}
         {/* ============================================================= */}
-        {data.featured.length > 0 && (
+        {!isTabletop && data.featured.length > 0 && (
           <section className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl sm:text-2xl font-bold tracking-tight">
-                {isTabletop ? "Miniatures Content" : "Latest Replays"}
+                Latest Replays
               </h2>
               <Link
-                href={isTabletop ? "/miniatures/watch" : "/watch"}
+                href="/watch"
                 className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
                 View all <ArrowRight className="w-3.5 h-3.5" />
@@ -748,7 +749,7 @@ export default async function HomePage() {
                 return (
                   <Link
                     key={video.id}
-                    href={`${isTabletop ? "/miniatures" : ""}/watch/${video.youtube_video_id}`}
+                    href={`/watch/${video.youtube_video_id}`}
                     className="group"
                   >
                     <Card className="overflow-hidden border-border bg-card hover:border-[var(--vertical-accent)]/40 transition-all">
@@ -836,7 +837,7 @@ export default async function HomePage() {
         {/* Quick Navigation                                               */}
         {/* ============================================================= */}
         <section className="max-w-7xl mx-auto px-4 sm:px-6 pb-12">
-          <div className={`grid grid-cols-1 gap-4 ${isTabletop ? "sm:grid-cols-2 lg:grid-cols-4" : "sm:grid-cols-3"}`}>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             {(isTabletop
               ? [
                   {
@@ -858,12 +859,6 @@ export default async function HomePage() {
                     href: "/deals",
                     description: config.dealsDescription,
                     icon: TrendingUp,
-                  },
-                  {
-                    label: "Miniatures",
-                    href: "/miniatures/watch",
-                    description: config.watchDescription,
-                    icon: Play,
                   },
                 ]
               : [
@@ -911,37 +906,16 @@ export default async function HomePage() {
         {/* ============================================================= */}
         <section className="border-t border-border">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
-            <div className={isTabletop && config.miniatureChannels && config.miniatureChannels.length > 0 ? "mb-8" : ""}>
-              <h2 className="text-lg font-bold tracking-tight mb-4">
-                {isTabletop ? "Board Game Channels" : "Tracked Channels"}
-              </h2>
-              <div className="flex flex-wrap gap-2">
-                {config.channels.map((channel) => (
-                  <Badge key={channel} variant="secondary" className="text-xs">
-                    {channel}
-                  </Badge>
-                ))}
-              </div>
+            <h2 className="text-lg font-bold tracking-tight mb-4">
+              {isTabletop ? "Board Game Channels" : "Tracked Channels"}
+            </h2>
+            <div className="flex flex-wrap gap-2">
+              {config.channels.map((channel) => (
+                <Badge key={channel} variant="secondary" className="text-xs">
+                  {channel}
+                </Badge>
+              ))}
             </div>
-            {isTabletop && config.miniatureChannels && config.miniatureChannels.length > 0 && (
-              <div className="opacity-75">
-                <div className="flex items-baseline justify-between mb-3">
-                  <h3 className="text-sm font-semibold tracking-tight uppercase text-muted-foreground">
-                    Miniatures Corner
-                  </h3>
-                  <Link href="/miniatures/watch" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
-                    Browse miniatures →
-                  </Link>
-                </div>
-                <div className="flex flex-wrap gap-1.5">
-                  {config.miniatureChannels.map((channel) => (
-                    <Badge key={channel} variant="outline" className="text-[10px] font-normal">
-                      {channel}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
         </section>
 

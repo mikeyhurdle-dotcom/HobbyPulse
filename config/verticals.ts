@@ -28,7 +28,6 @@ export interface VerticalConfig {
   brand: VerticalBrand;
   theme: VerticalTheme;
   channels: string[];
-  miniatureChannels?: string[];
   retailers: VerticalRetailer[];
   categories: string[];
   watchDescription: string;
@@ -43,7 +42,7 @@ export const verticals: Record<string, VerticalConfig> = {
   tabletop: {
     slug: "tabletop",
     name: "Tabletop Gaming",
-    description: "Board games first — reviews, video guides, deals, and the latest from Kickstarter. Plus a niche corner for miniatures.",
+    description: "Board games — reviews, video guides, deals, and the latest from Kickstarter.",
     brand: {
       siteName: "TabletopWatch",
       tagline: "Your guide to tabletop gaming — board games first",
@@ -77,57 +76,39 @@ export const verticals: Record<string, VerticalConfig> = {
       "Meeple University",
       "So Very Wrong About Games",
     ],
-    miniatureChannels: [
-      "Tabletop Titans",
-      "PlayOn Tabletop",
-      "MWG Studios",
-      "Winters SEO",
-      "Auspex Tactics",
-      "Art of War 40k",
-      "Mordian Glory",
-      "Guerrilla Miniature Games",
-      "The Honest Wargamer",
-      "Striking Scorpion 82",
-      "Tabletop Tactics",
-    ],
     retailers: [
-      { name: "Games Workshop", url: "https://www.games-workshop.com", affiliateParam: "ref" },
-      { name: "Element Games", url: "https://elementgames.co.uk", affiliateParam: "ref" },
-      { name: "Wayland Games", url: "https://www.waylandgames.co.uk", affiliateParam: "ref" },
-      { name: "Troll Trader", url: "https://thetrolltrader.com" },
       { name: "Goblin Gaming", url: "https://www.goblingaming.co.uk" },
       { name: "Magic Madhouse", url: "https://www.magicmadhouse.co.uk" },
+      { name: "Zatu Games", url: "https://www.board-game.co.uk" },
+      { name: "Amazon", url: "https://www.amazon.co.uk", affiliateParam: "tag" },
       { name: "eBay", url: "https://www.ebay.co.uk", affiliateParam: "campid" },
     ],
     categories: [
-      "Space Marines",
-      "Chaos Space Marines",
-      "Aeldari",
-      "Tyranids",
-      "Orks",
-      "Necrons",
-      "Death Guard",
-      "Tau Empire",
-      "Adeptus Mechanicus",
-      "Imperial Knights",
+      "Strategy",
+      "Co-operative",
+      "Family",
+      "Party",
+      "Two-player",
+      "Heavy Euro",
+      "Card Game",
+      "Deck-builder",
+      "Roll & Write",
+      "Solo",
     ],
     watchDescription:
       "Board game reviews, playthroughs, and how-to-play guides from 20+ channels.",
     dealsDescription:
-      "Compare prices across retailers and find the best deals on board games and miniatures.",
+      "Compare prices across UK retailers and find the best deals on board games.",
     liveDescription:
       "Live streams from Twitch and YouTube — updated every 5 minutes.",
-    twitchGameIds: ["518030"],
-    liveSearchTerms: ["warhammer 40k", "40k battle report"],
+    twitchGameIds: [],
+    liveSearchTerms: ["board game playthrough", "tabletop tutorial"],
     discoverySearchTerms: [
-      "warhammer 40k battle report",
-      "40k batrep",
-      "warhammer 40000 vs",
-      "age of sigmar battle report",
-      "aos batrep",
-      "old world battle report",
-      "warhammer fantasy battle report",
-      "kill team battle report",
+      "board game review",
+      "board game playthrough",
+      "board game how to play",
+      "board game vs",
+      "best board games",
     ],
   },
   simracing: {

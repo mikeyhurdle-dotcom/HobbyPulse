@@ -71,12 +71,12 @@ function getFaqs(slug: string, brandName: string): FaqItem[] {
     {
       question: "Which retailers do you compare for board games?",
       answer:
-        "We track board game prices on Amazon UK and Zatu Games, plus eBay for second-hand deals. More retailers are being added as affiliate partnerships are approved.",
+        "We track board game prices across Amazon UK, Zatu Games, Magic Madhouse, Goblin Gaming, and eBay for second-hand deals. More retailers are being added as affiliate partnerships are approved.",
     },
     {
-      question: "Do you also cover miniatures?",
+      question: "Do you cover miniatures or Warhammer?",
       answer:
-        "Yes! We cover Warhammer 40K, Age of Sigmar, The Old World, Kill Team, and more under our Miniatures section. This includes battle reports, army lists, and price comparison across Element Games, Troll Trader, and eBay.",
+        "No — we focused TabletopWatch on board games as of April 2026. For Warhammer 40K, Age of Sigmar, The Old World, and Kill Team coverage, we recommend Tale of Painters, Goonhammer, and Auspex Tactics.",
     },
   ];
 

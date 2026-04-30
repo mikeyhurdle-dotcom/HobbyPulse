@@ -1,9 +1,17 @@
 # SimRaceWatch — Site Brief & Editorial Voice
 
-Last updated: 2026-04-27 (migrated from root-level voice guide unchanged)
+## SUNSET 2026-04-30 — do not draft, post, or publish for this site.
+
+Per `bot/COMPETITIVE-VIABILITY-2026-04-30.md`, SimRaceWatch was sunset on 2026-04-30. The domain serves last-state static content as an archive. Deals scraper still runs passive on free tier (preserves the dataset as optionality). The voice rulebook has been moved to `bot/_archive/simracewatch-voice.md`.
+
+If a cron / instruction asks Hawk to do work for `simracewatch`, decline and link Mikey to the viability doc. Re-evaluate at 2027-01-31.
+
+---
+
+Last updated: 2026-04-27 (migrated from root-level voice guide unchanged). Sunset notice added 2026-04-30.
 Owner: PulseBot (Hawk)
 
-## 1) Direction
+## 1) Direction (frozen)
 
 SimRaceWatch is sim racing hardware deals + content. No pivot in flight. Keep the cadence: hardware comparisons, "best X under £Y" guides, new launch coverage, weekly deals roundup (Fridays), setup guides per sim title, rig builds.
 

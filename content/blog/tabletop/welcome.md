@@ -1,31 +1,32 @@
 ---
 title: Welcome to the TabletopWatch Blog
-excerpt: A new home for Warhammer 40K buying guides, faction breakdowns, and honest opinions on getting more hobby for your money.
+excerpt: Board game buying guides, deal triage, and honest opinions on getting more game for your money.
 publishedAt: 2026-04-09
-author: Mikey
+updatedAt: 2026-04-30
+author: TabletopWatch
 tags:
   - announcement
 ---
 
-TabletopWatch started as a way to pull together the best Warhammer 40K battle reports from across YouTube in one place, with army lists, prices, and a budget army builder alongside them.
+TabletopWatch is a UK board-game site: 22,000-plus tracked listings across the major retailers, a quarterly Top 50, and a Friday newsletter that turns the live deals data into a one-email-a-week recommendation surface. No miniatures, no Warhammer — that's a different rabbit hole and there are people doing it better.
 
-This is where the editorial side of the site lives. Expect buying guides, faction breakdowns, honest reviews of the latest releases, and regular "cheapest way to start X" articles pointing at real stock from real retailers.
+This is where the editorial side of the site lives. Expect buying guides, "best 2-player" picks, honest reviews of new releases, gateway recommendations that actually work for non-gamer partners, and Friday deal triage that points at real stock from real retailers.
 
 ## What's coming
 
-A few things we're lining up for the first batch of posts:
+A few things we're lining up:
 
-- **"Build an X army under £150"** — a running series where we cost up playable starter lists from scratch using current prices from the retailers we track. First up, a Space Marines list built entirely from discount box sets.
-- **Faction first-impressions** — whenever GW drops a new codex, we'll do a quick pass through what's changed, what's expensive, and what the community is actually fielding in tournaments.
-- **Buying guides for Combat Patrols** — which ones are worth the points, which ones are overpriced filler, and which ones to avoid entirely.
-- **Second-hand spotting guides** — how to tell a £30 bargain from a £30 headache on eBay.
+- **The Friday newsletter** — every week, the best UK board-game deals filtered down to a handful of buys, plus one Quill's-pick editorial. Sign up from the homepage.
+- **The TabletopWatch Top 50** — quarterly, ranked by what survives a real table for two years rather than what BGG users are voting up this week.
+- **"Best gateway games"** for the friend who wants something better than Catan, the partner who'll only play 30-minute games, and the group that's bored of Wingspan.
+- **Versus picks** — Brass: Birmingham vs Pittsburgh, Azul vs Sagrada, Earth vs Wingspan. One winner, every time.
 
 ## Start here
 
 - [2025 Board Game Award Winners: 11 Games Actually Worth Buying](/boardgames/best/2025-board-game-award-winners-worth-buying)
-- [Browse today’s tabletop deals](/deals)
-- Join the newsletter from the homepage for weekly board game and miniatures deal drops.
+- [Browse today's board game deals](/deals)
+- Join the newsletter from the homepage for the Friday roundup.
 
-If there's a specific topic you want to see, drop us a line. The whole point of this site is to be useful to people who actually play the game.
+If there's a specific topic you want to see, drop us a line. The whole point of this site is to be useful to people who actually play.
 
 Happy hobbying.

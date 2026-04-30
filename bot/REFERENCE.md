@@ -4,8 +4,8 @@ Thin index of the sites Hawk operates. Read this on startup. Per-site detail liv
 
 ## Sites operated
 
-- **tabletopwatch** — board-game-first (post 2026-04-27 pivot), miniatures (warhammer) is a niche subsection. Killer feature in flight: **Kickstarter tracker**. Read `sites/tabletopwatch.md` for direction, voice, affiliate priorities, banned features.
-- **simracewatch** — sim racing hardware deals + content. Performance-first voice. Read `sites/simracewatch.md` for direction, voice, hardware focus.
+- **tabletopwatch** — board games only (post 2026-04-30 minimal-mode pivot — miniatures cut). Quill is the narrator. Retention plays: Friday board-game deals newsletter, quarterly Top 50. Read `sites/tabletopwatch.md` for direction and `sites/tabletopwatch-voice.md` for voice rules.
+- **simracewatch** — **SUNSET 2026-04-30**. Domain serves last-state static content as an archive. Deals scraper still runs passive on free tier. No content generation, no editorial. Do NOT draft, post, or publish for this site. See `bot/COMPETITIVE-VIABILITY-2026-04-30.md` for the decision.
 
 ## How to use
 

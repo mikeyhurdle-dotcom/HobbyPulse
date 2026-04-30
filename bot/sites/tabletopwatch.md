@@ -1,19 +1,23 @@
 # TabletopWatch — Site Brief & Voice
 
-Last updated: 2026-04-27 (post board-game-first pivot). Owner: PulseBot (Hawk).
+Last updated: 2026-04-30 (minimal-mode pivot — miniatures cut). Owner: PulseBot (Hawk). Narrator: **Quill** (mascot-as-narrator).
 
 ## 1) Direction
 
-**Board-game-first.** Miniatures (Warhammer 40K, AoS, MESBG, etc.) is a **niche corner** at `/miniatures`, not the lead.
+**Board games only.** Miniatures (Warhammer 40K, AoS, MESBG, etc.) is **OUT** as of the 2026-04-30 strategic pivot. Do NOT draft, post, or generate content about Warhammer, miniatures, painting, or related hobby gear. Don't link to `/miniatures/*` (those URLs are dead). Filter Warhammer-tagged products out of any deals roundup before it ships.
 
-**Killer feature in flight: Kickstarter tracker** — board-game crowdfunding + late-pledge affiliate. Prioritise content + features that feed it.
+**Minimal-mode retention plays (the only two surfaces that earn the time):**
+1. **Friday board-game deals newsletter** — turn the 22K UK listings into a once-a-week curated email. Quill picks the editorial. See `bot/FRIDAY-NEWSLETTER-SPEC-2026-04-30.md`.
+2. **Quarterly Top 50** — Quill ranks the 50 board games worth owning right now. Refresh four times a year. See `bot/TOP-50-DRAFT-2026-04-30.md` for the current draft.
 
-**Killed (do NOT generate content for these — being deleted):** `/build` (Build My Army Cheap), `/armies` (tournament lists). Drop queued topics that depend on them.
+**Killer feature in flight: Kickstarter tracker** — board-game crowdfunding + late-pledge affiliate. Still alive; feeds the newsletter.
+
+**Killed (do NOT generate content for these):** `/build` (Build My Army Cheap), `/armies` (tournament lists), `/miniatures/*`, any Warhammer / 40K / AoS / Kill Team / Old World content. Drop queued topics that depend on them.
 
 **Lead categories (priority order):**
 1. Board games — reviews, best-of, how-to-play, versus, gateway picks
 2. Kickstarter / crowdfunding — live roundups, late-pledge alerts, "what's funding now"
-3. Miniatures (niche) — welcome, but route to `/miniatures`, never homepage
+3. Friday deals roundup — board-game stock only, never miniatures
 
 ## 2) Voice — North Star
 
@@ -48,7 +52,7 @@ Short-to-medium sentences. Strong subheads. Scannable bullets. No bloated intros
 
 ## 6) Brand language + meta
 
-Prefer "worth buying" over "best ever" · "table fit" over "objective best" · "replay value" over "hours of fun" · "rules overhead" over "complex but rewarding". UK context: prices in £, UK retailers where possible. Meta title: `[Page Title] | Tabletop Watch — Board Games & Miniatures`
+Prefer "worth buying" over "best ever" · "table fit" over "objective best" · "replay value" over "hours of fun" · "rules overhead" over "complex but rewarding". UK context: prices in £, UK retailers where possible. Meta title: `[Page Title] | TabletopWatch — Board Game Deals, Reviews & Kickstarter Tracker`
 
 ## 7) Visual identity (image prompts, thumbnails, OG)
 
@@ -79,7 +83,8 @@ Every post: ≥3 affiliate links, ordered by priority. UTM-tagged via `lib/affil
 - [ ] No generic AI phrasing; reads human-enthusiast
 - [ ] Recommendation specific and actionable
 - [ ] No spoilers / battle-report winners
-- [ ] No links to `/build` or `/armies` (deleted)
+- [ ] No Warhammer / miniatures content (post 2026-04-30 cut)
+- [ ] No links to `/build`, `/armies`, or `/miniatures/*` (deleted)
 
 If 2+ fail, revise before publish.
 

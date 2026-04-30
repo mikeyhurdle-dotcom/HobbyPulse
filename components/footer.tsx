@@ -4,7 +4,6 @@ import { getSiteBrand, getSiteVertical } from "@/lib/site";
 export function Footer() {
   const brand = getSiteBrand();
   const vertical = getSiteVertical();
-  const mp = vertical.slug === "tabletop" ? "/miniatures" : "";
 
   return (
     <footer className="border-t border-border bg-secondary/50 mt-16">
@@ -23,20 +22,15 @@ export function Footer() {
             <Link href="/contact" className="hover:text-foreground transition-colors">
               Contact
             </Link>
-            <Link href={`${mp}/trending`} className="hover:text-foreground transition-colors">
+            <Link href="/trending" className="hover:text-foreground transition-colors">
               Trending
             </Link>
             {vertical.slug === "tabletop" && (
-              <>
-                <Link href="/boardgames" className="hover:text-foreground transition-colors">
-                  Board Games
-                </Link>
-                <Link href="/miniatures/watch" className="hover:text-foreground transition-colors">
-                  Miniatures
-                </Link>
-              </>
+              <Link href="/boardgames" className="hover:text-foreground transition-colors">
+                Board Games
+              </Link>
             )}
-            <Link href={`${mp}/channels`} className="hover:text-foreground transition-colors">
+            <Link href="/channels" className="hover:text-foreground transition-colors">
               Channels
             </Link>
             <Link href="/privacy" className="hover:text-foreground transition-colors">

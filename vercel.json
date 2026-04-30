@@ -37,18 +37,6 @@
       "schedule": "15 2 * * *"
     },
     {
-      "path": "/api/cron/deals?batch=6",
-      "schedule": "18 2 * * *"
-    },
-    {
-      "path": "/api/cron/deals?batch=7",
-      "schedule": "21 2 * * *"
-    },
-    {
-      "path": "/api/cron/deals?batch=8",
-      "schedule": "24 2 * * *"
-    },
-    {
       "path": "/api/cron/live",
       "schedule": "0 12 * * *"
     },

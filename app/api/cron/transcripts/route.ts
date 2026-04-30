@@ -8,7 +8,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { generateVideoSummary, saveVideoSummary } from "@/lib/video-summaries";
-import { getSiteVertical } from "@/lib/site";
+import { getSiteVertical, isSrwSunset } from "@/lib/site";
 
 export const maxDuration = 300;
 export const dynamic = "force-dynamic";
@@ -36,6 +36,11 @@ export async function GET(request: Request) {
   const authHeader = request.headers.get("authorization");
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // SUNSET 2026-04-30 per pivot decision — SRW transcript summaries halted.
+  if (isSrwSunset()) {
+    return NextResponse.json({ ok: true, skipped: true, reason: "SRW sunset 2026-04-30" });
   }
 
   const config = getSiteVertical();

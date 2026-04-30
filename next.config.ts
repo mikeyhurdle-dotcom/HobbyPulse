@@ -1,12 +1,5 @@
 import type { NextConfig } from "next";
 
-const isTabletop =
-  process.env.NEXT_PUBLIC_SITE_VERTICAL === "tabletop" ||
-  (!process.env.NEXT_PUBLIC_SITE_VERTICAL && !process.env.SITE_VERTICAL);
-
-// Routes to nest under /miniatures for TabletopWatch (board game pivot)
-const miniaturesPrefixes = ["watch", "channels", "trending"];
-
 const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
@@ -15,38 +8,6 @@ const nextConfig: NextConfig = {
       { hostname: "elementgames.co.uk" },
       { hostname: "i.ebayimg.com" },
     ],
-  },
-
-  async redirects() {
-    if (!isTabletop) return [];
-
-    return miniaturesPrefixes.flatMap((prefix) => [
-      {
-        source: `/${prefix}`,
-        destination: `/miniatures/${prefix}`,
-        permanent: true,
-      },
-      {
-        source: `/${prefix}/:path*`,
-        destination: `/miniatures/${prefix}/:path*`,
-        permanent: true,
-      },
-    ]);
-  },
-
-  async rewrites() {
-    if (!isTabletop) return [];
-
-    return miniaturesPrefixes.flatMap((prefix) => [
-      {
-        source: `/miniatures/${prefix}`,
-        destination: `/${prefix}`,
-      },
-      {
-        source: `/miniatures/${prefix}/:path*`,
-        destination: `/${prefix}/:path*`,
-      },
-    ]);
   },
 };
 

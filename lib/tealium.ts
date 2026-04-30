@@ -28,14 +28,9 @@ export interface TealiumDataLayer extends Record<string, unknown> {
 export function pageTypeFromPath(pathname: string): string {
   if (pathname === "/" || pathname === "") return "home";
 
-  // Strip leading slash, split, drop "miniatures" prefix on tabletop
   const segments = pathname.replace(/^\/+/, "").split("/");
-  let head = segments[0];
-  let rest = segments.slice(1);
-  if (head === "miniatures") {
-    head = rest[0] ?? "miniatures";
-    rest = rest.slice(1);
-  }
+  const head = segments[0];
+  const rest = segments.slice(1);
 
   switch (head) {
     case "watch":
@@ -69,8 +64,6 @@ export function pageTypeFromPath(pathname: string): string {
       return "setups";
     case "releases":
       return "releases";
-    case "miniatures":
-      return "miniatures";
     case "about":
     case "faq":
     case "contact":

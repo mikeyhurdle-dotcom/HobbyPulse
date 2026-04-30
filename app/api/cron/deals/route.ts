@@ -29,60 +29,7 @@ export const dynamic = "force-dynamic";
 
 const SEARCH_TERMS: Record<string, string[]> = {
   tabletop: [
-    // ---- 40K ----
-    // Starter boxes
-    "Combat Patrol",
-    "Starter Set",
-    // 40K factions
-    "Space Marines",
-    "Tyranids",
-    "Necrons",
-    "Orks",
-    "Aeldari",
-    "Death Guard",
-    "Thousand Sons",
-    "Adeptus Mechanicus",
-    "Tau Empire",
-    "Imperial Knights",
-    "Chaos Space Marines",
-    "World Eaters",
-    "Custodes",
-    "Grey Knights",
-    // 40K units
-    "Intercessors",
-    "Terminators",
-    "Redemptor Dreadnought",
-    "Wraithknight",
-    "Hive Tyrant",
-    "Carnifex",
-    // ---- Age of Sigmar ----
-    "Stormcast Eternals",
-    "Gloomspite Gitz",
-    "Skaven",
-    "Ossiarch Bonereapers",
-    "Seraphon",
-    "Soulblight Gravelords",
-    "Lumineth Realm-lords",
-    "Orruk Warclans",
-    "Cities of Sigmar",
-    "Slaves to Darkness",
-    "Kharadron Overlords",
-    "Sylvaneth",
-    // ---- Kill Team ----
-    "Kill Team",
-    "Kill Team Starter Set",
-    "Kasrkin",
-    "Hunter Clade",
-    // ---- Warhammer: The Old World ----
-    "Warhammer The Old World",
-    "Kingdom of Bretonnia",
-    "Tomb Kings of Khemri",
-    "Empire of Man",
-    "Beastmen Brayherd",
-    // ---- Paints & tools ----
-    "Citadel Paint",
-    "Contrast Paint",
-    // ---- Board Games ----
+    // ---- Board Games (post 2026-04-30 pivot — miniatures cut) ----
     "Catan board game",
     "Wingspan board game",
     "Ticket to Ride",
