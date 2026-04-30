@@ -346,22 +346,6 @@ export async function GET(request: Request) {
   });
 
   // =========================================================================
-  // Journey 6: Live streams table exists
-  // =========================================================================
-
-  const { count: liveCount } = await supabase
-    .from("live_streams")
-    .select("id", { count: "exact", head: true })
-    .eq("vertical_id", verticalId)
-    .eq("is_live", true);
-
-  results.push({
-    name: "6.1 Live streams queryable",
-    status: "PASS", // Table exists and is queryable, even if 0 live
-    details: `${liveCount ?? 0} live now`,
-  });
-
-  // =========================================================================
   // Data health checks
   // =========================================================================
 

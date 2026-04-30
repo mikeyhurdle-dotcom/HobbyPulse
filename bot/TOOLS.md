@@ -18,7 +18,7 @@
 | TabletopWatch | `https://tabletopwatch.com` |
 | SimRaceWatch | `https://simracewatch.com` |
 
-Key endpoints: `/api/cron/youtube`, `/api/cron/parse`, `/api/cron/deals?batch=N`, `/api/cron/live`, `/api/cron/price-alerts`, `/api/bot-heartbeat`, `/api/test`
+Key endpoints: `/api/cron/youtube`, `/api/cron/parse`, `/api/cron/deals?batch=N`, `/api/cron/price-alerts`, `/api/bot-heartbeat`, `/api/test`
 
 **Deals must use batches:** `?batch=0` through `?batch=N-1` (5 terms each). Response has `totalBatches`.
 

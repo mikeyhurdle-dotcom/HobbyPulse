@@ -33,9 +33,6 @@ export interface VerticalConfig {
   categories: string[];
   watchDescription: string;
   dealsDescription: string;
-  liveDescription: string;
-  twitchGameIds: string[];
-  liveSearchTerms: string[];
   discoverySearchTerms: string[];
 }
 
@@ -115,10 +112,6 @@ export const verticals: Record<string, VerticalConfig> = {
       "Board game reviews, playthroughs, and how-to-play guides from 20+ channels.",
     dealsDescription:
       "Compare prices across retailers and find the best deals on board games and miniatures.",
-    liveDescription:
-      "Live streams from Twitch and YouTube — updated every 5 minutes.",
-    twitchGameIds: ["518030"],
-    liveSearchTerms: ["warhammer 40k", "40k battle report"],
     discoverySearchTerms: [
       "warhammer 40k battle report",
       "40k batrep",
@@ -186,10 +179,6 @@ export const verticals: Record<string, VerticalConfig> = {
       "Race replays, setup guides, hardware reviews, and tutorials from the sim racing community.",
     dealsDescription:
       "Compare prices on sim racing hardware — wheels, pedals, rigs, and monitors from all major retailers.",
-    liveDescription:
-      "Live sim racing streams from Twitch and YouTube — updated every 5 minutes.",
-    twitchGameIds: ["28080", "506438", "2067888735"],
-    liveSearchTerms: ["sim racing", "iracing", "acc", "assetto corsa", "f1 24"],
     discoverySearchTerms: [
       "sim racing race replay",
       "iracing race onboard",

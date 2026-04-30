@@ -75,12 +75,6 @@ export default function AboutPage() {
                 {config.dealsDescription}
               </p>
             </div>
-            <div className="p-4 rounded-xl border border-border bg-secondary/50">
-              <h3 className="font-semibold text-foreground mb-2">Live</h3>
-              <p className="text-sm">
-                {config.liveDescription}
-              </p>
-            </div>
           </div>
 
           <h2 className="text-xl font-semibold text-foreground mt-8">

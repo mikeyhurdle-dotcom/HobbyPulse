@@ -7,7 +7,7 @@ import { websiteSchema } from "@/lib/structured-data";
 import { supabase } from "@/lib/supabase";
 import { classifyGameSystem, isShort } from "@/lib/classify";
 import { getGameSystem } from "@/config/game-systems";
-import { Play, TrendingUp, Radio, ArrowRight, Zap, Dice5, Star, Users, Clock, Rocket } from "lucide-react";
+import { Play, TrendingUp, ArrowRight, Zap, Dice5, Star, Users, Clock, Rocket } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { NewsletterForm } from "@/components/newsletter-form";
@@ -62,7 +62,6 @@ async function getHomeData() {
 
   const [
     videosRes,
-    liveRes,
     topDrops,
     featuredGame,
     trendingGames,
@@ -77,12 +76,6 @@ async function getHomeData() {
       .eq("vertical_id", verticalId ?? "")
       .order("published_at", { ascending: false })
       .limit(200),
-    supabase
-      .from("live_streams")
-      .select("id", { count: "exact", head: true })
-      .eq("vertical_id", verticalId ?? "")
-      .eq("is_live", true)
-      .gte("last_seen_at", new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()),
     verticalId ? getTopPriceDropsForVertical(verticalId, 6) : Promise.resolve([] as ProductDrop[]),
     isTabletopFetch ? getFeaturedGame() : Promise.resolve(null),
     isTabletopFetch ? getHomeTrendingGames(6) : Promise.resolve([] as BoardGame[]),
@@ -113,7 +106,6 @@ async function getHomeData() {
 
   return {
     totalVideos: allVideos.length,
-    liveNow: liveRes.count ?? 0,
     featured,
     channels: config.channels.length,
     topDrops,
@@ -289,17 +281,6 @@ export default async function HomePage() {
                 </p>
                 <p className="text-sm text-muted-foreground">Channels Tracked</p>
               </div>
-              {data.liveNow > 0 && (
-                <div>
-                  <p className="text-3xl font-bold tracking-tight font-[family-name:var(--font-mono)] text-danger">
-                    {data.liveNow}
-                  </p>
-                  <p className="text-sm text-muted-foreground flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-danger animate-pulse" />
-                    Live Now
-                  </p>
-                </div>
-              )}
             </div>
           </div>
         </section>
@@ -872,12 +853,6 @@ export default async function HomePage() {
                     href: "/watch",
                     description: config.watchDescription,
                     icon: Play,
-                  },
-                  {
-                    label: "Live",
-                    href: "/live",
-                    description: config.liveDescription,
-                    icon: Radio,
                   },
                   {
                     label: "Deals",

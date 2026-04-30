@@ -50,10 +50,6 @@ Create `/root/.openclaw/agents/pulsebot/agent/auth-profiles.json`:
   "youtube": {
     "api_key": "<YOUTUBE_API_KEY>"
   },
-  "twitch": {
-    "client_id": "<TWITCH_CLIENT_ID>",
-    "client_secret": "<TWITCH_CLIENT_SECRET>"
-  },
   "ebay": {
     "app_id": "<EBAY_APP_ID>",
     "app_secret": "<EBAY_APP_SECRET>",
