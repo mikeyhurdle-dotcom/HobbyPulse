@@ -8,6 +8,7 @@ import {
   type ArticleType,
 } from "@/lib/boardgame-articles";
 import { getTopGameSlugs } from "@/lib/board-game-db";
+import { listPosts } from "@/lib/blog";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const brand = getSiteBrand();
@@ -26,12 +27,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}${mp}/trending`, lastModified: new Date(), changeFrequency: "hourly", priority: 0.85 },
     { url: `${baseUrl}${mp}/channels`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
     { url: `${baseUrl}/releases`, lastModified: new Date(), changeFrequency: "daily", priority: 0.8 },
+    { url: `${baseUrl}/blog`, lastModified: new Date(), changeFrequency: "daily", priority: 0.85 },
     { url: `${baseUrl}/live`, lastModified: new Date(), changeFrequency: "always", priority: 0.8 },
     { url: `${baseUrl}/about`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.5 },
     { url: `${baseUrl}/faq`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.5 },
     { url: `${baseUrl}/contact`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.5 },
     { url: `${baseUrl}/privacy`, lastModified: new Date(), changeFrequency: "yearly", priority: 0.3 },
   ];
+
+  // Per-vertical blog posts (filesystem markdown). lib/blog.ts already
+  // skips posts with `draft: true`, so we only emit published URLs.
+  const blogRoutes: MetadataRoute.Sitemap = listPosts(config.slug).map(
+    (post) => ({
+      url: `${baseUrl}/blog/${post.slug}`,
+      lastModified: new Date(post.publishedAt),
+      changeFrequency: "monthly" as const,
+      priority: 0.8,
+    }),
+  );
 
   // Board game routes (TabletopWatch only)
   const boardGameRoutes: MetadataRoute.Sitemap = [];
@@ -150,6 +163,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   return [
     ...staticRoutes,
+    ...blogRoutes,
     ...boardGameRoutes,
     ...channelRoutes,
     ...categoryRoutes,

@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 import { Nav } from "@/components/nav";
+import { BlogMarkdown } from "@/components/blog-markdown";
 import { getPost, listSlugs, formatPostDate } from "@/lib/blog";
 import { getSiteVertical, getSiteBrand } from "@/lib/site";
 import { ArrowLeft } from "lucide-react";
@@ -27,12 +27,16 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     return { title: `Not found | ${brand.siteName}` };
   }
 
+  const url = `https://${brand.domain}/blog/${post.slug}`;
+
   return {
     title: `${post.title} | ${brand.siteName}`,
     description: post.excerpt,
+    alternates: { canonical: url },
     openGraph: {
       title: post.title,
       description: post.excerpt,
+      url,
       type: "article",
       publishedTime: post.publishedAt,
       authors: [post.author],
@@ -69,6 +73,18 @@ export default async function BlogPostPage({ params }: PageProps) {
         </Link>
 
         <article>
+          {post.heroImage && (
+            <figure className="mb-8 overflow-hidden rounded-lg border border-border bg-secondary">
+              <Image
+                src={post.heroImage}
+                alt={post.title}
+                width={1200}
+                height={675}
+                priority
+                className="h-auto w-full object-cover"
+              />
+            </figure>
+          )}
           <header className="mb-10 border-b border-border pb-8">
             <time
               dateTime={post.publishedAt}
@@ -118,9 +134,7 @@ export default async function BlogPostPage({ params }: PageProps) {
               [&_td]:border [&_td]:border-border [&_td]:px-3 [&_td]:py-2
             "
           >
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>
-              {post.content}
-            </ReactMarkdown>
+            <BlogMarkdown content={post.content} />
           </div>
         </article>
       </main>

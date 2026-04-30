@@ -16,14 +16,17 @@ import { ArrowRight } from "lucide-react";
 
 export async function generateMetadata(): Promise<Metadata> {
   const brand = getSiteBrand();
+  const url = `https://${brand.domain}/boardgames`;
   return {
     title: `Board Games | ${brand.siteName}`,
     description:
       "Board game reviews, best-of lists, head-to-head comparisons, and how-to-play guides.",
+    alternates: { canonical: url },
     openGraph: {
       title: `Board Games | ${brand.siteName}`,
       description:
         "Board game reviews, best-of lists, head-to-head comparisons, and how-to-play guides.",
+      url,
       type: "website",
     },
   };
