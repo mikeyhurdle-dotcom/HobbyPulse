@@ -136,7 +136,7 @@ export const verticals: Record<string, VerticalConfig> = {
     description: "Race replays, setup guides, wheels, pedals, and rigs",
     brand: {
       siteName: "SimRaceWatch",
-      tagline: "Race replays, setup guides, and the best hardware deals",
+      tagline: "Hardware deals, setup guides, and race replays — from sim racers who post their lap times.",
       domain: "simracewatch.com",
       logo: "/simracewatch-logo.svg",
     },
