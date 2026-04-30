@@ -21,7 +21,6 @@ const allTabs: NavTab[] = [
   { name: "Setups", href: "/setups", key: "setups", icon: "⚙", verticalOnly: "simracing" },
   { name: "Deals", href: "/deals", key: "deals", icon: "£" },
   { name: "Blog", href: "/blog", key: "blog", icon: "✎" },
-  { name: "Live", href: "/live", key: "live", icon: "●" },
 ];
 
 export async function Nav({ active }: { active: string }) {
