@@ -16,16 +16,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = `https://${brand.domain}`;
 
   const isTabletop = config.slug === "tabletop";
-  // For TabletopWatch, miniatures content lives under /miniatures/*
-  const mp = isTabletop ? "/miniatures" : "";
 
   // Static routes
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: baseUrl, lastModified: new Date(), changeFrequency: "weekly", priority: 1.0 },
-    { url: `${baseUrl}${mp}/watch`, lastModified: new Date(), changeFrequency: "daily", priority: 0.9 },
+    { url: `${baseUrl}/watch`, lastModified: new Date(), changeFrequency: "daily", priority: 0.9 },
     { url: `${baseUrl}/deals`, lastModified: new Date(), changeFrequency: "daily", priority: 0.9 },
-    { url: `${baseUrl}${mp}/trending`, lastModified: new Date(), changeFrequency: "hourly", priority: 0.85 },
-    { url: `${baseUrl}${mp}/channels`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
+    { url: `${baseUrl}/trending`, lastModified: new Date(), changeFrequency: "hourly", priority: 0.85 },
+    { url: `${baseUrl}/channels`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
     { url: `${baseUrl}/releases`, lastModified: new Date(), changeFrequency: "daily", priority: 0.8 },
     { url: `${baseUrl}/blog`, lastModified: new Date(), changeFrequency: "daily", priority: 0.85 },
     { url: `${baseUrl}/live`, lastModified: new Date(), changeFrequency: "always", priority: 0.8 },
@@ -108,7 +106,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const channelRoutes: MetadataRoute.Sitemap = ((channels ?? []) as { name: string }[]).map(
     (c) => ({
-      url: `${baseUrl}${mp}/channels/${channelSlug(c.name)}`,
+      url: `${baseUrl}/channels/${channelSlug(c.name)}`,
       lastModified: new Date(),
       changeFrequency: "weekly" as const,
       priority: 0.6,
@@ -143,7 +141,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .select("youtube_video_id, published_at");
 
   const watchRoutes: MetadataRoute.Sitemap = (videos ?? []).map((v) => ({
-    url: `${baseUrl}${mp}/watch/${v.youtube_video_id}`,
+    url: `${baseUrl}/watch/${v.youtube_video_id}`,
     lastModified: v.published_at ? new Date(v.published_at) : new Date(),
     changeFrequency: "weekly" as const,
     priority: 0.7,

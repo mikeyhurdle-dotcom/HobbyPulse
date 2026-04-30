@@ -94,18 +94,24 @@ function conditionColour(c: string): string {
 // Page
 // ---------------------------------------------------------------------------
 
-// Board game keywords — used to classify products into the "Board Games" tab
-const BOARD_GAME_KEYWORDS = [
-  "board game", "card game", "catan", "wingspan", "ticket to ride", "pandemic",
-  "azul", "spirit island", "terraforming mars", "7 wonders", "everdell", "scythe",
-  "gloomhaven", "root", "ark nova", "cascadia", "brass", "dune imperium",
-  "marvel champions", "cosmic encounter", "betrayal", "codenames",
-  "cooperative game", "strategy game", "party game", "dice game",
+// Warhammer / miniatures keywords — products matching ANY of these are
+// excluded from default views on TabletopWatch (miniatures cut, 2026-04-30).
+const MINIATURE_KEYWORDS = [
+  "warhammer", "40k", "40,000", "age of sigmar", "aos ", "kill team", "old world",
+  "space marine", "tyranid", "necron", "ork ", "orks", "aeldari", "eldar",
+  "death guard", "thousand sons", "adeptus", "tau ", "tau empire", "imperial knight",
+  "chaos space marine", "world eater", "custodes", "grey knight",
+  "intercessor", "terminator", "dreadnought", "wraithknight", "hive tyrant", "carnifex",
+  "stormcast", "gloomspite", "skaven", "ossiarch", "seraphon", "soulblight",
+  "lumineth", "orruk", "cities of sigmar", "slaves to darkness", "kharadron", "sylvaneth",
+  "kasrkin", "hunter clade", "bretonnia", "tomb kings", "empire of man", "beastmen",
+  "citadel paint", "contrast paint",
+  "mesbg", "middle-earth strategy",
 ];
 
-function isBoardGameProduct(name: string): boolean {
+function isMiniatureProduct(name: string): boolean {
   const lower = name.toLowerCase();
-  return BOARD_GAME_KEYWORDS.some((kw) => lower.includes(kw));
+  return MINIATURE_KEYWORDS.some((kw) => lower.includes(kw));
 }
 
 export default async function DealsPage({
@@ -116,10 +122,9 @@ export default async function DealsPage({
     condition?: string;
     sort?: string;
     page?: string;
-    tab?: string;
   }>;
 }) {
-  const { q, condition, sort, page, tab } = await searchParams;
+  const { q, condition, sort, page } = await searchParams;
   const currentPage = Math.max(1, parseInt(page ?? "1", 10) || 1);
   const PAGE_SIZE = 48;
   const config = getSiteVertical();
@@ -151,13 +156,12 @@ export default async function DealsPage({
   const { data: rawProducts } = await query;
   let products = (rawProducts ?? []) as unknown as Product[];
 
-  // Filter by tab (TabletopWatch only — Board Games vs Miniatures)
+  // TabletopWatch is board-games-only post 2026-04-30 pivot.
+  // Filter out any miniatures / Warhammer products lingering from older
+  // scrapes so they never surface in default deals views.
   const isTabletop = config.slug === "tabletop";
-  const activeTab = isTabletop ? (tab ?? "all") : "all";
-  if (activeTab === "boardgames") {
-    products = products.filter((p) => isBoardGameProduct(p.name));
-  } else if (activeTab === "miniatures") {
-    products = products.filter((p) => !isBoardGameProduct(p.name));
+  if (isTabletop) {
+    products = products.filter((p) => !isMiniatureProduct(p.name));
   }
 
   // Filter by condition if specified
@@ -256,29 +260,6 @@ export default async function DealsPage({
           </Link>
         </div>
 
-        {/* Tab row — Board Games / Miniatures (TabletopWatch only) */}
-        {isTabletop && (
-          <nav className="mb-6 flex gap-1 border-b border-border" aria-label="Product category">
-            {[
-              { key: "all", label: "All" },
-              { key: "boardgames", label: "Board Games" },
-              { key: "miniatures", label: "Miniatures" },
-            ].map((t) => (
-              <Link
-                key={t.key}
-                href={`/deals${t.key === "all" ? "" : `?tab=${t.key}`}`}
-                className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
-                  activeTab === t.key
-                    ? "border-[var(--vertical-accent)] text-foreground"
-                    : "border-transparent text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {t.label}
-              </Link>
-            ))}
-          </nav>
-        )}
-
         {/* Category chip row — each chip is an SEO-indexable landing page */}
         {topCategories.length > 0 && (
           <nav className="mb-6" aria-label="Browse by category">
@@ -308,7 +289,9 @@ export default async function DealsPage({
             className="flex-1 min-w-[200px] rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-sm text-[var(--foreground)] placeholder:text-[var(--muted)] focus:outline-none focus:ring-2 focus:ring-[var(--vertical-accent)] focus:border-transparent"
           />
 
-          {/* Condition — show miniatures-specific options only when not filtering board games */}
+          {/* Condition — board-game-only post pivot, so miniatures conditions
+              (NOS, painted) only appear on SimRaceWatch never; on tabletop we
+              only show new/used. */}
           <select
             name="condition"
             defaultValue={condition ?? "all"}
@@ -317,8 +300,6 @@ export default async function DealsPage({
             <option value="all">All Conditions</option>
             <option value="new">New</option>
             <option value="used">Used</option>
-            {activeTab !== "boardgames" && <option value="nos">New on Sprue</option>}
-            {activeTab !== "boardgames" && <option value="painted">Painted</option>}
           </select>
 
           {/* Sort */}

@@ -126,11 +126,7 @@ export async function POST(request: NextRequest) {
   }
 
   // --- Full seed from vertical config (uses search API) ---
-  // Seeds primary channels plus any niche subset (e.g. miniatureChannels for tabletop).
-  const channelNames = [
-    ...siteVertical.channels,
-    ...(siteVertical.miniatureChannels ?? []),
-  ];
+  const channelNames = [...siteVertical.channels];
   const results: { name: string; status: string; channelId?: string }[] = [];
 
   for (const channelName of channelNames) {

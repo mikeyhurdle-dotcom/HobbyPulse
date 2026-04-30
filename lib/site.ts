@@ -34,3 +34,17 @@ export function getSiteVertical(): VerticalConfig {
 export function getSiteBrand(): VerticalBrand {
   return getSiteVertical().brand;
 }
+
+/**
+ * SimRaceWatch was sunset on 2026-04-30 per the strategic pivot
+ * (`bot/COMPETITIVE-VIABILITY-2026-04-30.md`). Content-generation crons
+ * (youtube ingest, parse, transcripts, discover, live) should no-op when
+ * the deployment vertical is `simracing`. The deals scraper still runs
+ * (kept passive on free tier — data preserved as optionality).
+ *
+ * To unsunset: remove the `isSrwSunset()` guard from the affected crons
+ * (or flip this function to always return false).
+ */
+export function isSrwSunset(): boolean {
+  return getSiteVertical().slug === "simracing";
+}

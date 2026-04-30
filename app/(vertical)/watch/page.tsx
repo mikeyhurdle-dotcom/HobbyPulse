@@ -24,7 +24,7 @@ export function generateMetadata(): Metadata {
   const title = isSimRacing ? "Races & Replays" : "Videos";
   const description = isSimRacing
     ? "Race replays, onboards, and setup guides from the sim racing community."
-    : "Board game reviews, how-to-play guides, miniatures battle reports, and tabletop video from across the hobby.";
+    : "Board game reviews, how-to-play guides, and tabletop video from across the hobby.";
   const url = `https://${brand.domain}/watch`;
   return {
     title,
@@ -314,7 +314,7 @@ export default async function WatchPage({
           <p className="text-sm text-muted-foreground">
             {isSimRacing
               ? "Race replays, onboards, and setup guides from the sim racing community."
-              : "Board game reviews, how-to-play guides, miniatures content, and tabletop video from across the hobby."}
+              : "Board game reviews, how-to-play guides, and tabletop video from across the hobby."}
           </p>
         </div>
 

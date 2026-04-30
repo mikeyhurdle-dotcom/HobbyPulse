@@ -14,7 +14,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { searchStreamsByGame } from "@/lib/twitch";
 import { searchLiveStreams } from "@/lib/youtube-live";
-import { getSiteVertical } from "@/lib/site";
+import { getSiteVertical, isSrwSunset } from "@/lib/site";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -34,6 +34,11 @@ export async function GET(request: NextRequest) {
   const authHeader = request.headers.get("authorization");
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // SUNSET 2026-04-30 per pivot decision — SRW live-stream tracking halted.
+  if (isSrwSunset()) {
+    return NextResponse.json({ ok: true, skipped: true, reason: "SRW sunset 2026-04-30" });
   }
 
   const supabase = getAdminClient();

@@ -27,37 +27,33 @@ export interface Scraper {
 // Re-export all scrapers
 // ---------------------------------------------------------------------------
 
-import { ElementGamesScraper } from "./element-games";
 import { WaylandGamesScraper } from "./wayland-games";
-import { TrollTraderScraper } from "./troll-trader";
 import { ShopifyScraper } from "./shopify";
-import { MagicMadhouseScraper } from "./magic-madhouse";
 
-export { ElementGamesScraper, WaylandGamesScraper, TrollTraderScraper, ShopifyScraper, MagicMadhouseScraper };
+export { WaylandGamesScraper, ShopifyScraper };
 
 /**
  * Get all scrapers for a given vertical.
  * Returns only scrapers relevant to that vertical's retailer list.
+ *
+ * 2026-04-30 pivot: TabletopWatch is board-games-only. Element Games,
+ * Troll Trader, and Magic Madhouse (which only scrapes
+ * /brands/games-workshop/) were removed because they're Warhammer-only
+ * sources. Wayland Games covers board games too and stays — currently
+ * disabled by Cloudflare 403 anyway, re-enable when a feed is available.
  */
 export function getScrapersForVertical(vertical: string): Scraper[] {
   if (vertical === "tabletop") {
     return [
-      new ElementGamesScraper(),
       new WaylandGamesScraper(),
-      new TrollTraderScraper(),
-      // Goblin Gaming — Shopify, UK GW discounter. Added 2026-04-09 ahead of
-      // affiliate application so we can demonstrate existing traffic.
+      // Goblin Gaming — Shopify, UK board-game retailer. Search returns
+      // whatever matches the term, so board-game search terms only surface
+      // board-game stock.
       new ShopifyScraper({
         name: "Goblin Gaming",
         baseUrl: "https://www.goblingaming.co.uk",
         currency: "GBP",
       }),
-      // Magic Madhouse — BigCommerce, scrapes /brands/games-workshop/.
-      // Added 2026-04-09 to expand retailer coverage before applying to
-      // their affiliate programme. Search is client-rendered so we can't
-      // use keyword-based search; instead we cache the full GW brand
-      // catalogue per invocation and filter in-memory.
-      new MagicMadhouseScraper(),
     ];
   }
 
