@@ -65,7 +65,7 @@
       "schedule": "0 8 * * 0"
     },
     {
-      "path": "/api/cron/board-game-content",
+      "path": "/api/cron/board-game-transcripts",
       "schedule": "15 6 * * *"
     }
   ]
