@@ -10,7 +10,7 @@ tags:
   - hardware guide
   - direct drive
   - upgrade
-draft: true
+draft: false
 ---
 
 If you’re shopping sim-racing hardware this week, the signal is mixed:
@@ -84,19 +84,6 @@ For buyers, that can be good:
 ### Trade-off
 
 Higher ceiling hardware exposes setup mistakes faster. If your force curves, damping, or in-game gain are sloppy, premium hardware can feel worse until tuned.
-
-## Supabase Snapshot: Why This Is a “Compare, Don’t Rush” Week
-
-SimRaceWatch’s latest system checks show:
-
-- **483 products** tracked
-- **20/20 sampled products** with active listings
-- Retailer spread across **eBay, MOZA Racing, Trak Racer**
-- Fresh scrape cadence and active price-history recording
-
-Translation: market coverage is good. You can compare calmly.
-
-The same check also flags stale zones (**28 products with 0 listings**), which is exactly why blind one-click buying is risky. Always verify listing depth on the exact SKU before checkout.
 
 ## Concrete Scenario: Who Gains Most From Upgrading This Month
 
